@@ -1,43 +1,95 @@
 import { ErrorMapper } from "utils/ErrorMapper";
+import { Kernel } from "OS/Kernel";
+import { Scheduler } from "OS/Scheduler";
+import { Logger, LogLevel } from "./utils/Logger"
 
 declare global {
-  /*
-    Example types, expand on these or remove them and add your own.
-    Note: Values, properties defined here do no fully *exist* by this type definiton alone.
-          You must also give them an implemention if you would like to use them. (ex. actually setting a `role` property in a Creeps memory)
+  interface CreepMemory {
+    processId: string
+    role: string
+    room: string
+    targetPackedPos: number
+    working: boolean
+  }
 
-    Types added in this `global` block are in an ambient, global context. This is needed because `main.ts` is a module file (uses import or export).
-    Interfaces matching on name from @types/screeps will be merged. This is how you can extend the 'built-in' interfaces from @types/screeps.
-  */
-  // Memory extension samples
   interface Memory {
     uuid: number;
     log: any;
   }
 
-  interface CreepMemory {
-    role: string;
-    room: string;
-    working: boolean;
-  }
-
-  // Syntax for adding proprties to `global` (ex "global.log")
   namespace NodeJS {
     interface Global {
-      log: any;
+      log: any
+      kernel: Kernel
+      scheduler: Scheduler
+    }
+  }
+
+  interface Room {
+    harvestersCount: number
+  }
+}
+
+export const loop = ErrorMapper.wrapLoop(() => {
+  clearConsole()
+  setup()
+  boot()
+  execute()
+  end()
+  loggingProcess()
+});
+
+function setup() {
+  // DEV MODE LOGGING
+  Logger.devLogLevel = LogLevel.INFO
+  if (!global.kernel) {
+    Logger.log("Building new kernel.", LogLevel.DEBUG)
+    global.kernel = new Kernel()
+  }
+  if (!global.scheduler) {
+    Logger.log("Building new scheduler.", LogLevel.DEBUG)
+    global.scheduler = new Scheduler()
+  }
+}
+
+function boot () {
+  global.kernel.loadMemory()
+  global.kernel.loadProcesses()
+  global.kernel.sortProcesses()
+}
+
+function execute() {
+  global.kernel.executeProcesses()
+}
+
+function end() {
+  //Serialize the Kernel to memory.
+}
+
+function displaySimpleStats() {
+  console.log()
+  console.log("============== CPU STATS ==============")
+  console.log("Used: " + Game.cpu.getUsed())
+  console.log("Bucket: " + Game.cpu.bucket)
+  console.log()
+}
+
+function loggingProcess() {
+  displaySimpleStats()
+  if (Logger.devLogLevel == LogLevel.DEBUG ||
+    Logger.devLogLevel == LogLevel.ALL ||
+    Logger.devLogLevel == LogLevel.INFO) {
+    console.log("============== PROCESSES ==============")
+    console.log("Avg Queue Cpu Cost: " + global.kernel.estimatedQueueCpuCost())
+    console.log()
+    for (let [, value] of global.scheduler.processQueue) {
+      console.log(value.toString())
     }
   }
 }
 
-// When compiling TS to JS and bundling with rollup, the line numbers and file names in error messages change
-// This utility uses source maps to get the line numbers and file names of the original, TS source code
-export const loop = ErrorMapper.wrapLoop(() => {
-  console.log(`Current game tick is ${Game.time}`);
-
-  // Automatically delete memory of missing creeps
-  for (const name in Memory.creeps) {
-    if (!(name in Game.creeps)) {
-      delete Memory.creeps[name];
-    }
+function clearConsole() {
+  for (let i = 0; i < 100; i++) {
+    console.log()
   }
-});
+}
