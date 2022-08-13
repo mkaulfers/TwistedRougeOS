@@ -2,7 +2,7 @@ import { Process, ProcessPriority, ProcessResult } from "Models/Process"
 import { Logger, LogLevel } from "utils/Logger"
 
 export function loadMemoryProcesses(): void | ProcessResult {
-    let process = new Process('cleanupMemoryProcess', ProcessPriority.INDIFFERENT, cleanupMemory)
+    let process = new Process('cleanup_memory', ProcessPriority.INDIFFERENT, cleanupMemory)
     global.scheduler.addProcess(process)
 }
 
