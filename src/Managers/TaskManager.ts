@@ -1,6 +1,7 @@
 import { Process, ProcessPriority, ProcessResult } from "Models/Process"
 import { Task } from "utils/Enums"
 import { Logger, LogLevel } from "utils/Logger"
+import { Utility } from "utils/Utilities"
 
 
 Room.prototype.scheduleTasks = function () {
@@ -49,7 +50,7 @@ function scheduleCreepTask(room: Room) {
 }
 
 /**
- * 
+ *
  * @param creep creep to schedule task for.
  */
 function harvesterEarlyTask(creep: Creep) {
@@ -89,6 +90,19 @@ function harvesterSource(creep: Creep) {
 
     const sourceTask = () => {
         let creep = Game.creeps[creepId]
+        let sourcePos = Utility.findPosForSource(creep)
+        let source = sourcePos?.findInRange(FIND_SOURCES, 2)[0]
+
+        if (source) {
+            let result = creep.harvest(source)
+            if (result == ERR_NOT_IN_RANGE) {
+                creep.moveTo(source)
+            } else {
+                return ProcessResult.FAILED
+            }
+        }
+
+        return ProcessResult.RUNNING
     }
 
     let newProcess = new Process(creepId, ProcessPriority.LOW, sourceTask)
