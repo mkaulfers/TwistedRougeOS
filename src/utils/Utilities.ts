@@ -123,4 +123,35 @@ export class Utility {
         }
         return
     }
+
+    /**
+     * Description: Finds a position in the room that is at a source, not a wall, and the position is closest to the creep.
+     * @param creep the creep to find a source position for.
+     * @returns a room position that is a valid source position for the creep, or undefined if no valid position was found.
+     */
+    static findPosForSource(creep: Creep): RoomPosition | undefined {
+        let sources = creep.room.find(FIND_SOURCES)
+        for (let source of sources) {
+            let creeps = source.pos.findInRange(FIND_MY_CREEPS, 1)
+            if (creeps.length == 0) {
+                let nearbyPositions = []
+                for (let x = source.pos.x - 1; x <= source.pos.x + 1; x++) {
+                    for (let y = source.pos.y - 1; y <= source.pos.y + 1; y++) {
+                        nearbyPositions.push({x: x, y: y})
+                    }
+                }
+
+                let validPositions = nearbyPositions.filter(m => Game.map.getRoomTerrain(creep.room.name).get(m.x, m.y) != TERRAIN_MASK_WALL)
+                let closestPosition = validPositions[0]
+                for (let i = 0; i < validPositions.length; i++) {
+                    let position = validPositions[i]
+                    if (creep.pos.getRangeTo(position.x, position.y) < creep.pos.getRangeTo(closestPosition.x, closestPosition.y)) {
+                        closestPosition = position
+                    }
+                }
+                return new RoomPosition(closestPosition.x, closestPosition.y, creep.room.name)
+            }
+        }
+        return
+    }
 }

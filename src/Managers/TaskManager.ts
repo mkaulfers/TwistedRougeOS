@@ -1,4 +1,4 @@
-import { Process, ProcessPriority } from "Models/Process"
+import { Process, ProcessPriority, ProcessResult } from "Models/Process"
 import { Task } from "utils/Enums"
 import { Logger, LogLevel } from "utils/Logger"
 
@@ -48,11 +48,36 @@ function scheduleCreepTask(room: Room) {
     }
 }
 
+/**
+ * 
+ * @param creep creep to schedule task for.
+ */
 function harvesterEarlyTask(creep: Creep) {
     let creepId = creep.id
 
     const earlyTask = () => {
         let creep = Game.creeps[creepId]
+        let sources = Game.rooms[creep.room.name].find(FIND_SOURCES)
+        let closestSource = creep.pos.findClosestByPath(sources)
+        let lowestEnergySpawn = Game.rooms[creep.room.name].find(FIND_MY_SPAWNS).sort((a, b) => a.store.energy - b.store.energy)[0]
+
+        if (creep.store.energy == creep.store.getCapacity() && lowestEnergySpawn.store.energy < lowestEnergySpawn.store.getCapacity()!) {
+            let result = creep.transfer(Game.spawns[creep.room.name], RESOURCE_ENERGY)
+            if (result == ERR_NOT_IN_RANGE) {
+                creep.moveTo(Game.spawns[creep.room.name])
+            } else {
+                return ProcessResult.FAILED
+            }
+        } else if (closestSource) {
+            let result = creep.harvest(closestSource)
+            if (result == ERR_NOT_IN_RANGE) {
+                creep.moveTo(closestSource)
+            } else {
+                return ProcessResult.FAILED
+            }
+        }
+
+        return ProcessResult.RUNNING
     }
 
     let newProcess = new Process(creepId, ProcessPriority.LOW, earlyTask)
