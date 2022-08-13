@@ -5,7 +5,7 @@ export class Scheduler {
     pausedProcesses: Map<string, Process>
 
     addProcess(process: Process): void | ProcessResult{
-        if (this.processQueue.has(process.id)) return ProcessResult.RUNNING
+        if (this.processQueue.has(process.id)) return ProcessResult.SUCCESS
         this.processQueue.set(process.id, process)
     }
 

@@ -6,9 +6,8 @@ import { Logger, LogLevel } from "./utils/Logger"
 declare global {
   interface CreepMemory {
     processId: string
+    task: string
     role: string
-    room: string
-    targetPackedPos: number
     working: boolean
   }
 
@@ -26,7 +25,7 @@ declare global {
   }
 
   interface Room {
-    harvestersCount: number
+    setupTasks(): void
   }
 }
 
