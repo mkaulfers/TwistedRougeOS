@@ -1,6 +1,41 @@
-import { Role, Task } from "../utils/Enums";
+import { Role, Task, ProcessResult, ProcessPriority } from "../utils/Enums";
 import { Logger, LogLevel } from "../utils/Logger";
 import { Utility } from "utils/Utilities";
+import { Process } from "../Models/Process";
+
+StructureSpawn.prototype.scheduleSpawn = function(role: Role) {
+    const spawnId = this.id
+    const name = generateNameFor(role)
+    const taskId = `spawn_task_${name}`
+
+    const spawnTask = () => {
+        const spawn = Game.getObjectById(spawnId) as StructureSpawn
+        const body = getBodyFor(spawn.room, role)
+        const task = generateTaskFor(role)
+
+        if (body.length > 0) {
+            let result = spawn.spawnCreep(body, name, {
+                memory: {
+                    role: role,
+                    task: task,
+                    working: false
+                }
+            })
+
+            if (result == ERR_BUSY || result == ERR_NOT_ENOUGH_ENERGY) {
+                return ProcessResult.INCOMPLETE
+            }
+
+            if (result == OK) {
+                return ProcessResult.SUCCESS
+            }
+        }
+        return ProcessResult.INCOMPLETE
+    }
+
+    let newProcess = new Process(taskId, ProcessPriority.LOW, spawnTask)
+    global.scheduler.addProcess(newProcess)
+}
 
 /**
  * ------------------------------------------------------------------
@@ -24,7 +59,7 @@ import { Utility } from "utils/Utilities";
  * ------------------------------------------------------------------
  */
 
-export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
+function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
     Logger.log("Spawn -> getBodyFor()", LogLevel.TRACE)
     let tempBody: BodyPartConstant[] = []
     let tempSegment: BodyPartConstant[] = []
@@ -88,10 +123,10 @@ function generateNameFor(role: Role) {
 /**
  * This will need to generate a task for the creeps memory to hold on to so that it knows what to do after spawning.
  */
-function generateTaskFor(role: Role): Task | undefined {
+function generateTaskFor(role: Role): Task {
     switch (role) {
         case Role.TRUCKER:
             break;
     }
-    return undefined
+    return Task.UNKNOWN_TASK
 }

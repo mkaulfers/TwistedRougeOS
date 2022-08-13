@@ -3,11 +3,11 @@ import { Kernel } from "OS/Kernel";
 import { Scheduler } from "OS/Scheduler";
 import { Logger, LogLevel } from "./utils/Logger"
 import "../src/Managers/TaskManager";
+import { Task, Role } from "utils/Enums";
 
 declare global {
   interface CreepMemory {
-    processId: string
-    task: string
+    task: Task
     role: string
     working: boolean
   }
@@ -27,6 +27,16 @@ declare global {
 
   interface Room {
     scheduleTasks(): void
+  }
+
+  interface StructureSpawn {
+    /**
+     * We should only call this once per creep we are adding to the queue.
+     * When it is called, it will add the creep to the scheduler, which will process it
+     * when it's ready. However we need to make sure that it's not called again for the same creep.
+     * @param role  role to spawn
+    */
+    scheduleSpawn(role: Role): void
   }
 }
 
