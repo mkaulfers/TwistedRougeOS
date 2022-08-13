@@ -2,6 +2,7 @@ import { ErrorMapper } from "utils/ErrorMapper";
 import { Kernel } from "OS/Kernel";
 import { Scheduler } from "OS/Scheduler";
 import { Logger, LogLevel } from "./utils/Logger"
+import "../src/Managers/TaskManager";
 
 declare global {
   interface CreepMemory {
@@ -25,7 +26,7 @@ declare global {
   }
 
   interface Room {
-    setupTasks(): void
+    scheduleTasks(): void
   }
 }
 

@@ -40,7 +40,7 @@ export class Kernel {
         for (let rmName in Game.rooms) {
             let room = Game.rooms[rmName]
             if (room.controller && room.controller.my) {
-                // room.loadOwnedProcesses()
+                room.scheduleTasks()
             } else if (room.controller) {
                 // room.loadOwnedProcesses()
             } else {
