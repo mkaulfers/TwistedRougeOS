@@ -1,0 +1,147 @@
+import { Process, ProcessPriority } from "Models/Process"
+import { Task } from "utils/Enums"
+import { Logger, LogLevel } from "utils/Logger"
+
+
+Room.prototype.setupTasks = function() {
+    Logger.log("Room -> setupTasks()", LogLevel.TRACE)
+    generateCreepTask(this)
+}
+
+function generateCreepTask(room: Room) {
+    let creeps = _.filter(Game.creeps, (c) => c.room.name === room.name)
+    for(let i = 0; i < creeps.length; i++) {
+        let creep = creeps[i]
+
+        if (global.scheduler.processQueue.has(creep.id)) { return }
+
+        switch (creep.memory.task as Task) {
+            case Task.HARVESTER_EARLY:
+                harvesterEarlyTask(creep)
+                break
+            case Task.HARVESTER_SOURCE:
+                harvesterSource(creep)
+                break
+            case Task.TRUCKER_HARVESTER:
+                truckerHarvester(creep)
+                break
+            case Task.TRUCKER_SCIENTIST:
+                truckerScientist(creep)
+                break
+            case Task.TRUCKER_STORAGE:
+                truckerStorage(creep)
+                break
+            case Task.SCIENTIST_UPGRADING:
+                scientistUpgrading(creep)
+                break
+            case Task.ENGINEER_BUILDING:
+                engineerBuilding(creep)
+                break
+            case Task.ENGINEER_REPAIRING:
+                engineerRepairing(creep)
+                break
+            case Task.ENGINEER_UPGRADING:
+                engineerUpgrading(creep)
+                break
+        }
+    }
+}
+
+function harvesterEarlyTask(creep: Creep) {
+    let creepId = creep.id
+
+    const earlyTask = () => {
+        let creep = Game.creeps[creepId]
+    }
+
+    let newProcess = new Process(creepId, ProcessPriority.LOW, earlyTask)
+    global.scheduler.addProcess(newProcess)
+}
+
+function harvesterSource(creep: Creep) {
+    let creepId = creep.id
+
+    const sourceTask = () => {
+        let creep = Game.creeps[creepId]
+    }
+
+    let newProcess = new Process(creepId, ProcessPriority.LOW, sourceTask)
+    global.scheduler.addProcess(newProcess)
+}
+
+function truckerHarvester(creep: Creep) {
+    let creepId = creep.id
+
+    const harvesterTask = () => {
+        let creep = Game.creeps[creepId]
+    }
+
+    let newProcess = new Process(creepId, ProcessPriority.LOW, harvesterTask)
+    global.scheduler.addProcess(newProcess)
+}
+
+function truckerScientist(creep: Creep) {
+    let creepId = creep.id
+
+    const scientistTask = () => {
+        let creep = Game.creeps[creepId]
+    }
+
+    let newProcess = new Process(creepId, ProcessPriority.LOW, scientistTask)
+    global.scheduler.addProcess(newProcess)
+}
+
+function truckerStorage(creep: Creep) {
+    let creepId = creep.id
+
+    const storageTask = () => {
+        let creep = Game.creeps[creepId]
+    }
+
+    let newProcess = new Process(creepId, ProcessPriority.LOW, storageTask)
+    global.scheduler.addProcess(newProcess)
+}
+
+function scientistUpgrading(creep: Creep) {
+    let creepId = creep.id
+
+    const upgradingTask = () => {
+        let creep = Game.creeps[creepId]
+    }
+
+    let newProcess = new Process(creepId, ProcessPriority.LOW, upgradingTask)
+    global.scheduler.addProcess(newProcess)
+}
+
+function engineerBuilding(creep: Creep) {
+    let creepId = creep.id
+
+    const buildingTask = () => {
+        let creep = Game.creeps[creepId]
+    }
+
+    let newProcess = new Process(creepId, ProcessPriority.LOW, buildingTask)
+    global.scheduler.addProcess(newProcess)
+}
+
+function engineerRepairing(creep: Creep) {
+    let creepId = creep.id
+
+    const repairingTask = () => {
+        let creep = Game.creeps[creepId]
+    }
+
+    let newProcess = new Process(creepId, ProcessPriority.LOW, repairingTask)
+    global.scheduler.addProcess(newProcess)
+}
+
+function engineerUpgrading(creep: Creep) {
+    let creepId = creep.id
+
+    const upgradingTask = () => {
+        let creep = Game.creeps[creepId]
+    }
+
+    let newProcess = new Process(creepId, ProcessPriority.LOW, upgradingTask)
+    global.scheduler.addProcess(newProcess)
+}
