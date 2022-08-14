@@ -1,5 +1,5 @@
-import { Process, ProcessPriority } from "Models/Process"
-import { Task } from "utils/Enums"
+import { Process } from "Models/Process"
+import { Task, ProcessPriority } from "utils/Enums"
 import { Logger, LogLevel } from "utils/Logger"
 
 

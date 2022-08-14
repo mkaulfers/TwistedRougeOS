@@ -1,6 +1,7 @@
-import { Process, ProcessPriority, ProcessResult } from "Models/Process"
+import { Process } from "Models/Process"
 import { loadMemoryProcesses } from "Extensions/Memory"
 import { Logger, LogLevel } from "utils/Logger"
+import { ProcessPriority, ProcessResult } from "utils/Enums"
 
 export class Kernel {
     executeProcesses() {
@@ -14,7 +15,7 @@ export class Kernel {
                 case ProcessResult.SUCCESS:
                     global.scheduler.removeProcess(value.id)
                     break
-                case ProcessResult.FAILED || ProcessResult.INCOMPLETE:
+                case ProcessResult.FAILED:
                     global.scheduler.increaseProcessPriorityFor(value.id)
                     break
             }
