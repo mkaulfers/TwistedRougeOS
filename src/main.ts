@@ -2,12 +2,13 @@ import { ErrorMapper } from "utils/ErrorMapper";
 import { Kernel } from "OS/Kernel";
 import { Scheduler } from "OS/Scheduler";
 import { Logger, LogLevel } from "./utils/Logger"
+import { Role } from "./utils/Enums";
 import "../src/Managers/TaskManager";
-import { Task, Role } from "utils/Enums";
 
 declare global {
   interface CreepMemory {
-    task: Task
+    processId: string
+    task: string
     role: string
     working: boolean
   }
@@ -27,6 +28,12 @@ declare global {
 
   interface Room {
     scheduleTasks(): void
+
+    shouldSpawnEngineer(): boolean
+    shouldSpawnHarvester(): boolean
+    shouldSpawnScientist(): boolean
+    shouldSpawnTrucker(): boolean
+    roleToPreSpawn(): Role
   }
 
   interface StructureSpawn {
@@ -37,6 +44,18 @@ declare global {
      * @param role  role to spawn
     */
     scheduleSpawn(role: Role): void
+
+    /**
+     * Returns a boolean value indicating whether a role should be spawned.
+     * @param role checks to see if provided role should be spawned.
+     */
+    shouldSpawn(role: Role): boolean
+
+    /**
+     * Returns a role that should be pre-spawned. The spawn should be scheduled for when a
+     * creep is about to die + distance to location - spawn time = 0.
+     */
+    roleToPreSpawn(): Role
   }
 }
 

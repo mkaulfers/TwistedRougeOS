@@ -1,7 +1,6 @@
-import { Process } from "Models/Process"
-import { loadMemoryProcesses } from "Extensions/Memory"
+import { Process, ProcessPriority, ProcessResult } from "Models/Process"
 import { Logger, LogLevel } from "utils/Logger"
-import { ProcessPriority, ProcessResult } from "utils/Enums"
+import { Utility } from "utils/Utilities"
 
 export class Kernel {
     executeProcesses() {
@@ -15,7 +14,7 @@ export class Kernel {
                 case ProcessResult.SUCCESS:
                     global.scheduler.removeProcess(value.id)
                     break
-                case ProcessResult.FAILED:
+                case ProcessResult.FAILED || ProcessResult.INCOMPLETE:
                     global.scheduler.increaseProcessPriorityFor(value.id)
                     break
             }
@@ -36,7 +35,7 @@ export class Kernel {
 
     loadProcesses() {
         Logger.log("Kernel -> loadProcesses()", LogLevel.TRACE)
-        loadMemoryProcesses()
+        Utility.loadMemoryProcesses()
 
         for (let rmName in Game.rooms) {
             let room = Game.rooms[rmName]

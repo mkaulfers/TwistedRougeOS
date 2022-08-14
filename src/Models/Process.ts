@@ -1,5 +1,3 @@
-import { ProcessPriority, ProcessResult} from "../utils/Enums"
-
 export class Process {
     id: string
     run: () => ProcessResult
@@ -56,4 +54,20 @@ export class Process {
     toString() {
         return `Process ID:       | ${this.id}\nCurrent Priority: | ${this.currentPriority}\nCPU Used:         | ${this.getAvgCpuUsed()}\n`
     }
+}
+
+export enum ProcessPriority {
+    CRITICAL = 'Critical',
+    HIGH = 'High',
+    MEDIUM_HIGH = 'Medium High',
+    MEDIUM = 'Medium',
+    MEDIUM_LOW = 'Medium Low',
+    LOW = 'Low',
+    INDIFFERENT = 'Indifferent'
+}
+
+export enum ProcessResult {
+    SUCCESS = "SUCCESS",
+    FAILED = "FAILED",
+    INCOMPLETE = "INCOMPLETE"
 }
