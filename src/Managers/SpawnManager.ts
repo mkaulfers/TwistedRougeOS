@@ -8,23 +8,62 @@ import { Utility } from "utils/Utilities";
  * ------------------------------------------------------------------
  */
 
- const baseEngBody: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
- const baseHarBody: BodyPartConstant[] = [MOVE, MOVE, WORK, WORK]
- const baseSciBody: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
- const baseTruBody: BodyPartConstant[] = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
+const baseEngBody: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
+const baseHarBody: BodyPartConstant[] = [MOVE, MOVE, WORK, WORK]
+const baseSciBody: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
+const baseTruBody: BodyPartConstant[] = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
 
- const engSegment: BodyPartConstant[] = [CARRY, WORK, WORK]
- const harSegment: BodyPartConstant[] = [WORK]
- const sciSegment: BodyPartConstant[] = [CARRY, WORK, WORK]
- const truSegment: BodyPartConstant[] = [CARRY, CARRY, MOVE]
+const engSegment: BodyPartConstant[] = [CARRY, WORK, WORK]
+const harSegment: BodyPartConstant[] = [WORK]
+const sciSegment: BodyPartConstant[] = [CARRY, WORK, WORK]
+const truSegment: BodyPartConstant[] = [CARRY, CARRY, MOVE]
 
- /**
- * ------------------------------------------------------------------
- * GENERATE BODY
- * ------------------------------------------------------------------
- */
+/**
+* ------------------------------------------------------------------
+* Spawn Flags
+* ------------------------------------------------------------------
+*/
 
-export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
+StructureSpawn.prototype.shouldSpawn = function (role: Role): boolean {
+    switch(role) {
+        case Role.ENGINEER:
+            return shouldSpawnEngineer(this)
+        case Role.HARVESTER:
+            return shouldSpawnHarvester(this)
+        case Role.SCIENTIST:
+            return shouldSpawnScientist(this)
+        case Role.TRUCKER:
+            return shouldSpawnTrucker(this)
+    }
+}
+
+StructureSpawn.prototype.roleToPreSpawn = function (): Role {
+    return Role.HARVESTER
+}
+
+function shouldSpawnEngineer(spawn: StructureSpawn): boolean {
+    return false
+}
+
+function shouldSpawnHarvester(spawn: StructureSpawn): boolean {
+    return false
+}
+
+function shouldSpawnScientist(spawn: StructureSpawn): boolean {
+    return false
+}
+
+function shouldSpawnTrucker(spawn: StructureSpawn): boolean {
+    return false
+}
+
+/**
+* ------------------------------------------------------------------
+* GENERATE BODY
+* ------------------------------------------------------------------
+*/
+
+function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
     Logger.log("Spawn -> getBodyFor()", LogLevel.TRACE)
     let tempBody: BodyPartConstant[] = []
     let tempSegment: BodyPartConstant[] = []
@@ -53,7 +92,7 @@ export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
         return []
     }
     if (baseCost <= room.energyAvailable) {
-        let additionalSegmentCount = Math.floor(( room.energyAvailable - baseCost) / bodyCost(tempSegment))
+        let additionalSegmentCount = Math.floor((room.energyAvailable - baseCost) / bodyCost(tempSegment))
         for (let i = 0; i < additionalSegmentCount && tempBody.length < 50; i++) {
             switch (role) {
                 case Role.HARVESTER:
@@ -74,7 +113,7 @@ export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
  * ------------------------------------------------------------------
  */
 
- function bodyCost(body: BodyPartConstant[]): number {
+function bodyCost(body: BodyPartConstant[]): number {
     let sum = 0;
     for (let i in body)
         sum += BODYPART_COST[body[i]];

@@ -1,3 +1,7 @@
+import { Process } from "../Models/Process";
+import { Logger, LogLevel } from "../utils/Logger";
+import { ProcessPriority, ProcessResult } from "../Models/Process";
+
 export class Utility {
     static packPosition(pos: RoomPosition): number {
         return pos.x * 50 + pos.y
@@ -122,5 +126,36 @@ export class Utility {
             iteration++
         }
         return
+    }
+
+    static loadMemoryProcesses(): void | ProcessResult {
+        let process = new Process('cleanup_memory', ProcessPriority.INDIFFERENT, this.cleanupMemory)
+        global.scheduler.addProcess(process)
+    }
+
+    static cleanupMemory = () => {
+        this.cleanupDeadCreeps()
+        this.cleanupDeadRooms()
+    }
+
+    static cleanupDeadCreeps() {
+        for (const name in Memory.creeps) {
+            if (!Game.creeps[name]) {
+                Logger.log(`Removing dead creep: ${name}`, LogLevel.INFO)
+                global.scheduler.removeProcess(Memory.creeps[name].processId)
+                delete Memory.creeps[name]
+            }
+        }
+        Logger.log(`No creep memory removed.`, LogLevel.TRACE)
+    }
+
+    static cleanupDeadRooms() {
+        for (const name in Memory.rooms) {
+            if (!Game.rooms[name]) {
+                Logger.log(`Removing dead room: ${name}`, LogLevel.INFO)
+                delete Memory.rooms[name]
+            }
+        }
+        Logger.log(`No room memory removed.`, LogLevel.TRACE)
     }
 }

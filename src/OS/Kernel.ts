@@ -1,6 +1,6 @@
 import { Process, ProcessPriority, ProcessResult } from "Models/Process"
-import { loadMemoryProcesses } from "Extensions/Memory"
 import { Logger, LogLevel } from "utils/Logger"
+import { Utility } from "utils/Utilities"
 
 export class Kernel {
     executeProcesses() {
@@ -35,7 +35,7 @@ export class Kernel {
 
     loadProcesses() {
         Logger.log("Kernel -> loadProcesses()", LogLevel.TRACE)
-        loadMemoryProcesses()
+        Utility.loadMemoryProcesses()
 
         for (let rmName in Game.rooms) {
             let room = Game.rooms[rmName]

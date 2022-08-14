@@ -2,6 +2,7 @@ import { ErrorMapper } from "utils/ErrorMapper";
 import { Kernel } from "OS/Kernel";
 import { Scheduler } from "OS/Scheduler";
 import { Logger, LogLevel } from "./utils/Logger"
+import { Role } from "./utils/Enums";
 import "../src/Managers/TaskManager";
 
 declare global {
