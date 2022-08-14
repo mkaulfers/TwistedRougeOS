@@ -55,7 +55,7 @@ function harvesterEarlyTask(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, earlyTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, earlyTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -66,7 +66,7 @@ function harvesterSource(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, sourceTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, sourceTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -77,7 +77,7 @@ function truckerHarvester(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, harvesterTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, harvesterTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -88,7 +88,7 @@ function truckerScientist(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, scientistTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, scientistTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -99,7 +99,7 @@ function truckerStorage(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, storageTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, storageTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -110,7 +110,7 @@ function scientistUpgrading(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, upgradingTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -121,7 +121,7 @@ function engineerBuilding(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, buildingTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, buildingTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -132,7 +132,7 @@ function engineerRepairing(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, repairingTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, repairingTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -143,7 +143,7 @@ function engineerUpgrading(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, upgradingTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
     global.scheduler.addProcess(newProcess)
 }
 

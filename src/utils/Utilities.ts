@@ -142,7 +142,7 @@ export class Utility {
         for (const name in Memory.creeps) {
             if (!Game.creeps[name]) {
                 Logger.log(`Removing dead creep: ${name}`, LogLevel.INFO)
-                global.scheduler.removeProcess(Memory.creeps[name].processId)
+                global.scheduler.removeProcess(Game.creeps[name].name)
                 delete Memory.creeps[name]
             }
         }
