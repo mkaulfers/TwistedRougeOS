@@ -1,7 +1,6 @@
-import { Process, ProcessPriority } from "Models/Process"
-import { Task } from "utils/Enums"
+import { Process } from "Models/Process"
+import { Task, ProcessPriority } from "utils/Enums"
 import { Logger, LogLevel } from "utils/Logger"
-
 
 Room.prototype.scheduleTasks = function () {
     Logger.log("Room -> setupTasks()", LogLevel.TRACE)
@@ -14,7 +13,12 @@ function scheduleCreepTask(room: Room) {
     let creeps = _.filter(Game.creeps, (c) => c.room.name === room.name)
     for (let i = 0; i < creeps.length; i++) {
         let creep = creeps[i]
-        if (global.scheduler.processQueue.has(creep.id)) { return }
+
+        /**
+         * TODO: This will need to change later when we switch tasks dynamically.
+         * TODO: Currently if you switch, the process will become stuck.
+         */
+        if (global.scheduler.processQueue.has(creep.name)) { return }
 
         switch (creep.memory.task as Task) {
             case Task.HARVESTER_EARLY:
@@ -55,7 +59,7 @@ function harvesterEarlyTask(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, earlyTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, earlyTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -66,7 +70,7 @@ function harvesterSource(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, sourceTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, sourceTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -77,7 +81,7 @@ function truckerHarvester(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, harvesterTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, harvesterTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -88,7 +92,7 @@ function truckerScientist(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, scientistTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, scientistTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -99,7 +103,7 @@ function truckerStorage(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, storageTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, storageTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -110,7 +114,7 @@ function scientistUpgrading(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, upgradingTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -121,7 +125,7 @@ function engineerBuilding(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, buildingTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, buildingTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -132,7 +136,7 @@ function engineerRepairing(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, repairingTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, repairingTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -143,7 +147,7 @@ function engineerUpgrading(creep: Creep) {
         let creep = Game.creeps[creepId]
     }
 
-    let newProcess = new Process(creepId, ProcessPriority.LOW, upgradingTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
     global.scheduler.addProcess(newProcess)
 }
 

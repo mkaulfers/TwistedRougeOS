@@ -1,8 +1,10 @@
-import { Process } from "../Models/Process";
-import { Logger, LogLevel } from "../utils/Logger";
-import { ProcessPriority, ProcessResult } from "../Models/Process";
-
 export class Utility {
+    static generateNameFor(creep: Creep) {
+        let roleShortName = creep.memory.role.substring(0, 2)
+        let shortGameTime = Game.time.toString().substring(Game.time.toString().length - 5, Game.time.toString().length - 1)
+        return `${roleShortName}_${shortGameTime}`
+    }
+
     static packPosition(pos: RoomPosition): number {
         return pos.x * 50 + pos.y
     }
@@ -128,34 +130,34 @@ export class Utility {
         return
     }
 
-    static loadMemoryProcesses(): void | ProcessResult {
-        let process = new Process('cleanup_memory', ProcessPriority.INDIFFERENT, this.cleanupMemory)
-        global.scheduler.addProcess(process)
-    }
+    /**
+     * Description: Finds a position in the room that is at a source, not a wall, and the position is closest to the creep.
+     * @param creep the creep to find a source position for.
+     * @returns a room position that is a valid source position for the creep, or undefined if no valid position was found.
+     */
+    static findPosForSource(creep: Creep): RoomPosition | undefined {
+        let sources = creep.room.find(FIND_SOURCES)
+        for (let source of sources) {
+            let creeps = source.pos.findInRange(FIND_MY_CREEPS, 1)
+            if (creeps.length == 0) {
+                let nearbyPositions = []
+                for (let x = source.pos.x - 1; x <= source.pos.x + 1; x++) {
+                    for (let y = source.pos.y - 1; y <= source.pos.y + 1; y++) {
+                        nearbyPositions.push({x: x, y: y})
+                    }
+                }
 
-    static cleanupMemory = () => {
-        this.cleanupDeadCreeps()
-        this.cleanupDeadRooms()
-    }
-
-    static cleanupDeadCreeps() {
-        for (const name in Memory.creeps) {
-            if (!Game.creeps[name]) {
-                Logger.log(`Removing dead creep: ${name}`, LogLevel.INFO)
-                global.scheduler.removeProcess(Memory.creeps[name].processId)
-                delete Memory.creeps[name]
+                let validPositions = nearbyPositions.filter(m => Game.map.getRoomTerrain(creep.room.name).get(m.x, m.y) != TERRAIN_MASK_WALL)
+                let closestPosition = validPositions[0]
+                for (let i = 0; i < validPositions.length; i++) {
+                    let position = validPositions[i]
+                    if (creep.pos.getRangeTo(position.x, position.y) < creep.pos.getRangeTo(closestPosition.x, closestPosition.y)) {
+                        closestPosition = position
+                    }
+                }
+                return new RoomPosition(closestPosition.x, closestPosition.y, creep.room.name)
             }
         }
-        Logger.log(`No creep memory removed.`, LogLevel.TRACE)
-    }
-
-    static cleanupDeadRooms() {
-        for (const name in Memory.rooms) {
-            if (!Game.rooms[name]) {
-                Logger.log(`Removing dead room: ${name}`, LogLevel.INFO)
-                delete Memory.rooms[name]
-            }
-        }
-        Logger.log(`No room memory removed.`, LogLevel.TRACE)
+        return
     }
 }
