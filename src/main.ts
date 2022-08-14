@@ -28,6 +28,12 @@ declare global {
 
   interface Room {
     scheduleTasks(): void
+
+    shouldSpawnEngineer(): boolean
+    shouldSpawnHarvester(): boolean
+    shouldSpawnScientist(): boolean
+    shouldSpawnTrucker(): boolean
+    roleToPreSpawn(): Role
   }
 
   interface StructureSpawn {
