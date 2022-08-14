@@ -63,9 +63,9 @@ function harvesterEarlyTask(creep: Creep) {
         let lowestEnergySpawn = Game.rooms[creep.room.name].find(FIND_MY_SPAWNS).sort((a, b) => a.store.energy - b.store.energy)[0]
 
         if (creep.store.energy == creep.store.getCapacity() && lowestEnergySpawn.store.energy < lowestEnergySpawn.store.getCapacity()!) {
-            let result = creep.transfer(Game.spawns[creep.room.name], RESOURCE_ENERGY)
+            let result = creep.transfer(lowestEnergySpawn, RESOURCE_ENERGY)
             if (result == ERR_NOT_IN_RANGE) {
-                creep.moveTo(Game.spawns[creep.room.name])
+                creep.moveTo(lowestEnergySpawn)
             } else {
                 return ProcessResult.FAILED
             }
