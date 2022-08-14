@@ -1,0 +1,36 @@
+{
+  "mmo": {
+    "token": "f158ff07-0409-43ce-9fa4-28efa08a62fa",
+    "protocol": "https",
+    "hostname": "screeps.com",
+    "port": 443,
+    "path": "/",
+    "branch": "default"
+  },
+  "mmo-test": {
+    "token": "f158ff07-0409-43ce-9fa4-28efa08a62fa",
+    "protocol": "https",
+    "hostname": "screeps.com",
+    "port": 443,
+    "path": "/",
+    "branch": "test"
+  },
+  "xtwistedx": {
+    "email": "xTwisteDx",
+    "password": "ensign102",
+    "protocol": "http",
+    "hostname": "10.0.0.138",
+    "port": "21025",
+    "path": "/",
+    "branch": "pserver"
+  },
+  "rougeayrn": {
+    "email": "rougeayrn",
+    "password": "Password1234",
+    "protocol": "http",
+    "hostname": "screeps.xtwistedx.com",
+    "port": "21025",
+    "path": "/",
+    "branch": "pserver"
+  }
+}
