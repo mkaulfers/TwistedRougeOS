@@ -1,5 +1,6 @@
-import { Process, ProcessPriority, ProcessResult } from "Models/Process"
+import { Process } from "Models/Process"
 import { Logger, LogLevel } from "utils/Logger"
+import { ProcessPriority, ProcessResult } from "utils/Enums"
 
 export function loadMemoryProcesses(): void | ProcessResult {
     let process = new Process('cleanup_memory', ProcessPriority.INDIFFERENT, cleanupMemory)
@@ -15,7 +16,7 @@ function cleanupDeadCreeps() {
     for (const name in Memory.creeps) {
         if (!Game.creeps[name]) {
             Logger.log(`Removing dead creep: ${name}`, LogLevel.INFO)
-            global.scheduler.removeProcess(Memory.creeps[name].processId)
+            global.scheduler.removeProcess(Memory.creeps[name].taskId)
             delete Memory.creeps[name]
         }
     }

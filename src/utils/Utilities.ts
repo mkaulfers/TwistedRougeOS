@@ -1,4 +1,10 @@
 export class Utility {
+    static generateNameFor(creep: Creep) {
+        let roleShortName = creep.memory.role.substring(0, 2)
+        let shortGameTime = Game.time.toString().substring(Game.time.toString().length - 5, Game.time.toString().length - 1)
+        return `${roleShortName}_${shortGameTime}`
+    }
+
     static packPosition(pos: RoomPosition): number {
         return pos.x * 50 + pos.y
     }
