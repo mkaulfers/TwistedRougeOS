@@ -4,12 +4,14 @@ import { Utility } from "utils/Utilities";
 import { Process } from "../Models/Process";
 
 StructureSpawn.prototype.scheduleSpawn = function(role: Role) {
-    const spawnId = this.id
+    const spawnId: Id<StructureSpawn> = this.id
     const name = generateNameFor(role)
     const taskId = `spawn_task_${name}`
 
     const spawnTask = () => {
-        const spawn = Game.getObjectById(spawnId) as StructureSpawn
+        const spawn = Game.getObjectById(spawnId)
+        if (!spawn) { return ProcessResult.FAILED }
+
         const body = getBodyFor(spawn.room, role)
         const task = generateTaskFor(role)
 
