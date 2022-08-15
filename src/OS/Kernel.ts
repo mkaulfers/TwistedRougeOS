@@ -15,8 +15,13 @@ export class Kernel {
                 case ProcessResult.SUCCESS:
                     global.scheduler.removeProcess(value.id)
                     break
-                case ProcessResult.FAILED || ProcessResult.INCOMPLETE:
+                case ProcessResult.FAILED:
+                    Logger.log(`Process ${value.id} failed.`, LogLevel.FATAL)
+                case ProcessResult.INCOMPLETE:
                     global.scheduler.increaseProcessPriorityFor(value.id)
+                    break
+                case ProcessResult.RUNNING:
+                    global.scheduler.resetProcessPriorityFor(value.id)
                     break
             }
         }

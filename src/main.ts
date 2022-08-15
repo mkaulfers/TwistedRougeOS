@@ -11,6 +11,8 @@ declare global {
     task: string
     role: string
     working: boolean
+    target?: Id<any>
+    homeRoom: string
   }
 
   interface Memory {
