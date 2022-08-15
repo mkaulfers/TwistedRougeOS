@@ -17,7 +17,7 @@ export function truckerHarvester(creep: Creep) {
         }
         const working = creep.memory.working;
 
-        if (working == true) {
+        if (working) {
             if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                 let potentialTargets: Structure[] = creep.room.find(FIND_MY_STRUCTURES, {filter: function(s) {
                     switch (s.structureType) {
