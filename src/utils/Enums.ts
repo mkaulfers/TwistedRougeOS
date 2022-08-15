@@ -33,5 +33,6 @@ export enum ProcessPriority {
 export enum ProcessResult {
     SUCCESS = "SUCCESS",
     FAILED = "FAILED",
+    RUNNING = 'RUNNING',
     INCOMPLETE = "INCOMPLETE"
 }
