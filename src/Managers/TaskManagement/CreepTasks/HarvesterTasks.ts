@@ -18,20 +18,17 @@ export function harvesterEarlyTask(creep: Creep) {
             } else {
                 return ProcessResult.FAILED
             }
+            return ProcessResult.RUNNING
         } else if (closestSource) {
             let result = creep.harvest(closestSource)
-            switch (result) {
-                case OK:
-                    break;
-                case ERR_NOT_IN_RANGE:
-                    creep.moveTo(closestSource);
-                    break;
-                default:
-                    return ProcessResult.INCOMPLETE
+            if (result == ERR_NOT_IN_RANGE) {
+                creep.moveTo(closestSource);
+            } else {
+                return ProcessResult.RUNNING
             }
+            return ProcessResult.RUNNING
         }
-
-        return ProcessResult.RUNNING
+        return ProcessResult.INCOMPLETE
     }
 
     creep.memory.task = Task.HARVESTER_EARLY
@@ -49,18 +46,14 @@ export function harvesterSource(creep: Creep) {
 
         if (source) {
             let result = creep.harvest(source)
-            switch (result) {
-                case OK:
-                    break;
-                case ERR_NOT_IN_RANGE:
-                    creep.moveTo(source);
-                    break;
-                default:
-                    return ProcessResult.INCOMPLETE
+            if (result == ERR_NOT_IN_RANGE) {
+                creep.moveTo(source);
+            } else {
+                return ProcessResult.RUNNING
             }
+            return ProcessResult.RUNNING
         }
-
-        return ProcessResult.RUNNING
+        return ProcessResult.INCOMPLETE
     }
 
     creep.memory.task = Task.HARVESTER_SOURCE

@@ -16,109 +16,86 @@ export function truckerHarvester(creep: Creep) {
         }
         const working = creep.memory.working;
 
-        switch (working) {
-            case true:
-                // Go Fill Things
-
-                // Get target
-                if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
-                    let potentialTargets: Structure[] = creep.room.find(FIND_MY_STRUCTURES, {filter: function(s) {
-                        switch (s.structureType) {
-                            case STRUCTURE_SPAWN:
-                            case STRUCTURE_POWER_SPAWN:
-                            case STRUCTURE_EXTENSION:
-                                if (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                                    return s;
-                                } else {
-                                    return;
-                                }
-                        }
-                        return;
-                    }});
-
-                    let potTarget = creep.pos.findClosestByRange(potentialTargets);
-                    if (potTarget) {
-                        creep.memory.target = potTarget.id;
-                    } else if (creep.room.storage) {
-                        creep.memory.target = creep.room.storage.id;
-                    } else if (creep.room.terminal) {
-                        creep.memory.target = creep.room.terminal.id;
-                    } else {
-                        return ProcessResult.RUNNING
+        if (working == true) {
+            if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                let potentialTargets: Structure[] = creep.room.find(FIND_MY_STRUCTURES, {filter: function(s) {
+                    switch (s.structureType) {
+                        case STRUCTURE_SPAWN:
+                        case STRUCTURE_POWER_SPAWN:
+                        case STRUCTURE_EXTENSION:
+                            if (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                                return s;
+                            } else {
+                                return;
+                            }
                     }
-                }
-                let fTarget = Game.getObjectById(creep.memory.target);
+                    return;
+                }});
 
-
-                // Do
-                var result = creep.transfer(fTarget, RESOURCE_ENERGY);
-                switch (result) {
-                    case OK:
-                        break;
-                    case ERR_NOT_IN_RANGE:
-                        creep.moveTo(fTarget);
-                        break;
-                    default:
-                        return ProcessResult.INCOMPLETE
-                }
-
-                break;
-            case false:
-                // Go Get Energy
-
-                // Get target
-                if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
-                    let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
-                    creep.room.find(FIND_SOURCES).forEach(function(source) {
-                        let nearbyInterests = Array.prototype.concat(
-                            source.pos.findInRange(FIND_STRUCTURES, 2),
-                            source.pos.findInRange(FIND_TOMBSTONES, 2),
-                            source.pos.findInRange(FIND_DROPPED_RESOURCES, 2));
-                        nearbyInterests = _
-                            .chain(nearbyInterests)
-                            .filter((s) => (s.store && s.store.energy > 0) || s.resourceType === RESOURCE_ENERGY)
-                            .sortByOrder(function(s: (AnyStoreStructure | Resource | Tombstone)) {
-                                if ('store' in s) {
-                                    return s.store.energy;
-                                } else {
-                                    return s.amount;
-                                }
-                            }, 'desc')
-                            .value();
-
-                        potentialTargets.push(...nearbyInterests);
-                    });
-                    creep.memory.target = potentialTargets[0].id;
-                }
-                let gTarget = Game.getObjectById(creep.memory.target);
-
-                if (gTarget.store.energy == 0) {
-                    delete creep.memory.target;
-                    ProcessResult.RUNNING;
-                }
-
-                // Do
-                if (gTarget.store) {
-                    result = creep.withdraw(gTarget, RESOURCE_ENERGY);
+                let potTarget = creep.pos.findClosestByRange(potentialTargets);
+                if (potTarget) {
+                    creep.memory.target = potTarget.id;
+                } else if (creep.room.storage) {
+                    creep.memory.target = creep.room.storage.id;
+                } else if (creep.room.terminal) {
+                    creep.memory.target = creep.room.terminal.id;
                 } else {
-                    result = creep.pickup(gTarget);
+                    return ProcessResult.RUNNING
                 }
+            }
+            let target = Game.getObjectById(creep.memory.target);
 
-                switch (result) {
-                    case OK:
-                        break;
-                    case ERR_NOT_IN_RANGE:
-                        creep.moveTo(fTarget);
-                        break;
-                    default:
-                        return ProcessResult.INCOMPLETE
-                }
-                break;
-            default:
-                return ProcessResult.FAILED
+            var result = creep.transfer(target, RESOURCE_ENERGY);
+            if (result == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(target);
+            } else {
+                return ProcessResult.RUNNING
+            }
+            return ProcessResult.INCOMPLETE
+        } else {
+            if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
+                creep.room.find(FIND_SOURCES).forEach(function(source) {
+                    let nearbyInterests = Array.prototype.concat(
+                        source.pos.findInRange(FIND_STRUCTURES, 2),
+                        source.pos.findInRange(FIND_TOMBSTONES, 2),
+                        source.pos.findInRange(FIND_DROPPED_RESOURCES, 2));
+                    nearbyInterests = _
+                        .chain(nearbyInterests)
+                        .filter((s) => (s.store && s.store.energy > 0) || s.resourceType === RESOURCE_ENERGY)
+                        .sortByOrder(function(s: (AnyStoreStructure | Resource | Tombstone)) {
+                            if ('store' in s) {
+                                return s.store.energy;
+                            } else {
+                                return s.amount;
+                            }
+                        }, 'desc')
+                        .value();
+
+                    potentialTargets.push(...nearbyInterests);
+                });
+                creep.memory.target = potentialTargets[0].id;
+            }
+            let target = Game.getObjectById(creep.memory.target);
+
+            if (target.store.energy == 0) {
+                delete creep.memory.target;
+                ProcessResult.RUNNING;
+            }
+
+            if (target.store) {
+                result = creep.withdraw(target, RESOURCE_ENERGY);
+            } else {
+                result = creep.pickup(target);
+            }
+
+            if (result == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(target);
+            } else {
+                return ProcessResult.RUNNING
+            }
+            return ProcessResult.INCOMPLETE
         }
-
-        return ProcessResult.RUNNING
     }
 
     creep.memory.task = Task.TRUCKER_HARVESTER
