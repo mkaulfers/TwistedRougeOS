@@ -4,6 +4,7 @@ import { Scheduler } from "OS/Scheduler";
 import { Logger, LogLevel } from "./utils/Logger"
 import { Role } from "./utils/Enums";
 import "./Managers/TaskManagement/TaskManager";
+import "./Managers/TaskManagement/CreepTasks/UtilityCreepTasks";
 
 declare global {
   interface CreepMemory {
