@@ -1,6 +1,6 @@
 import { Process } from "../Models/Process";
 import { Logger, LogLevel } from "../utils/Logger";
-import { ProcessPriority, ProcessResult } from "../Models/Process";
+import { ProcessPriority, ProcessResult } from "./Enums";
 
 export class Utility {
     static packPosition(pos: RoomPosition): number {

@@ -3,7 +3,7 @@ import { Kernel } from "OS/Kernel";
 import { Scheduler } from "OS/Scheduler";
 import { Logger, LogLevel } from "./utils/Logger"
 import { Role } from "./utils/Enums";
-import "../src/Managers/TaskManager";
+import "./Managers/TaskManagement/TaskManager";
 
 declare global {
   interface CreepMemory {
@@ -28,11 +28,6 @@ declare global {
 
   interface Room {
     scheduleTasks(): void
-
-    shouldSpawnEngineer(): boolean
-    shouldSpawnHarvester(): boolean
-    shouldSpawnScientist(): boolean
-    shouldSpawnTrucker(): boolean
     roleToPreSpawn(): Role
   }
 
