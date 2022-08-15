@@ -2,17 +2,17 @@ import { Logger, LogLevel } from "utils/Logger";
 
 declare global {
     interface Creep {
-        travel(pos: RoomPosition): number;                                                                  // default movement method for single creeps that handles multi-room travel.. poorly
+        travel(pos: RoomPosition): number;
         getOffExit(): number;
         moveToDefault(pos: RoomPosition): number;
-        take(target: Id<AnyStoreStructure | Resource | Tombstone>, resource: ResourceConstant): number;     // withdraw, pickup
-        give(target: Id<AnyStoreStructure | Creep>, resource: ResourceConstant): number;                    // transfer
-        mine(target: Id<Source | Mineral>): number;                                                         // harvest
-        work(target: Id<Structure | ConstructionSite>): number;                                             // build, repair
-        praise(target: Id<StructureController>): number;                                                    // upgrade, sign
-        firstaid(target: Id<Creep>): number;                                                                // heal, rangedHeal
-        destroy(target?: Id<Structure> | Creep): number;                                                    // dismantle, attack, rangedAttack, RMA
-        nMRController(target: Id<StructureController>): number;                                             // Not my rooms controller; sign, reserve, attack, claim
+        take(target: AnyStoreStructure | Resource | Tombstone, resource: ResourceConstant, quantity?: number): number;
+        give(target: AnyStoreStructure | Creep, resource: ResourceConstant, quantity?: number): number;
+        mine(target: Source | Mineral): number;
+        work(target: Structure | ConstructionSite): number;
+        praise(target: StructureController): number;                                                    // upgrade, sign
+        firstaid(target: Creep): number;                                                                // heal, rangedHeal
+        destroy(target?: Structure | Creep): number;                                                    // dismantle, attack, rangedAttack, RMA
+        nMRController(target: Id<StructureController>): number;                                         // Not my rooms controller; sign, reserve, attack, claim
         isBoosted(): number;
     }
 }
@@ -41,8 +41,8 @@ Creep.prototype.travel = function(pos) {
     switch (result) {
         case OK: case ERR_BUSY: case ERR_TIRED:
             return OK;
-        case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_PATH: case ERR_NOT_FOUND:
-            Logger.log(`${this.name} recieved result ${result} from Travel.`, LogLevel.ERROR);
+        case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_PATH: case ERR_NOT_FOUND: case ERR_NO_BODYPART:
+            Logger.log(`${this.name} recieved result ${result} from Travel with args (${pos}).`, LogLevel.ERROR);
             return result;
     }
 
@@ -50,7 +50,7 @@ Creep.prototype.travel = function(pos) {
 }
 
 Creep.prototype.moveToDefault = function(pos: RoomPosition) {
-    // visualization for fun, will remove long term
+    // Visualization for fun, will remove long term.
     return this.moveTo(pos, {visualizePathStyle: {
         fill: 'transparent',
         stroke: '#fff',
@@ -79,23 +79,75 @@ Creep.prototype.getOffExit = function() {
     return OK;
 }
 
-Creep.prototype.take = function(target, resource) {
+Creep.prototype.take = function(target, resource, quantity) {
+
+    let result: number;
+    if ('store' in target) {
+        result = this.withdraw(target, resource, quantity);
+    } else {
+        result = this.pickup(target);
+    }
+
+    switch (result) {
+        case OK: case ERR_BUSY:
+            return OK;
+        case ERR_NOT_IN_RANGE:
+            return this.travel(target.pos);
+        case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
+            Logger.log(`${this.name} recieved result ${result} from Take with args (${target}, ${resource}, ${quantity}).`, LogLevel.ERROR);
+            return result;
+    }
 
     return OK;
 }
 
-Creep.prototype.give = function(target, resource) {
+Creep.prototype.give = function(target, resource, quantity) {
+    let result: number = this.transfer(target, resource, quantity);
 
+    switch (result) {
+        case OK: case ERR_BUSY:
+            return OK;
+        case ERR_NOT_IN_RANGE:
+            return this.travel(target.pos);
+        case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
+            Logger.log(`${this.name} recieved result ${result} from Give with args (${target}, ${resource}, ${quantity}).`, LogLevel.ERROR);
+            return result;
+    }
     return OK;
 }
 
 Creep.prototype.mine = function(target) {
+    let result: number = this.harvest(target);
 
+    switch (result) {
+        case OK: case ERR_BUSY: case ERR_TIRED:
+            return OK;
+        case ERR_NOT_IN_RANGE:
+            return this.travel(target.pos);
+        case ERR_NOT_OWNER: case ERR_NOT_FOUND: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
+            Logger.log(`${this.name} recieved result ${result} from Mine with args (${target.pos}).`, LogLevel.ERROR);
+            return result;
+    }
     return OK;
 }
 
 Creep.prototype.work = function(target) {
+    let result: number;
+    if ('remove' in target) {
+        result = this.build(target);
+    } else {
+        result = this.repair(target);
+    }
 
+    switch (result) {
+        case OK: case ERR_BUSY:
+            return OK;
+        case ERR_NOT_IN_RANGE:
+            return this.travel(target.pos);
+        case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
+            Logger.log(`${this.name} recieved result ${result} from Take with args (${target}).`, LogLevel.ERROR);
+            return result;
+    }
     return OK;
 }
 
