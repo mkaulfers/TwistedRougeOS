@@ -1,3 +1,4 @@
+import { Logger } from "utils/Logger"
 import { Utility } from "utils/Utilities"
 import { Process } from "../../../Models/Process"
 import { Task, ProcessPriority, ProcessResult } from "../../../utils/Enums"
@@ -12,19 +13,15 @@ export function harvesterEarlyTask(creep: Creep) {
         let lowestEnergySpawn = Game.rooms[creep.room.name].find(FIND_MY_SPAWNS).sort((a, b) => a.store.energy - b.store.energy)[0]
 
         if (creep.store.energy == creep.store.getCapacity() && lowestEnergySpawn.store.energy < lowestEnergySpawn.store.getCapacity()!) {
-            let result = creep.transfer(Game.spawns[creep.room.name], RESOURCE_ENERGY)
+            let result = creep.transfer(Game.spawns[lowestEnergySpawn.name], RESOURCE_ENERGY)
             if (result == ERR_NOT_IN_RANGE) {
-                creep.moveTo(Game.spawns[creep.room.name])
-            } else {
-                return ProcessResult.FAILED
+                creep.moveTo(Game.spawns[lowestEnergySpawn.name])
             }
             return ProcessResult.RUNNING
         } else if (closestSource) {
             let result = creep.harvest(closestSource)
             if (result == ERR_NOT_IN_RANGE) {
                 creep.moveTo(closestSource);
-            } else {
-                return ProcessResult.RUNNING
             }
             return ProcessResult.RUNNING
         }
@@ -48,8 +45,6 @@ export function harvesterSource(creep: Creep) {
             let result = creep.harvest(source)
             if (result == ERR_NOT_IN_RANGE) {
                 creep.moveTo(source);
-            } else {
-                return ProcessResult.RUNNING
             }
             return ProcessResult.RUNNING
         }

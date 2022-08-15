@@ -1,3 +1,4 @@
+import { Logger, LogLevel } from "utils/Logger"
 import {Process} from "../../../Models/Process"
 import { Task, ProcessPriority, ProcessResult } from "../../../utils/Enums"
 
@@ -46,11 +47,13 @@ export function truckerHarvester(creep: Creep) {
             let target = Game.getObjectById(creep.memory.target);
 
             var result = creep.transfer(target, RESOURCE_ENERGY);
-            if (result == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target);
-            } else {
+            if (result === ERR_NOT_IN_RANGE) {
+                creep.moveTo(target);
+                return ProcessResult.RUNNING
+            } else if (result === OK) {
                 return ProcessResult.RUNNING
             }
+            Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
             return ProcessResult.INCOMPLETE
         } else {
             if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
@@ -89,11 +92,13 @@ export function truckerHarvester(creep: Creep) {
                 result = creep.pickup(target);
             }
 
-            if (result == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(target);
-            } else {
+            if (result === ERR_NOT_IN_RANGE) {
+                creep.moveTo(target);
+                return ProcessResult.RUNNING
+            } else if (result === OK) {
                 return ProcessResult.RUNNING
             }
+            Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
             return ProcessResult.INCOMPLETE
         }
     }
