@@ -19,3 +19,19 @@ export enum Task {
     ENGINEER_REPAIRING = 'engineer_repairing',
     ENGINEER_UPGRADING = 'engineer_upgrading'
 }
+
+export enum ProcessPriority {
+    CRITICAL = 'Critical',
+    HIGH = 'High',
+    MEDIUM_HIGH = 'Medium High',
+    MEDIUM = 'Medium',
+    MEDIUM_LOW = 'Medium Low',
+    LOW = 'Low',
+    INDIFFERENT = 'Indifferent'
+}
+
+export enum ProcessResult {
+    SUCCESS = "SUCCESS",
+    FAILED = "FAILED",
+    INCOMPLETE = "INCOMPLETE"
+}
