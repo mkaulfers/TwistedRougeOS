@@ -2,13 +2,13 @@ import { ErrorMapper } from "utils/ErrorMapper";
 import { Kernel } from "OS/Kernel";
 import { Scheduler } from "OS/Scheduler";
 import { Logger, LogLevel } from "./utils/Logger"
-import { Role } from "./utils/Enums";
+import { Role, Task } from "./utils/Enums";
 import "./Managers/TaskManagement/TaskManager";
+import "./Managers/RoomManager";
 
 declare global {
   interface CreepMemory {
-    processId: string
-    task: string
+    task?: Task
     role: string
     working: boolean
     target?: Id<any>
@@ -29,11 +29,12 @@ declare global {
   }
 
   interface Room {
-    scheduleTasks(): void
+    creeps(role: Role | undefined): Creep[]
+    /**
+      * Returns a role that should be pre-spawned. The spawn should be scheduled for when a
+      * creep is about to die + distance to location - spawn time = 0.
+      */
     roleToPreSpawn(): Role
-  }
-
-  interface StructureSpawn {
     /**
      * We should only call this once per creep we are adding to the queue.
      * When it is called, it will add the creep to the scheduler, which will process it
@@ -47,12 +48,11 @@ declare global {
      * @param role checks to see if provided role should be spawned.
      */
     shouldSpawn(role: Role): boolean
+    scheduleTasks(): void
+    spawnCreep(role: Role): void
+  }
 
-    /**
-     * Returns a role that should be pre-spawned. The spawn should be scheduled for when a
-     * creep is about to die + distance to location - spawn time = 0.
-     */
-    roleToPreSpawn(): Role
+  interface StructureSpawn {
   }
 }
 
@@ -67,7 +67,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
 function setup() {
   // DEV MODE LOGGING
-  Logger.devLogLevel = LogLevel.INFO
+  Logger.devLogLevel = LogLevel.ALL
   if (!global.kernel) {
     Logger.log("Building new kernel.", LogLevel.DEBUG)
     global.kernel = new Kernel()
@@ -78,7 +78,7 @@ function setup() {
   }
 }
 
-function boot () {
+function boot() {
   global.kernel.loadMemory()
   global.kernel.loadProcesses()
   global.kernel.sortProcesses()

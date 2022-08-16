@@ -1,21 +1,10 @@
+import { object } from "lodash";
 import { Role } from "../utils/Enums";
 
-Room.prototype.shouldSpawnEngineer = function (): boolean {
-    return false
+Room.prototype.creeps = function(role: Role | undefined): Creep[] {
+    if (role) {
+        return this.find(FIND_MY_CREEPS);
+    }
+    return this.find(FIND_MY_CREEPS, { filter: (c: Creep) => c.memory.role === role });
 }
 
-Room.prototype.shouldSpawnHarvester = function (): boolean {
-    return false
-}
-
-Room.prototype.shouldSpawnScientist = function (): boolean {
-    return false
-}
-
-Room.prototype.shouldSpawnTrucker = function (): boolean {
-    return false
-}
-
-Room.prototype.roleToPreSpawn = function (): Role {
-    return Role.HARVESTER
-}
