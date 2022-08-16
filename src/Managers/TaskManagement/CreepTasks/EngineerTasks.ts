@@ -1,5 +1,5 @@
 import {Process} from "../../../Models/Process"
-import { Task, ProcessPriority } from "../../../utils/Enums"
+import { Task, ProcessPriority, ProcessResult } from "../../../utils/Enums"
 
 export function engineerBuilding(creep: Creep) {
     let creepId = creep.id

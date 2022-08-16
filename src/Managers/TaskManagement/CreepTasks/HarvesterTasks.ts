@@ -1,4 +1,5 @@
-import { Logger } from "utils/Logger"
+import { Console } from "console"
+import { Logger, LogLevel } from "utils/Logger"
 import { Utility } from "utils/Utilities"
 import { Process } from "../../../Models/Process"
 import { Task, ProcessPriority, ProcessResult } from "../../../utils/Enums"
@@ -37,7 +38,10 @@ export function harvesterSource(creep: Creep) {
     let creepId = creep.id
 
     const sourceTask = () => {
-        let creep = Game.creeps[creepId]
+        let creep = Game.getObjectById(creepId)
+        if (!creep) { return ProcessResult.FAILED }
+        //log creepId
+        Logger.log(creepId, LogLevel.WARN)
         let sourcePos = Utility.findPosForSource(creep)
         let source = sourcePos?.findInRange(FIND_SOURCES, 2)[0]
 
