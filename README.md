@@ -1,32 +1,29 @@
-# Screeps Typescript Starter
+# TwistedRougeOS
 
-Screeps Typescript Starter is a starting point for a Screeps AI written in Typescript. It provides everything you need to start writing your AI whilst leaving `main.ts` as empty as possible.
+TwistedRougeOs is a bot dedicated to
 
 ## Basic Usage
 
 You will need:
 
 - [Node.JS](https://nodejs.org/en/download) (10.x || 12.x)
-- A Package Manager ([Yarn](https://yarnpkg.com/en/docs/getting-started) or [npm](https://docs.npmjs.com/getting-started/installing-node))
+- A Package Manager ([npm](https://docs.npmjs.com/getting-started/installing-node))
 - Rollup CLI (Optional, install via `npm install -g rollup`)
 
-Download the latest source [here](https://github.com/screepers/screeps-typescript-starter/archive/master.zip) and extract it to a folder.
+Download the latest source [here](https://github.com/mkaulfers/TwistedRougeOS) and extract it to a folder.
 
 Open the folder in your terminal and run your package manager to install the required packages and TypeScript declaration files:
 
 ```bash
 # npm
 npm install
-
-# yarn
-yarn
 ```
 
 Fire up your preferred editor with typescript installed and you are good to go!
 
-### Rollup and code upload
+### Rollup and Code Upload
 
-Screeps Typescript Starter uses rollup to compile your typescript and upload it to a screeps server.
+TwistedRougeOS uses rollup to compile your typescript and upload it to a screeps server.
 
 Move or copy `screeps.sample.json` to `screeps.json` and edit it, changing the credentials and optionally adding or removing some of the destinations.
 
@@ -44,12 +41,15 @@ The type definitions for Screeps come from [typed-screeps](https://github.com/sc
 
 ## Documentation
 
-We've also spent some time reworking the documentation from the ground-up, which is now generated through [Gitbooks](https://www.gitbook.com/). Includes all the essentials to get you up and running with Screeps AI development in TypeScript, as well as various other tips and tricks to further improve your development workflow.
+To visit the TS Screep Starter Docs, [click here](https://screepers.gitbook.io/screeps-typescript-starter/).
 
-Maintaining the docs will also become a more community-focused effort, which means you too, can take part in improving the docs for this starter kit.
+## Credits
 
-To visit the docs, [click here](https://screepers.gitbook.io/screeps-typescript-starter/).
+[TS Screeps Starter](https://github.com/screepers/screeps-typescript-starter) - For giving us a starting point for TS
+[aTanner Screeps Starter](https://github.com/AydenRennaker/screeps-starter) - For giving an example of multi-file coding in JS
 
-## Contributing
+## Useful Links:
 
-Issues, Pull Requests, and contribution to the docs are welcome! See our [Contributing Guidelines](CONTRIBUTING.md) for more details.
+[Screeps Snippets](https://github.com/screepers/screeps-snippets)
+[aTanner Tutorial Playlist](https://www.youtube.com/playlist?list=PLw9di5JwI6p-HUP0yPUxciaEjrsFb2kR2)
+[Tigga RCL 4 in 10k ticks](https://www.youtube.com/watch?v=zKUHmxSCma4)

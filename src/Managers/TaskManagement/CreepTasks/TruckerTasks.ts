@@ -6,6 +6,7 @@ export function truckerHarvester(creep: Creep) {
     let creepId = creep.id
 
     const harvesterTask = () => {
+        Logger.log("CreepTask -> sourceTask()", LogLevel.TRACE)
         let creep = Game.creeps[creepId]
 
         if (!creep.memory.working || creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
@@ -46,11 +47,8 @@ export function truckerHarvester(creep: Creep) {
             }
             let target = Game.getObjectById(creep.memory.target);
 
-            var result = creep.transfer(target, RESOURCE_ENERGY);
-            if (result === ERR_NOT_IN_RANGE) {
-                creep.moveTo(target);
-                return ProcessResult.RUNNING
-            } else if (result === OK) {
+            var result = creep.give(target, RESOURCE_ENERGY);
+            if (result === OK) {
                 return ProcessResult.RUNNING
             }
             Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
@@ -86,16 +84,9 @@ export function truckerHarvester(creep: Creep) {
                 ProcessResult.RUNNING;
             }
 
-            if (target.store) {
-                result = creep.withdraw(target, RESOURCE_ENERGY);
-            } else {
-                result = creep.pickup(target);
-            }
+            result = creep.take(target, RESOURCE_ENERGY);
 
-            if (result === ERR_NOT_IN_RANGE) {
-                creep.moveTo(target);
-                return ProcessResult.RUNNING
-            } else if (result === OK) {
+            if (result === OK) {
                 return ProcessResult.RUNNING
             }
             Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
