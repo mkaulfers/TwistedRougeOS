@@ -142,7 +142,7 @@ export class Utility {
         for (const name in Memory.creeps) {
             if (!Game.creeps[name]) {
                 Logger.log(`Removing dead creep: ${name}`, LogLevel.INFO)
-                global.scheduler.removeProcess(Game.creeps[name].name)
+                global.scheduler.removeProcess(name)
                 delete Memory.creeps[name]
             }
         }
@@ -166,6 +166,7 @@ export class Utility {
      */
      static findPosForSource(creep: Creep): RoomPosition | undefined {
         let sources = creep.room.find(FIND_SOURCES)
+        Logger.log(sources.length.toString(), LogLevel.WARN)
         for (let source of sources) {
             let creeps = source.pos.findInRange(FIND_MY_CREEPS, 1)
             if (creeps.length == 0) {
