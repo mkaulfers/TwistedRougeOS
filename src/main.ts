@@ -4,6 +4,7 @@ import { Scheduler } from "OS/Scheduler";
 import { Logger, LogLevel } from "./utils/Logger"
 import { Role, Task } from "./utils/Enums";
 import "./Managers/TaskManagement/TaskManager";
+import "./Managers/TaskManagement/CreepTasks/UtilityCreepTasks";
 import "./Managers/RoomManager";
 
 declare global {
@@ -13,6 +14,10 @@ declare global {
     working: boolean
     target?: Id<any>
     homeRoom: string
+  }
+
+  interface RoomMemory {
+    claim?: string;
   }
 
   interface Memory {
