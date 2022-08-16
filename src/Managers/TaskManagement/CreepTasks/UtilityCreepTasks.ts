@@ -106,7 +106,7 @@ Creep.prototype.take = function (target, resource, quantity) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
-            Logger.log(`${this.name} recieved result ${result} from Take with args (${target.pos}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Take with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
             return result;
     }
 
@@ -124,7 +124,7 @@ Creep.prototype.give = function (target, resource, quantity) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
-            Logger.log(`${this.name} recieved result ${result} from Give with args (${target.pos}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Give with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
             return result;
     }
     return OK;
@@ -141,7 +141,7 @@ Creep.prototype.mine = function (target) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_NOT_FOUND: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-            Logger.log(`${this.name} recieved result ${result} from Mine with args (${target.pos}*).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Mine with args (${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
             return result;
     }
     return OK;
@@ -163,7 +163,7 @@ Creep.prototype.work = function (target) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-            Logger.log(`${this.name} recieved result ${result} from Work with args (${target.structureType}${target.pos}*).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Work with args (${target.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
             return result;
     }
     return OK;
@@ -185,7 +185,7 @@ Creep.prototype.praise = function (target) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-            Logger.log(`${this.name} recieved result ${result} from Praise with args (${target.structureType}${target.pos}*).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Praise with args (${target.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
             return result;
     }
     return OK;
@@ -207,7 +207,7 @@ Creep.prototype.firstaid = function (target) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-            Logger.log(`${this.name} recieved result ${result} from Firstaid with args (${target.name}${target.pos}*).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Firstaid with args (${target.name}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
             return result;
     }
     return OK;
@@ -251,9 +251,9 @@ Creep.prototype.destroy = function (target) {
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
             if (target && 'fatigue' in target) {
-                Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target.name}${target.pos}*).`, LogLevel.ERROR);
+                Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target.name}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
             } else if (target) {
-                Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target?.structureType}${target.pos}*).`, LogLevel.ERROR);
+                Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target?.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
             } else {
                 Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target}).`, LogLevel.ERROR);
             }
