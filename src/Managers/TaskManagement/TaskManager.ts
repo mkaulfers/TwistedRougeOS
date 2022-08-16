@@ -40,7 +40,7 @@ function scheduleSpawnMonitor(room: Room) {
 
 function scheduleCreepTask(room: Room) {
     Logger.log("Room -> scheduleCreepTask()", LogLevel.TRACE)
-    let creeps = _.filter(Game.creeps, (c) => c.room.name === room.name)
+    let creeps = room.creeps(undefined)
     for (let i = 0; i < creeps.length; i++) {
         let creep = creeps[i]
         if (global.scheduler.processQueue.has(creep.name)) { return }

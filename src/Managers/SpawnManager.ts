@@ -1,7 +1,6 @@
 import { Role, Task } from "../utils/Enums";
 import { Logger, LogLevel } from "../utils/Logger";
 import { Utility } from "utils/Utilities";
-import { worker } from "cluster";
 
 /**
  * ------------------------------------------------------------------
@@ -154,7 +153,7 @@ function generateTaskFor(role: Role, room: Room): Task | undefined {
     Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
     switch (role) {
         case Role.HARVESTER:
-            if (room.creeps(undefined).filter(x => x.memory.role == Role.TRUCKER).length > 0) {
+            if (room.creeps(Role.TRUCKER).length > 0) {
                 return Task.HARVESTER_EARLY
             }
             return Task.HARVESTER_SOURCE
