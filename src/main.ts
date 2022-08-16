@@ -16,6 +16,10 @@ declare global {
     homeRoom: string
   }
 
+  interface RoomMemory {
+    claim?: string;
+  }
+
   interface Memory {
     uuid: number;
     log: any;

@@ -9,16 +9,20 @@ declare global {
         give(target: AnyStoreStructure | Creep, resource: ResourceConstant, quantity?: number): number;
         mine(target: Source | Mineral): number;
         work(target: Structure | ConstructionSite): number;
-        praise(target: StructureController): number;                                                    // upgrade, sign
-        firstaid(target: Creep): number;                                                                // heal, rangedHeal
-        destroy(target?: Structure | Creep): number;                                                    // dismantle, attack, rangedAttack, RMA
-        nMRController(target: Id<StructureController>): number;                                         // Not my rooms controller; sign, reserve, attack, claim
-        isBoosted(): number;
+        praise(target: StructureController): number;
+        firstaid(target: Creep): number;
+        destroy(target?: Structure | Creep): number;
+        nMRController(target: string): number;
+        isBoosted(): boolean;
+    }
+
+    interface StructureController {
+        isSigned(): boolean;
     }
 }
-export {};
+export { };
 
-Creep.prototype.travel = function(pos) {
+Creep.prototype.travel = function (pos) {
 
     let result: number;
     if (pos.roomName === this.room.name) {
@@ -28,7 +32,7 @@ Creep.prototype.travel = function(pos) {
         if (route == ERR_NO_PATH) {
             result = ERR_NO_PATH;
         } else {
-            let goto  = this.pos.findClosestByRange(route[0].exit);
+            let goto = this.pos.findClosestByRange(route[0].exit);
             if (!goto) {
                 result = ERR_NO_PATH;
             } else {
@@ -49,18 +53,20 @@ Creep.prototype.travel = function(pos) {
     return OK;
 }
 
-Creep.prototype.moveToDefault = function(pos: RoomPosition) {
+Creep.prototype.moveToDefault = function (pos: RoomPosition) {
     // Visualization for fun, will remove long term.
-    return this.moveTo(pos, {visualizePathStyle: {
-        fill: 'transparent',
-        stroke: '#fff',
-        lineStyle: 'dashed',
-        strokeWidth: .15,
-        opacity: .1
-    }});
+    return this.moveTo(pos, {
+        visualizePathStyle: {
+            fill: 'transparent',
+            stroke: '#fff',
+            lineStyle: 'dashed',
+            strokeWidth: .15,
+            opacity: .1
+        }
+    });
 }
 
-Creep.prototype.getOffExit = function() {
+Creep.prototype.getOffExit = function () {
     let exits = [0, 49];
     switch (true) {
         case (this.pos.x === 0):
@@ -79,7 +85,7 @@ Creep.prototype.getOffExit = function() {
     return OK;
 }
 
-Creep.prototype.take = function(target, resource, quantity) {
+Creep.prototype.take = function (target, resource, quantity) {
 
     let result: number;
     if ('store' in target) {
@@ -101,7 +107,7 @@ Creep.prototype.take = function(target, resource, quantity) {
     return OK;
 }
 
-Creep.prototype.give = function(target, resource, quantity) {
+Creep.prototype.give = function (target, resource, quantity) {
     let result: number = this.transfer(target, resource, quantity);
 
     switch (result) {
@@ -116,7 +122,7 @@ Creep.prototype.give = function(target, resource, quantity) {
     return OK;
 }
 
-Creep.prototype.mine = function(target) {
+Creep.prototype.mine = function (target) {
     let result: number = this.harvest(target);
 
     switch (result) {
@@ -131,7 +137,7 @@ Creep.prototype.mine = function(target) {
     return OK;
 }
 
-Creep.prototype.work = function(target) {
+Creep.prototype.work = function (target) {
     let result: number;
     if ('remove' in target) {
         result = this.build(target);
@@ -145,33 +151,125 @@ Creep.prototype.work = function(target) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-            Logger.log(`${this.name} recieved result ${result} from Take with args (${target}).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Work with args (${target}).`, LogLevel.ERROR);
             return result;
     }
     return OK;
 }
 
-Creep.prototype.praise = function(target) {
+Creep.prototype.praise = function (target) {
+    let result: number = this.upgradeController(target);
 
+    if (!target.isSigned()) {
+        let text = 'Signs are meant to be signed, right?'
+        if (this.signController(target, text) == ERR_NOT_IN_RANGE) this.travel(target.pos);
+    }
+
+    switch (result) {
+        case OK: case ERR_BUSY:
+            return OK;
+        case ERR_NOT_IN_RANGE:
+            return this.travel(target.pos);
+        case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
+            Logger.log(`${this.name} recieved result ${result} from Praise with args (${target}).`, LogLevel.ERROR);
+            return result;
+    }
     return OK;
 }
 
-Creep.prototype.firstaid = function(target) {
+Creep.prototype.firstaid = function (target) {
+    let result: number;
+    if (this.pos.getRangeTo(target) < 2) {
+        result = this.heal(target);
+    } else {
+        result = this.rangedHeal(target);
+    }
 
+    switch (result) {
+        case OK: case ERR_BUSY:
+            return OK;
+        case ERR_NOT_IN_RANGE:
+            return this.travel(target.pos);
+        case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
+            Logger.log(`${this.name} recieved result ${result} from Firstaid with args (${target}).`, LogLevel.ERROR);
+            return result;
+    }
     return OK;
 }
 
-Creep.prototype.destroy = function(target) {
+Creep.prototype.destroy = function (target) {
+    let result: number;
+    let work = this.getActiveBodyparts(WORK);
+    let attack = this.getActiveBodyparts(ATTACK);
+    let ra = this.getActiveBodyparts(RANGED_ATTACK);
 
+    if (!target) {
+        result = this.rangedMassAttack();
+    } else if (work && "structureType" in target) {
+        result = this.dismantle(target);
+        this.rangedMassAttack();
+    } else if (attack) {
+        result = this.attack(target);
+        if (this.rangedAttack(target) !== OK) {
+            this.rangedMassAttack();
+        }
+    } else if (ra) {
+        result = this.rangedAttack(target);
+        if (result !== OK) {
+            this.rangedMassAttack();
+        }
+    } else {
+        result = ERR_NO_BODYPART;
+    }
+
+    switch (result) {
+        case OK: case ERR_BUSY:
+            return OK;
+        case ERR_NOT_IN_RANGE:
+            if (!target) {
+                Logger.log(`${this.name} recieved result ERR_NOT_IN_RANGE from Firstaid without an UNDEFINED target.`, LogLevel.FATAL);
+                return ERR_INVALID_TARGET;
+            }
+            return this.travel(target.pos);
+        case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
+            Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target}).`, LogLevel.ERROR);
+            return result;
+    }
     return OK;
 }
 
-Creep.prototype.nMRController = function(target) {
+Creep.prototype.nMRController = function (target) {
+    // Not my rooms controller; sign, reserve, attack, claim
 
+    if (!target.isSigned()) {
+        let text = 'Signs are meant to be signed, right?'
+        if (this.signController(target, text) == ERR_NOT_IN_RANGE) this.travel(target.pos);
+    }
+
+    if (Memory.rooms[this.memory.homeRoom].claim == target.room.name) {
+
+    }
+
+    switch (result) {
+        case OK: case ERR_BUSY:
+            return OK;
+        case ERR_NOT_IN_RANGE:
+            return this.travel(target.pos);
+        case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_FULL: case ERR_NO_BODYPART: case ERR_GCL_NOT_ENOUGH:
+            Logger.log(`${this.name} recieved result ${result} from nMRController with args (${target}).`, LogLevel.ERROR);
+            return result;
+    }
     return OK;
 }
 
-Creep.prototype.isBoosted = function() {
+Creep.prototype.isBoosted = function () {
 
-    return OK;
+    return false;
+}
+
+StructureController.prototype.isSigned = function () {
+    let sign = this.sign;
+    let spawn = Game.spawns[_.keys(Game.spawns)[0]]
+    if (!sign || sign.username !== spawn.owner.username) return false;
+    return true;
 }
