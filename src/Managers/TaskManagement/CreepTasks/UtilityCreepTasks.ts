@@ -23,6 +23,7 @@ declare global {
 export { };
 
 Creep.prototype.travel = function (pos) {
+    Logger.log("Creep -> travel()", LogLevel.TRACE)
 
     let result: number;
     if (pos.roomName === this.room.name) {
@@ -46,7 +47,7 @@ Creep.prototype.travel = function (pos) {
         case OK: case ERR_BUSY: case ERR_TIRED:
             return OK;
         case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_PATH: case ERR_NOT_FOUND: case ERR_NO_BODYPART:
-            Logger.log(`${this.name} recieved result ${result} from Travel with args (${pos}).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Travel with args (${JSON.stringify(pos)}).`, LogLevel.ERROR);
             return result;
     }
 
@@ -54,6 +55,8 @@ Creep.prototype.travel = function (pos) {
 }
 
 Creep.prototype.moveToDefault = function (pos: RoomPosition) {
+    Logger.log("Creep -> moveToDefault()", LogLevel.TRACE)
+
     // Visualization for fun, will remove long term.
     return this.moveTo(pos, {
         visualizePathStyle: {
@@ -67,6 +70,8 @@ Creep.prototype.moveToDefault = function (pos: RoomPosition) {
 }
 
 Creep.prototype.getOffExit = function () {
+    Logger.log("Creep -> getOffExit()", LogLevel.TRACE)
+
     let exits = [0, 49];
     switch (true) {
         case (this.pos.x === 0):
@@ -86,6 +91,7 @@ Creep.prototype.getOffExit = function () {
 }
 
 Creep.prototype.take = function (target, resource, quantity) {
+    Logger.log("Creep -> take()", LogLevel.TRACE)
 
     let result: number;
     if ('store' in target) {
@@ -100,7 +106,7 @@ Creep.prototype.take = function (target, resource, quantity) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
-            Logger.log(`${this.name} recieved result ${result} from Take with args (${target}, ${resource}, ${quantity}).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Take with args (${target.pos}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
             return result;
     }
 
@@ -108,6 +114,8 @@ Creep.prototype.take = function (target, resource, quantity) {
 }
 
 Creep.prototype.give = function (target, resource, quantity) {
+    Logger.log("Creep -> give()", LogLevel.TRACE)
+
     let result: number = this.transfer(target, resource, quantity);
 
     switch (result) {
@@ -116,13 +124,15 @@ Creep.prototype.give = function (target, resource, quantity) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
-            Logger.log(`${this.name} recieved result ${result} from Give with args (${target}, ${resource}, ${quantity}).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Give with args (${target.pos}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
             return result;
     }
     return OK;
 }
 
 Creep.prototype.mine = function (target) {
+    Logger.log("Creep -> give()", LogLevel.TRACE)
+
     let result: number = this.harvest(target);
 
     switch (result) {
@@ -131,13 +141,15 @@ Creep.prototype.mine = function (target) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_NOT_FOUND: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-            Logger.log(`${this.name} recieved result ${result} from Mine with args (${target.pos}).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Mine with args (${target.pos}*).`, LogLevel.ERROR);
             return result;
     }
     return OK;
 }
 
 Creep.prototype.work = function (target) {
+    Logger.log("Creep -> work()", LogLevel.TRACE)
+
     let result: number;
     if ('remove' in target) {
         result = this.build(target);
@@ -151,13 +163,15 @@ Creep.prototype.work = function (target) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-            Logger.log(`${this.name} recieved result ${result} from Work with args (${target}).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Work with args (${target.structureType}${target.pos}*).`, LogLevel.ERROR);
             return result;
     }
     return OK;
 }
 
 Creep.prototype.praise = function (target) {
+    Logger.log("Creep -> praise()", LogLevel.TRACE)
+
     let result: number = this.upgradeController(target);
 
     if (!target.isSigned()) {
@@ -171,13 +185,15 @@ Creep.prototype.praise = function (target) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-            Logger.log(`${this.name} recieved result ${result} from Praise with args (${target}).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Praise with args (${target.structureType}${target.pos}*).`, LogLevel.ERROR);
             return result;
     }
     return OK;
 }
 
 Creep.prototype.firstaid = function (target) {
+    Logger.log("Creep -> firstaid()", LogLevel.TRACE)
+
     let result: number;
     if (this.pos.getRangeTo(target) < 2) {
         result = this.heal(target);
@@ -191,13 +207,15 @@ Creep.prototype.firstaid = function (target) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-            Logger.log(`${this.name} recieved result ${result} from Firstaid with args (${target}).`, LogLevel.ERROR);
+            Logger.log(`${this.name} recieved result ${result} from Firstaid with args (${target.name}${target.pos}*).`, LogLevel.ERROR);
             return result;
     }
     return OK;
 }
 
 Creep.prototype.destroy = function (target) {
+    Logger.log("Creep -> destroy()", LogLevel.TRACE)
+
     let result: number;
     let work = this.getActiveBodyparts(WORK);
     let attack = this.getActiveBodyparts(ATTACK);
@@ -232,13 +250,21 @@ Creep.prototype.destroy = function (target) {
             }
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-            Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target}).`, LogLevel.ERROR);
+            if (target && 'fatigue' in target) {
+                Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target.name}${target.pos}*).`, LogLevel.ERROR);
+            } else if (target) {
+                Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target?.structureType}${target.pos}*).`, LogLevel.ERROR);
+            } else {
+                Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target}).`, LogLevel.ERROR);
+            }
             return result;
     }
     return OK;
 }
 
 Creep.prototype.nMRController = function (target) {
+    Logger.log("Creep -> nMRController()", LogLevel.TRACE)
+
     let result: number;
 
     if (this.room.name !== target) {
@@ -284,11 +310,14 @@ Creep.prototype.nMRController = function (target) {
 }
 
 Creep.prototype.isBoosted = function () {
+    Logger.log("Creep -> isBoosted()", LogLevel.TRACE)
     Logger.log(`${this.name} -> isBoosted(). IsBoosted is currently a placeholder.`, LogLevel.ERROR);
     return false;
 }
 
 StructureController.prototype.isSigned = function () {
+    Logger.log("Controller -> isSigned()", LogLevel.TRACE)
+
     let sign = this.sign;
     let spawn = Game.spawns[_.keys(Game.spawns)[0]]
     if (!sign || sign.username !== spawn.owner.username) return false;
