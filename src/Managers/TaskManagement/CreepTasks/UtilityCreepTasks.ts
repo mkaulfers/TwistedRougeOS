@@ -13,7 +13,7 @@ declare global {
         firstaid(target: Creep): number;
         destroy(target?: Structure | Creep): number;
         nMRController(target: string): number;
-        isBoosted(): boolean;
+        isBoosted(): boolean;               // Placeholder
     }
 
     interface StructureController {
@@ -239,22 +239,43 @@ Creep.prototype.destroy = function (target) {
 }
 
 Creep.prototype.nMRController = function (target) {
-    // Not my rooms controller; sign, reserve, attack, claim
+    let result: number;
 
-    if (!target.isSigned()) {
-        let text = 'Signs are meant to be signed, right?'
-        if (this.signController(target, text) == ERR_NOT_IN_RANGE) this.travel(target.pos);
-    }
+    if (this.room.name !== target) {
+        result = this.travel(new RoomPosition(25,25, target));
+    } else {
+        var controller = Game.rooms[target].controller;
 
-    if (Memory.rooms[this.memory.homeRoom].claim == target.room.name) {
+        if (controller) {
+            if (!controller.isSigned()) {
+                let text = 'Signs are meant to be signed, right?'
+                if (this.signController(controller, text) == ERR_NOT_IN_RANGE) this.travel(controller.pos);
+            }
 
+            if (Memory.rooms[this.memory.homeRoom].claim == target) {
+                result = this.claimController(controller)
+                if (result == ERR_INVALID_TARGET) {
+                    result = this.attackController(controller);
+                }
+            } else if (controller.owner && controller.owner.username !== this.owner.username) {
+                result = this.attackController(controller);
+            } else {
+                result = this.reserveController(controller);
+            }
+        } else {
+            result = ERR_INVALID_TARGET;
+        }
     }
 
     switch (result) {
         case OK: case ERR_BUSY:
             return OK;
         case ERR_NOT_IN_RANGE:
-            return this.travel(target.pos);
+            if (!controller) {
+                Logger.log(`${this.name} recieved result ${result} from nMRController with args (${target}), but controller failed to exist.`, LogLevel.ERROR);
+                return ERR_INVALID_TARGET;
+            }
+            return this.travel(controller.pos);
         case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_FULL: case ERR_NO_BODYPART: case ERR_GCL_NOT_ENOUGH:
             Logger.log(`${this.name} recieved result ${result} from nMRController with args (${target}).`, LogLevel.ERROR);
             return result;
@@ -263,7 +284,7 @@ Creep.prototype.nMRController = function (target) {
 }
 
 Creep.prototype.isBoosted = function () {
-
+    Logger.log(`${this.name} -> isBoosted(). IsBoosted is currently a placeholder.`, LogLevel.ERROR);
     return false;
 }
 
