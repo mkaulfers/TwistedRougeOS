@@ -208,27 +208,24 @@ export class Utility {
         if (!options.order) {
             options.order = 'desc';
         }
-        let strCheck = false;
-        let resCheck = false;
-        if (options.structures) strCheck = true;
-        if (options.resource) resCheck = true;
 
         targets = _
         .chain(targets) // s) => ('store' in s && wantedStructures.indexOf(s.structureType) >= 0 && s.store.energy > 0) || ('resourceType' in s && s.resourceType === RESOURCE_ENERGY)
         .filter(function(t) {
 
-            switch (true) {
-                case !strCheck && !resCheck:
-                    return t;
-                case strCheck:
-                    if (!('structureType' in t)) return;
-                    if (options?.structures?.indexOf(t.structureType) == -1) return;
-                case resCheck:
-                    if ('store' in t && t.store[options?.resource!] == 0) return;
-                    if ('amount' in t && t.amount < 5) return;
-                    return t;
+            if (!options || !options.structures && !options.resource) {
+                return t;
             }
-            return;
+            if (options.structures) {
+                if ('structureType' in t && options.structures.indexOf(t.structureType) == -1) return;
+            }
+            if (options.resource) {
+                if (('store' in t && t.store[options?.resource!] == 0) ||
+                ('amount' in t && t.amount < 5) ||
+                (!('store' in t) && !('amount' in t))) return;
+            }
+            return t;
+
         })
         .sortByOrder(function(t: (Creep | AnyStructure | Resource | Tombstone)) {
             if (options?.resource) {
