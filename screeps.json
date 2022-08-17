@@ -24,9 +24,9 @@
     "path": "/",
     "branch": "pserver"
   },
-  "rougueayrn": {
-    "email": "rougeayrn",
-    "password": "Password1234",
+  "rougeayrn": {
+    "email": "Rougeayrn",
+    "password": "L0okAl!k3$",
     "protocol": "http",
     "hostname": "screeps.xtwistedx.com",
     "port": "21025",
