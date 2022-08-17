@@ -6,7 +6,7 @@ import { harvesterEarlyTask, harvesterSource } from "./CreepTasks/HarvesterTasks
 import { truckerHarvester, truckerScientist, truckerStorage} from "./CreepTasks/TruckerTasks"
 import { scientistUpgrading } from "./CreepTasks/ScientistTasks"
 import { engineerBuilding, engineerRepairing, engineerUpgrading } from "./CreepTasks/EngineerTasks"
-import { schedulePixelSale, scheduleThreatMonitor} from "./UtilityTasks"
+import { schedulePixelSale, scheduleThreatMonitor, scheduleMemoryMonitor } from "./UtilityTasks"
 import "../SpawnManager"
 
 
@@ -16,6 +16,7 @@ Room.prototype.scheduleTasks = function () {
     scheduleThreatMonitor(this)
     scheduleCreepTask(this)
     scheduleSpawnMonitor(this)
+    scheduleMemoryMonitor()
 }
 
 function scheduleSpawnMonitor(room: Room) {
@@ -23,13 +24,16 @@ function scheduleSpawnMonitor(room: Room) {
 
     const spawnMonitorTask = () => {
         let room = Game.rooms[roomId]
-        // Loop through all role enum and check if a creep should spawn
-        for (let i = 0; i < Object.keys(Role).length; i++) {
-            let role = Object.values(Role)[i]
-            Logger.log(`Room -> scheduleSpawnMonitor() -> role: ${role}`, LogLevel.TRACE)
-            let result = room.shouldSpawn(role)
-            if (result) {
-                room.spawnCreep(role)
+        let availableSpawn = room.getAvailableSpawn()
+
+        if (availableSpawn) {
+            for (let i = 0; i < Object.keys(Role).length; i++) {
+                let role = Object.values(Role)[i]
+                Logger.log(`Room -> scheduleSpawnMonitor() -> role: ${role}`, LogLevel.TRACE)
+                let result = room.shouldSpawn(role)
+                if (result) {
+                    room.spawnCreep(role, availableSpawn)
+                }
             }
         }
     }
@@ -43,7 +47,8 @@ function scheduleCreepTask(room: Room) {
     let creeps = room.creeps(undefined)
     for (let i = 0; i < creeps.length; i++) {
         let creep = creeps[i]
-        if (global.scheduler.processQueue.has(creep.name)) { return }
+        Logger.log(creep.name, LogLevel.WARN)
+        if (global.scheduler.processQueue.has(creep.name)) { continue }
 
         switch (creep.memory.task as Task) {
             case Task.HARVESTER_EARLY:

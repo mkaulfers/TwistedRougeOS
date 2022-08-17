@@ -20,7 +20,6 @@ declare global {
         isSigned(): boolean;
     }
 }
-export { };
 
 Creep.prototype.travel = function (pos) {
     Logger.log("Creep -> travel()", LogLevel.TRACE)

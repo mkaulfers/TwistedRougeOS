@@ -2,16 +2,22 @@ import { Role, Task } from "../utils/Enums";
 import { Logger, LogLevel } from "../utils/Logger";
 import { Utility } from "utils/Utilities";
 
+declare global {
+    interface Room {
+        spawnCreep(role: Role, spawn: StructureSpawn): void
+    }
+}
+
 /**
  * ------------------------------------------------------------------
  * SPAWN PROPERTIES
  * ------------------------------------------------------------------
  */
 
-const baseEngBody: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
-const baseHarBody: BodyPartConstant[] = [MOVE, MOVE, WORK, WORK]
-const baseSciBody: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
-const baseTruBody: BodyPartConstant[] = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
+export const baseEngBody: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
+export const baseHarBody: BodyPartConstant[] = [MOVE, CARRY, WORK, WORK]
+export const baseSciBody: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
+export const baseTruBody: BodyPartConstant[] = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
 
 const engSegment: BodyPartConstant[] = [CARRY, WORK, WORK]
 const harSegment: BodyPartConstant[] = [WORK]
@@ -29,7 +35,7 @@ Room.prototype.shouldSpawn = function (role: Role): boolean {
         case Role.ENGINEER:
             return shouldSpawnEngineer()
         case Role.HARVESTER:
-            return shouldSpawnHarvester()
+            return shouldSpawnHarvester(this)
         case Role.SCIENTIST:
             return shouldSpawnScientist()
         case Role.TRUCKER:
@@ -45,8 +51,12 @@ function shouldSpawnEngineer(): boolean {
     return false
 }
 
-function shouldSpawnHarvester(): boolean {
-    return true
+function shouldSpawnHarvester(room: Room): boolean {
+    Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
+    let sourcePotential = room.sourcesEnergyPotential()
+    let harvestersWorkPotential = room.harvestersWorkPotential()
+
+    return sourcePotential > harvestersWorkPotential
 }
 
 function shouldSpawnScientist(): boolean {
@@ -55,6 +65,32 @@ function shouldSpawnScientist(): boolean {
 
 function shouldSpawnTrucker(): boolean {
     return false
+}
+
+/**
+* ------------------------------------------------------------------
+* SPAWN CREEP
+* ------------------------------------------------------------------
+*/
+
+Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
+    Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
+    let body = getBodyFor(this, role)
+    let name = generateNameFor(role)
+    let task = generateTaskFor(role, this)
+
+    spawn.spawnCreep(
+        body,
+        name, {
+        memory: {
+            task: task,
+            role: role,
+            working: false,
+            target: undefined,
+            homeRoom: this.name
+        }
+    })
+
 }
 
 /**
@@ -107,28 +143,6 @@ function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
     return tempBody
 }
 
-Room.prototype.spawnCreep = function(role: Role) {
-    Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
-    let body = getBodyFor(this, role)
-    let name = generateNameFor(role)
-    let task = generateTaskFor(role, this)
-    let availableSpawn = getAvailableSpawn(this)
-
-    if (availableSpawn) {
-        availableSpawn.spawnCreep(
-            body,
-            name, {
-            memory: {
-                task: task,
-                role: role,
-                working: false,
-                target: undefined,
-                homeRoom: this.name
-            }
-        })
-    }
-}
-
 /**
  * ------------------------------------------------------------------
  * SPAWN UTILITY FUNCTIONS
@@ -153,23 +167,12 @@ function generateTaskFor(role: Role, room: Room): Task | undefined {
     Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
     switch (role) {
         case Role.HARVESTER:
-            if (room.creeps(Role.TRUCKER).length > 0) {
+            if (room.creeps(Role.TRUCKER).length < room.find(FIND_SOURCES).length) {
                 return Task.HARVESTER_EARLY
             }
             return Task.HARVESTER_SOURCE
         case Role.TRUCKER:
             break;
-    }
-    return undefined
-}
-
-function getAvailableSpawn(room: Room): StructureSpawn | undefined {
-    Logger.log("Spawn -> getAvailableSpawn()", LogLevel.TRACE)
-    //Loop over all spawns in the room and return the first one that is not busy.
-    for (let spawn of room.find(FIND_MY_SPAWNS)) {
-        if (spawn.spawning == null) {
-            return spawn
-        }
     }
     return undefined
 }

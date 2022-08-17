@@ -8,8 +8,8 @@ export function harvesterEarlyTask(creep: Creep) {
 
     const earlyTask = () => {
         Logger.log("CreepTask -> earlyTask()", LogLevel.TRACE)
-        let creep = Game.creeps[creepId]
-        let sources = Game.rooms[creep.room.name].find(FIND_SOURCES)
+        let creep = Game.getObjectById(creepId) as Creep
+        let sources = Game.rooms[creep.memory.homeRoom].find(FIND_SOURCES)
         let closestSource = creep.pos.findClosestByPath(sources)
         let lowestEnergySpawn = Game.rooms[creep.room.name].find(FIND_MY_SPAWNS).sort((a, b) => a.store.energy - b.store.energy)[0]
 
