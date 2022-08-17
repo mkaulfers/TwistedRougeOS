@@ -47,7 +47,6 @@ function scheduleCreepTask(room: Room) {
     let creeps = room.creeps(undefined)
     for (let i = 0; i < creeps.length; i++) {
         let creep = creeps[i]
-        Logger.log(creep.name, LogLevel.WARN)
         if (global.scheduler.processQueue.has(creep.name)) { continue }
 
         switch (creep.memory.task as Task) {

@@ -55,7 +55,7 @@ function shouldSpawnHarvester(room: Room): boolean {
     Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
     let sourcePotential = room.sourcesEnergyPotential()
     let harvestersWorkPotential = room.harvestersWorkPotential()
-
+    Logger.log(`Source Potential: ${sourcePotential} Harvesters Work Potential: ${harvestersWorkPotential}`, LogLevel.DEBUG)
     return sourcePotential > harvestersWorkPotential
 }
 

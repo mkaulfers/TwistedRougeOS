@@ -1,3 +1,4 @@
+import { Logger, LogLevel } from "utils/Logger";
 import { Role } from "../utils/Enums";
 import { baseHarBody } from "./SpawnManager";
 
@@ -13,10 +14,11 @@ declare global {
         *     O X O
         *     O O O
         */
-        validSourcePositions(): RoomPosition[];
+        validSourcePositions(): RoomPosition[]
         getAvailableSpawn(): StructureSpawn | undefined
-        sourcesEnergyPotential(): number;
-        harvestersWorkPotential(): number;
+        sourcesEnergyPotential(): number
+        harvestersWorkPotential(): number
+        sources(): Source[]
     }
 }
 
@@ -25,6 +27,10 @@ Room.prototype.creeps = function (role?: Role): Creep[] {
         return this.find(FIND_MY_CREEPS);
     }
     return this.find(FIND_MY_CREEPS, { filter: (c: Creep) => c.memory.role === role });
+}
+
+Room.prototype.sources = function (): Source[] {
+    return this.find(FIND_SOURCES)
 }
 
 // I statically programmed the positions to reduce CPU usage.
@@ -70,8 +76,9 @@ Room.prototype.getAvailableSpawn = function (): StructureSpawn | undefined {
 
 Room.prototype.sourcesEnergyPotential = function (): number {
     let validSourcePositions = this.validSourcePositions()
-    let positionalEnergy = validSourcePositions.length * baseHarBody.filter(x => x == WORK).length
-    return positionalEnergy
+    let positionalEnergy = validSourcePositions.length * (baseHarBody.filter(x => x == WORK).length * 2)
+    Logger.log(`Source Positions: ${validSourcePositions.length}, Energy: ${positionalEnergy}`, LogLevel.DEBUG)
+    return positionalEnergy > this.sources().length * 10 ? this.sources().length * 10 : positionalEnergy
 }
 
 Room.prototype.harvestersWorkPotential = function (): number {

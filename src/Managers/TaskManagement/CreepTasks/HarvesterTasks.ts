@@ -13,7 +13,9 @@ export function harvesterEarlyTask(creep: Creep) {
         let closestSource = creep.pos.findClosestByPath(sources)
         let lowestEnergySpawn = Game.rooms[creep.room.name].find(FIND_MY_SPAWNS).sort((a, b) => a.store.energy - b.store.energy)[0]
 
-        if (creep.store.energy == creep.store.getCapacity() && lowestEnergySpawn.store.energy < lowestEnergySpawn.store.getCapacity()!) {
+        // Logger.log(`Creep Energy: ${creep.store.energy} \n Creep Capacity: ${creep.store.getCapacity}`, LogLevel.DEBUG)
+
+        if (creep.store.energy == creep.store.getCapacity(RESOURCE_ENERGY) && lowestEnergySpawn.store.energy < lowestEnergySpawn.store.getCapacity(RESOURCE_ENERGY)!) {
             creep.give(Game.spawns[lowestEnergySpawn.name], RESOURCE_ENERGY)
             return ProcessResult.RUNNING
         } else if (closestSource) {
