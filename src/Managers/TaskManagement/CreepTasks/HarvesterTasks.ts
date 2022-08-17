@@ -1,4 +1,3 @@
-import { Console } from "console"
 import { Logger, LogLevel } from "utils/Logger"
 import { Utility } from "utils/Utilities"
 import { Process } from "../../../Models/Process"
