@@ -1,13 +1,15 @@
 import { Logger, LogLevel } from "utils/Logger"
+import { Utility } from "utils/Utilities"
 import {Process} from "../../../Models/Process"
-import { Task, ProcessPriority, ProcessResult } from "../../../utils/Enums"
+import { Task, ProcessPriority, ProcessResult, Role } from "../../../utils/Enums"
 
 export function truckerHarvester(creep: Creep) {
     let creepId = creep.id
 
-    const harvesterTask = () => {
-        Logger.log("CreepTask -> sourceTask()", LogLevel.TRACE)
-        let creep = Game.creeps[creepId]
+    const truckerHarvesterTask = () => {
+        Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.TRACE)
+        let creep = Game.getObjectById(creepId);
+        if (!creep) return ProcessResult.FAILED;
 
         if (!creep.memory.working || creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
             creep.memory.working = false;
@@ -63,7 +65,7 @@ export function truckerHarvester(creep: Creep) {
                         source.pos.findInRange(FIND_DROPPED_RESOURCES, 2));
                     nearbyInterests = _
                         .chain(nearbyInterests)
-                        .filter((s) => (s.store && s.store.energy > 0) || s.resourceType === RESOURCE_ENERGY)
+                        .filter((s) => ('store' in s && s.store.energy > 0) || ('resourceType' in s && s.resourceType === RESOURCE_ENERGY))
                         .sortByOrder(function(s: (AnyStoreStructure | Resource | Tombstone)) {
                             if ('store' in s) {
                                 return s.store.energy;
@@ -95,19 +97,96 @@ export function truckerHarvester(creep: Creep) {
     }
 
     creep.memory.task = Task.TRUCKER_HARVESTER
-    let newProcess = new Process(creep.name, ProcessPriority.LOW, harvesterTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, truckerHarvesterTask)
     global.scheduler.addProcess(newProcess)
 }
 
 export function truckerScientist(creep: Creep) {
-    let creepId = creep.id
+    let creepId = creep.id;
 
-    const scientistTask = () => {
-        let creep = Game.creeps[creepId]
+    const truckerScientistTask = () => {
+        Logger.log("CreepTask -> truckerScientistTask()", LogLevel.TRACE);
+        let creep = Game.getObjectById(creepId);
+        if (!creep) return ProcessResult.FAILED;
+
+        if (!creep.memory.working || creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
+            creep.memory.working = false;
+            delete creep.memory.target;
+        } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
+            creep.memory.working = true;
+            delete creep.memory.target;
+        }
+        const working = creep.memory.working;
+
+        if (working) {
+            if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                let potentialTargets: Creep[] = creep.room.creeps(Role.SCIENTIST);
+                potentialTargets = Utility.organizeTargets(potentialTargets, {resource: RESOURCE_ENERGY, order: 'asc'});
+
+                let potTarget = potentialTargets[0];
+                if (potTarget) {
+                    creep.memory.target = potTarget.id;
+                } else {
+                    return ProcessResult.RUNNING
+                }
+            }
+            let target = Game.getObjectById(creep.memory.target);
+
+            var result = creep.give(target, RESOURCE_ENERGY);
+            if (result === OK) {
+                return ProcessResult.RUNNING
+            }
+            Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
+            return ProcessResult.INCOMPLETE
+        } else {
+            if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
+                let nearbyInterests = Array.prototype.concat(
+                    creep.room.find(FIND_DROPPED_RESOURCES),
+                    creep.room.find(FIND_TOMBSTONES),
+                    creep.room.find(FIND_STRUCTURES));
+                nearbyInterests = Utility.organizeTargets(nearbyInterests, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+
+                potentialTargets.push(...nearbyInterests);
+                let priorityTargets = potentialTargets.filter(function(t) {
+                    (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
+                });     // Only used creep! because of creep not existing being caught at the beginning of the process
+
+                if (priorityTargets) {
+                    creep.memory.target = priorityTargets[0].id;
+                } else if (potentialTargets) {
+                    let pTarget = creep.pos.findClosestByRange(potentialTargets)
+                    if (pTarget) {
+                        creep.memory.target = pTarget.id;
+                    } else {
+                        creep.memory.target = potentialTargets[0].id;
+                    }
+                } else if (creep.room.storage) {
+                    creep.memory.target = creep.room.storage.id;
+                } else {
+                    return ProcessResult.RUNNING
+                }
+            }
+            let target = Game.getObjectById(creep.memory.target);
+
+            if (target.store.energy < 25) {
+                delete creep.memory.target;
+                ProcessResult.RUNNING;
+            }
+
+            result = creep.take(target, RESOURCE_ENERGY);
+
+            if (result === OK) {
+                return ProcessResult.RUNNING
+            }
+            Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
+            return ProcessResult.INCOMPLETE
+
+        }
     }
 
     creep.memory.task = Task.TRUCKER_SCIENTIST
-    let newProcess = new Process(creep.name, ProcessPriority.LOW, scientistTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, truckerScientistTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -116,6 +195,9 @@ export function truckerStorage(creep: Creep) {
 
     const storageTask = () => {
         let creep = Game.creeps[creepId]
+        Logger.log("CreepTask -> storageTask()", LogLevel.TRACE);
+        Logger.log("Why is there a truckerStorageTask running?!?!", LogLevel.ERROR);
+        return ProcessResult.FAILED
     }
 
     creep.memory.task = Task.TRUCKER_STORAGE
