@@ -1,12 +1,13 @@
 import { Logger, LogLevel } from "utils/Logger"
+import { Utility } from "utils/Utilities"
 import {Process} from "../../../Models/Process"
 import { Task, ProcessPriority, ProcessResult, Role } from "../../../utils/Enums"
 
 export function truckerHarvester(creep: Creep) {
     let creepId = creep.id
 
-    const harvesterTask = () => {
-        Logger.log("CreepTask -> sourceTask()", LogLevel.TRACE)
+    const truckerHarvesterTask = () => {
+        Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.TRACE)
         let creep = Game.getObjectById(creepId);
         if (!creep) return ProcessResult.FAILED;
 
@@ -96,14 +97,15 @@ export function truckerHarvester(creep: Creep) {
     }
 
     creep.memory.task = Task.TRUCKER_HARVESTER
-    let newProcess = new Process(creep.name, ProcessPriority.LOW, harvesterTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, truckerHarvesterTask)
     global.scheduler.addProcess(newProcess)
 }
 
 export function truckerScientist(creep: Creep) {
     let creepId = creep.id;
 
-    const scientistTask = () => {Logger.log("CreepTask -> sourceTask()", LogLevel.TRACE);
+    const truckerScientistTask = () => {
+        Logger.log("CreepTask -> truckerScientistTask()", LogLevel.TRACE);
         let creep = Game.getObjectById(creepId);
         if (!creep) return ProcessResult.FAILED;
 
@@ -119,12 +121,7 @@ export function truckerScientist(creep: Creep) {
         if (working) {
             if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                 let potentialTargets: Creep[] = creep.room.creeps(Role.SCIENTIST);
-                potentialTargets = _
-                        .chain(potentialTargets)
-                        .sortByOrder(function(s: (Creep)) {
-                            return s.store.energy;
-                        }, 'asc')
-                        .value();
+                potentialTargets = Utility.organizeTargets(potentialTargets, {resource: RESOURCE_ENERGY, order: 'asc'});
 
                 let potTarget = potentialTargets[0];
                 if (potTarget) {
@@ -148,18 +145,7 @@ export function truckerScientist(creep: Creep) {
                     creep.room.find(FIND_DROPPED_RESOURCES),
                     creep.room.find(FIND_TOMBSTONES),
                     creep.room.find(FIND_STRUCTURES));
-                let wantedStructures = [STRUCTURE_CONTAINER, STRUCTURE_LINK];
-                nearbyInterests = _
-                    .chain(nearbyInterests)
-                    .filter((s) => (s.store && wantedStructures.indexOf(s.structureType) >= 0 && s.store.energy > 0) || ('resourceType' in s && s.resourceType === RESOURCE_ENERGY))
-                    .sortByOrder(function(s: (AnyStoreStructure | Resource | Tombstone)) {
-                        if ('store' in s) {
-                            return s.store.energy;
-                        } else {
-                            return s.amount;
-                        }
-                    }, 'desc')
-                    .value();
+                nearbyInterests = Utility.organizeTargets(nearbyInterests, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
 
                 potentialTargets.push(...nearbyInterests);
                 let priorityTargets = potentialTargets.filter(function(t) {
@@ -200,7 +186,7 @@ export function truckerScientist(creep: Creep) {
     }
 
     creep.memory.task = Task.TRUCKER_SCIENTIST
-    let newProcess = new Process(creep.name, ProcessPriority.LOW, scientistTask)
+    let newProcess = new Process(creep.name, ProcessPriority.LOW, truckerScientistTask)
     global.scheduler.addProcess(newProcess)
 }
 
@@ -209,6 +195,9 @@ export function truckerStorage(creep: Creep) {
 
     const storageTask = () => {
         let creep = Game.creeps[creepId]
+        Logger.log("CreepTask -> storageTask()", LogLevel.TRACE);
+        Logger.log("Why is there a truckerStorageTask running?!?!", LogLevel.ERROR);
+        return ProcessResult.FAILED
     }
 
     creep.memory.task = Task.TRUCKER_STORAGE
