@@ -1,10 +1,6 @@
-import { Process } from "Models/Process"
-import { Logger } from "utils/Logger"
-import { harvesterEarlyTask, harvesterSource } from "./CreepTasks/HarvesterTasks"
-import { truckerHarvester, truckerScientist, truckerStorage} from "./CreepTasks/TruckerTasks"
-import { scientistUpgrading } from "./CreepTasks/ScientistTasks"
-import { engineerBuilding, engineerRepairing, engineerUpgrading } from "./CreepTasks/EngineerTasks"
-import "../SpawnManager"
+import { Process } from "Models/Process";
+import { Logger } from "utils/Logger";
+import { Roles } from "Creeps/Index";
 
 export function scheduleSpawnMonitor(room: Room) {
     const roomId = room.name
@@ -38,31 +34,31 @@ export function scheduleCreepTask(room: Room) {
 
         switch (creep.memory.task as Task) {
             case Task.HARVESTER_EARLY:
-                harvesterEarlyTask(creep)
+                Roles.Harvester.harvesterEarlyTask(creep)
                 break
             case Task.HARVESTER_SOURCE:
-                harvesterSource(creep)
+                Roles.Harvester.harvesterSource(creep)
                 break
             case Task.TRUCKER_HARVESTER:
-                truckerHarvester(creep)
+                Roles.Trucker.truckerHarvester(creep)
                 break
             case Task.TRUCKER_SCIENTIST:
-                truckerScientist(creep)
+                Roles.Trucker.truckerScientist(creep)
                 break
             case Task.TRUCKER_STORAGE:
-                truckerStorage(creep)
+                Roles.Trucker.truckerStorage(creep)
                 break
             case Task.SCIENTIST_UPGRADING:
-                scientistUpgrading(creep)
+                Roles.Scientist.scientistUpgrading(creep)
                 break
             case Task.ENGINEER_BUILDING:
-                engineerBuilding(creep)
+                Roles.Engineer.engineerBuilding(creep)
                 break
             case Task.ENGINEER_REPAIRING:
-                engineerRepairing(creep)
+                Roles.Engineer.engineerRepairing(creep)
                 break
             case Task.ENGINEER_UPGRADING:
-                engineerUpgrading(creep)
+                Roles.Engineer.engineerUpgrading(creep)
                 break
         }
     }
