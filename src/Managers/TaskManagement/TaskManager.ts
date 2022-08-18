@@ -6,20 +6,9 @@ import { harvesterEarlyTask, harvesterSource } from "./CreepTasks/HarvesterTasks
 import { truckerHarvester, truckerScientist, truckerStorage} from "./CreepTasks/TruckerTasks"
 import { scientistUpgrading } from "./CreepTasks/ScientistTasks"
 import { engineerBuilding, engineerRepairing, engineerUpgrading } from "./CreepTasks/EngineerTasks"
-import { schedulePixelSale, scheduleThreatMonitor, scheduleMemoryMonitor } from "./UtilityTasks"
 import "../SpawnManager"
 
-
-Room.prototype.scheduleTasks = function () {
-    Logger.log("Room -> setupTasks()", LogLevel.TRACE)
-    schedulePixelSale()
-    scheduleThreatMonitor(this)
-    scheduleCreepTask(this)
-    scheduleSpawnMonitor(this)
-    scheduleMemoryMonitor()
-}
-
-function scheduleSpawnMonitor(room: Room) {
+export function scheduleSpawnMonitor(room: Room) {
     const roomId = room.name
 
     const spawnMonitorTask = () => {
@@ -42,7 +31,7 @@ function scheduleSpawnMonitor(room: Room) {
     global.scheduler.addProcess(newProcess)
 }
 
-function scheduleCreepTask(room: Room) {
+export function scheduleCreepTask(room: Room) {
     Logger.log("Room -> scheduleCreepTask()", LogLevel.TRACE)
     let creeps = room.creeps(undefined)
     for (let i = 0; i < creeps.length; i++) {

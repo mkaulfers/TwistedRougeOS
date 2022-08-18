@@ -31,28 +31,12 @@ const truSegment: BodyPartConstant[] = [CARRY, CARRY, MOVE]
 * ------------------------------------------------------------------
 */
 
-Room.prototype.shouldSpawn = function (role: Role): boolean {
-    switch (role) {
-        case Role.ENGINEER:
-            return shouldSpawnEngineer()
-        case Role.HARVESTER:
-            return shouldSpawnHarvester(this)
-        case Role.SCIENTIST:
-            return shouldSpawnScientist()
-        case Role.TRUCKER:
-            return shouldSpawnTrucker()
-    }
-}
 
-Room.prototype.roleToPreSpawn = function (): Role {
-    return Role.HARVESTER
-}
-
-function shouldSpawnEngineer(): boolean {
+export function shouldSpawnEngineer(): boolean {
     return false
 }
 
-function shouldSpawnHarvester(room: Room): boolean {
+export function shouldSpawnHarvester(room: Room): boolean {
     Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
     let sourcePotential = room.sourcesEnergyPotential()
     let harvestersWorkPotential = room.harvestersWorkPotential()
@@ -60,11 +44,11 @@ function shouldSpawnHarvester(room: Room): boolean {
     return sourcePotential > harvestersWorkPotential
 }
 
-function shouldSpawnScientist(): boolean {
+export function shouldSpawnScientist(): boolean {
     return false
 }
 
-function shouldSpawnTrucker(): boolean {
+export function shouldSpawnTrucker(): boolean {
     return false
 }
 
@@ -74,26 +58,7 @@ function shouldSpawnTrucker(): boolean {
 * ------------------------------------------------------------------
 */
 
-Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
-    Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
-    let body = getBodyFor(this, role)
-    let name = generateNameFor(role)
-    let task = generateTaskFor(role, this)
-
-    spawn.spawnCreep(
-        body,
-        name, {
-        memory: {
-            assignedPos: role == Role.HARVESTER ? getUnassignedPackedPos(this) : undefined,
-            task: task,
-            role: role,
-            working: false,
-            target: undefined,
-            homeRoom: this.name
-        }
-    })
-
-}
+// Refer to Prototype/Room.ts
 
 /**
 * ------------------------------------------------------------------
@@ -101,7 +66,7 @@ Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
 * ------------------------------------------------------------------
 */
 
-function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
+export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
     Logger.log("Spawn -> getBodyFor()", LogLevel.TRACE)
     let tempBody: BodyPartConstant[] = []
     let tempSegment: BodyPartConstant[] = []
@@ -151,21 +116,21 @@ function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
  * ------------------------------------------------------------------
  */
 
-function bodyCost(body: BodyPartConstant[]): number {
+ export function bodyCost(body: BodyPartConstant[]): number {
     let sum = 0;
     for (let i in body)
         sum += BODYPART_COST[body[i]];
     return sum;
 }
 
-function generateNameFor(role: Role) {
+export function generateNameFor(role: Role) {
     return Utility.truncateString(role) + "_" + Utility.truncateString(Game.time.toString(), 4, false)
 }
 
 /**
  * This will need to generate a task for the creeps memory to hold on to so that it knows what to do after spawning.
  */
-function generateTaskFor(role: Role, room: Room): Task | undefined {
+ export function generateTaskFor(role: Role, room: Room): Task | undefined {
     Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
     switch (role) {
         case Role.HARVESTER:
