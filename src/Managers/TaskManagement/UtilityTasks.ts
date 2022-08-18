@@ -1,4 +1,4 @@
-import {Process} from "../../Models/Process"
+import { Process } from "../../Models/Process"
 import { ProcessPriority } from "../../utils/Enums"
 
 export function schedulePixelSale() {
@@ -21,7 +21,6 @@ const mmoShardNames = new Set([
     'shard2',
     'shard3'
 ])
-
 
 export function scheduleThreatMonitor(room: Room) {
     let roomName = room.name

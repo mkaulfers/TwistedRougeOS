@@ -24,36 +24,19 @@ const truSegment: BodyPartConstant[] = [CARRY, CARRY, MOVE]
 * ------------------------------------------------------------------
 */
 
-Room.prototype.shouldSpawn = function (role: Role): boolean {
-    switch (role) {
-        case Role.ENGINEER:
-            return shouldSpawnEngineer()
-        case Role.HARVESTER:
-            return shouldSpawnHarvester()
-        case Role.SCIENTIST:
-            return shouldSpawnScientist()
-        case Role.TRUCKER:
-            return shouldSpawnTrucker()
-    }
-}
-
-Room.prototype.roleToPreSpawn = function (): Role {
-    return Role.HARVESTER
-}
-
-function shouldSpawnEngineer(): boolean {
+export function shouldSpawnEngineer(): boolean {
     return false
 }
 
-function shouldSpawnHarvester(): boolean {
+export function shouldSpawnHarvester(): boolean {
     return true
 }
 
-function shouldSpawnScientist(): boolean {
+export function shouldSpawnScientist(): boolean {
     return false
 }
 
-function shouldSpawnTrucker(): boolean {
+export function shouldSpawnTrucker(): boolean {
     return false
 }
 
@@ -63,7 +46,7 @@ function shouldSpawnTrucker(): boolean {
 * ------------------------------------------------------------------
 */
 
-function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
+export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
     Logger.log("Spawn -> getBodyFor()", LogLevel.TRACE)
     let tempBody: BodyPartConstant[] = []
     let tempSegment: BodyPartConstant[] = []
@@ -107,49 +90,27 @@ function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
     return tempBody
 }
 
-Room.prototype.spawnCreep = function(role: Role) {
-    Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
-    let body = getBodyFor(this, role)
-    let name = generateNameFor(role)
-    let task = generateTaskFor(role, this)
-    let availableSpawn = getAvailableSpawn(this)
-
-    if (availableSpawn) {
-        availableSpawn.spawnCreep(
-            body,
-            name, {
-            memory: {
-                task: task,
-                role: role,
-                working: false,
-                target: undefined,
-                homeRoom: this.name
-            }
-        })
-    }
-}
-
 /**
  * ------------------------------------------------------------------
  * SPAWN UTILITY FUNCTIONS
  * ------------------------------------------------------------------
  */
 
-function bodyCost(body: BodyPartConstant[]): number {
+export function bodyCost(body: BodyPartConstant[]): number {
     let sum = 0;
     for (let i in body)
         sum += BODYPART_COST[body[i]];
     return sum;
 }
 
-function generateNameFor(role: Role) {
+export function generateNameFor(role: Role) {
     return Utility.truncateString(role) + "_" + Utility.truncateString(Game.time.toString(), 4, false)
 }
 
 /**
  * This will need to generate a task for the creeps memory to hold on to so that it knows what to do after spawning.
  */
-function generateTaskFor(role: Role, room: Room): Task | undefined {
+export function generateTaskFor(role: Role, room: Room): Task | undefined {
     Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
     switch (role) {
         case Role.HARVESTER:
@@ -163,7 +124,7 @@ function generateTaskFor(role: Role, room: Room): Task | undefined {
     return undefined
 }
 
-function getAvailableSpawn(room: Room): StructureSpawn | undefined {
+export function getAvailableSpawn(room: Room): StructureSpawn | undefined {
     Logger.log("Spawn -> getAvailableSpawn()", LogLevel.TRACE)
     //Loop over all spawns in the room and return the first one that is not busy.
     for (let spawn of room.find(FIND_MY_SPAWNS)) {
