@@ -6,17 +6,5 @@ export class Logger {
             console.log(`${level} ${message}`)
         }
     }
+
 }
-
-export enum LogLevel {
-    ALL,
-    OFF,
-    TRACE = "[TRACE]:",
-    DEBUG = "[DEBUG]:",
-    INFO = "[INFO]:",
-    WARN = "[WARN]:",
-    ERROR = "[ERROR]:",
-    FATAL = "[FATAL]:",
-}
-
-

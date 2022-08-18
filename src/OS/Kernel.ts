@@ -1,9 +1,7 @@
-import { ProcessPriority, ProcessResult } from "../utils/Enums"
-import { Logger, LogLevel } from "utils/Logger"
-import { Utility } from "utils/Utilities"
+import { Logger } from "utils/Logger"
 import { Process } from "../Models/Process"
 
-export class Kernel {
+export default class Kernel {
     executeProcesses() {
         for (let [, value] of global.scheduler.processQueue) {
             let start = Game.cpu.getUsed()

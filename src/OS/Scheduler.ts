@@ -1,7 +1,6 @@
 import { Process } from "Models/Process"
-import { ProcessResult, ProcessPriority } from "../utils/Enums"
 
-export class Scheduler {
+export default class Scheduler {
     processQueue: Map<string, Process>
     pausedProcesses: Map<string, Process>
 
