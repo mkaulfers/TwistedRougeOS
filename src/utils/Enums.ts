@@ -1,11 +1,11 @@
-export enum Role {
+enum Role {
     HARVESTER = 'harvester',
     TRUCKER = 'trucker',
     SCIENTIST = 'scientist',
     ENGINEER = 'engineer'
 }
 
-export enum Task {
+enum Task {
     HARVESTER_EARLY = 'harvester_early',
     HARVESTER_SOURCE = 'harvester_source',
 
@@ -20,7 +20,7 @@ export enum Task {
     ENGINEER_UPGRADING = 'engineer_upgrading'
 }
 
-export enum ProcessPriority {
+enum ProcessPriority {
     CRITICAL = 'Critical',
     HIGH = 'High',
     MEDIUM_HIGH = 'Medium High',
@@ -30,9 +30,22 @@ export enum ProcessPriority {
     INDIFFERENT = 'Indifferent'
 }
 
-export enum ProcessResult {
+enum ProcessResult {
     SUCCESS = "SUCCESS",
     FAILED = "FAILED",
     RUNNING = 'RUNNING',
     INCOMPLETE = "INCOMPLETE"
 }
+
+enum LogLevel {
+    ALL,
+    OFF,
+    TRACE = "[TRACE]:",
+    DEBUG = "[DEBUG]:",
+    INFO = "[INFO]:",
+    WARN = "[WARN]:",
+    ERROR = "[ERROR]:",
+    FATAL = "[FATAL]:",
+}
+
+

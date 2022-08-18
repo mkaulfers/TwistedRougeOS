@@ -1,4 +1,3 @@
-import { ProcessResult, ProcessPriority } from "../utils/Enums"
 
 export class Process {
     id: string

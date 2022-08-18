@@ -1,10 +1,5 @@
-import { baseHarBody, generateNameFor, generateTaskFor, getBodyFor, shouldSpawnEngineer, shouldSpawnHarvester, shouldSpawnScientist, shouldSpawnTrucker } from 'Managers/SpawnManager';
-import { getUnassignedPackedPos } from 'Managers/TaskManagement/CreepTasks/HarvesterTasks';
-import { scheduleCreepTask, scheduleSpawnMonitor } from 'Managers/TaskManagement/TaskManager';
-import { scheduleMemoryMonitor, schedulePixelSale, scheduleThreatMonitor } from 'Managers/TaskManagement/UtilityTasks';
-import { Role } from 'utils/Enums';
-import { Utility } from 'utils/Utilities';
-import { Logger, LogLevel } from '../utils/Logger';
+import { Managers } from 'Managers/Index';
+import { Utils } from 'utils/Index';
 
 declare global {
     interface Room {
@@ -45,12 +40,12 @@ declare global {
 }
 
 Room.prototype.scheduleTasks = function () {
-    Logger.log("Room -> setupTasks()", LogLevel.TRACE)
-    schedulePixelSale()
-    scheduleThreatMonitor(this)
-    scheduleCreepTask(this)
-    scheduleSpawnMonitor(this)
-    scheduleMemoryMonitor()
+    Utils.Logger.log("Room -> setupTasks()", LogLevel.TRACE)
+    Managers.UtilityTasks.schedulePixelSale()
+    Managers.UtilityTasks.scheduleThreatMonitor(this)
+    Managers.TaskManager.scheduleCreepTask(this)
+    Managers.TaskManager.scheduleSpawnMonitor(this)
+    Managers.UtilityTasks.scheduleMemoryMonitor()
 }
 
 Room.prototype.creeps = function (role?: Role): Creep[] {
@@ -92,7 +87,7 @@ Room.prototype.validSourcePositions = function (): RoomPosition[] {
         }
     }
 
-    this.memory.validPackedSourcePositions = Utility.packPositionArray(validPositions)
+    this.memory.validPackedSourcePositions = Utils.Utility.packPositionArray(validPositions)
     return validPositions
 }
 
@@ -108,7 +103,7 @@ Room.prototype.getAvailableSpawn = function (): StructureSpawn | undefined {
 
 Room.prototype.sourcesEnergyPotential = function (): number {
     let validSourcePositions = this.validSourcePositions()
-    let positionalEnergy = validSourcePositions.length * (baseHarBody.filter(x => x == WORK).length * 2)
+    let positionalEnergy = validSourcePositions.length * (Managers.SpawnManager.baseHarBody.filter(x => x == WORK).length * 2)
     return positionalEnergy > this.sources().length * 10 ? this.sources().length * 10 : positionalEnergy
 }
 
@@ -124,13 +119,13 @@ Room.prototype.harvestersWorkPotential = function (): number {
 Room.prototype.shouldSpawn = function (role: Role): boolean {
     switch (role) {
         case Role.ENGINEER:
-            return shouldSpawnEngineer()
+            return Managers.SpawnManager.shouldSpawnEngineer()
         case Role.HARVESTER:
-            return shouldSpawnHarvester(this)
+            return Managers.SpawnManager.shouldSpawnHarvester(this)
         case Role.SCIENTIST:
-            return shouldSpawnScientist()
+            return Managers.SpawnManager.shouldSpawnScientist()
         case Role.TRUCKER:
-            return shouldSpawnTrucker()
+            return Managers.SpawnManager.shouldSpawnTrucker()
     }
 }
 
@@ -139,16 +134,16 @@ Room.prototype.roleToPreSpawn = function (): Role {
 }
 
 Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
-    Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
-    let body = getBodyFor(this, role)
-    let name = generateNameFor(role)
-    let task = generateTaskFor(role, this)
+    Utils.Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
+    let body = Managers.SpawnManager.getBodyFor(this, role)
+    let name = Managers.SpawnManager.generateNameFor(role)
+    let task = Managers.SpawnManager.generateTaskFor(role, this)
 
     spawn.spawnCreep(
         body,
         name, {
         memory: {
-            assignedPos: role == Role.HARVESTER ? getUnassignedPackedPos(this) : undefined,
+            assignedPos: role == Role.HARVESTER ? Managers.HarvesterTasks.getUnassignedPackedPos(this) : undefined,
             task: task,
             role: role,
             working: false,

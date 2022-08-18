@@ -1,6 +1,5 @@
-import {Process} from "../../Models/Process"
-import { ProcessPriority, ProcessResult } from "../../utils/Enums"
-import { Logger, LogLevel } from "../../utils/Logger";
+import { Process } from "../../Models/Process"
+import { Logger } from "../../utils/Logger";
 
 export function schedulePixelSale() {
     let pixelSaleProcessId = "generate_pixels"

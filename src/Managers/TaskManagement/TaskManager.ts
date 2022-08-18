@@ -1,7 +1,5 @@
 import { Process } from "Models/Process"
-import { Task } from "utils/Enums"
-import { Logger, LogLevel } from "utils/Logger"
-import { ProcessPriority, ProcessResult, Role } from "../../utils/Enums"
+import { Logger } from "utils/Logger"
 import { harvesterEarlyTask, harvesterSource } from "./CreepTasks/HarvesterTasks"
 import { truckerHarvester, truckerScientist, truckerStorage} from "./CreepTasks/TruckerTasks"
 import { scientistUpgrading } from "./CreepTasks/ScientistTasks"

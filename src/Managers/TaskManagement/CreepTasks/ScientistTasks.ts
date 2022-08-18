@@ -1,7 +1,5 @@
-import { Logger, LogLevel } from "utils/Logger"
-import { Utility } from "utils/Utilities"
+import { Logger } from "utils/Logger"
 import { Process } from "../../../Models/Process"
-import { Task, ProcessPriority, ProcessResult } from "../../../utils/Enums"
 
 export function scientistUpgrading(creep: Creep) {
     let creepId = creep.id

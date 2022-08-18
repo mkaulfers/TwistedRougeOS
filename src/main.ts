@@ -1,10 +1,7 @@
 import { ErrorMapper } from "utils/ErrorMapper";
-import { Kernel } from "OS/Kernel";
-import { Scheduler } from "OS/Scheduler";
-import { Logger, LogLevel } from "./utils/Logger"
-import { Role, Task } from "./utils/Enums";
-import "./Managers/TaskManagement/TaskManager";
-import "./Managers/RoomManager";
+import { Utils } from './utils/Index';
+import { OS } from "OS/Index";
+import { Managers } from "Managers/Index";
 import './Prototypes/Index'
 
 declare global {
@@ -30,8 +27,6 @@ declare global {
   namespace NodeJS {
     interface Global {
       log: any
-      kernel: Kernel
-      scheduler: Scheduler
     }
   }
 }
@@ -47,14 +42,14 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
 function setup() {
   // DEV MODE LOGGING
-  Logger.devLogLevel = LogLevel.ALL
+  Utils.Logger.devLogLevel = LogLevel.ALL
   if (!global.kernel) {
-    Logger.log("Building new kernel.", LogLevel.DEBUG)
-    global.kernel = new Kernel()
+    Utils.Logger.log("Building new kernel.", LogLevel.DEBUG)
+    global.kernel = new OS.Kernel()
   }
   if (!global.scheduler) {
-    Logger.log("Building new scheduler.", LogLevel.DEBUG)
-    global.scheduler = new Scheduler()
+    Utils.Logger.log("Building new scheduler.", LogLevel.DEBUG)
+    global.scheduler = new OS.Scheduler()
   }
 }
 
@@ -82,9 +77,9 @@ function displaySimpleStats() {
 
 function loggingProcess() {
   displaySimpleStats()
-  if (Logger.devLogLevel == LogLevel.DEBUG ||
-    Logger.devLogLevel == LogLevel.ALL ||
-    Logger.devLogLevel == LogLevel.INFO) {
+  if (Utils.Logger.devLogLevel == LogLevel.DEBUG ||
+    Utils.Logger.devLogLevel == LogLevel.ALL ||
+    Utils.Logger.devLogLevel == LogLevel.INFO) {
     console.log("============== PROCESSES ==============")
     console.log("Avg Queue Cpu Cost: " + global.kernel.estimatedQueueCpuCost())
     console.log()

@@ -1,7 +1,4 @@
-import { Role, Task } from "../utils/Enums";
-import { Logger, LogLevel } from "../utils/Logger";
-import { Utility } from "utils/Utilities";
-import { getUnassignedPackedPos } from "../Managers/TaskManagement/CreepTasks/HarvesterTasks";
+import { Utils } from '../utils/Index'
 
 declare global {
     interface Room {
@@ -37,10 +34,10 @@ export function shouldSpawnEngineer(): boolean {
 }
 
 export function shouldSpawnHarvester(room: Room): boolean {
-    Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
+    Utils.Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
     let sourcePotential = room.sourcesEnergyPotential()
     let harvestersWorkPotential = room.harvestersWorkPotential()
-    Logger.log(`Source Potential: ${sourcePotential} Harvesters Work Potential: ${harvestersWorkPotential}`, LogLevel.DEBUG)
+    Utils.Logger.log(`Source Potential: ${sourcePotential} Harvesters Work Potential: ${harvestersWorkPotential}`, LogLevel.DEBUG)
     return sourcePotential > harvestersWorkPotential
 }
 
@@ -67,7 +64,7 @@ export function shouldSpawnTrucker(): boolean {
 */
 
 export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
-    Logger.log("Spawn -> getBodyFor()", LogLevel.TRACE)
+    Utils.Logger.log("Spawn -> getBodyFor()", LogLevel.TRACE)
     let tempBody: BodyPartConstant[] = []
     let tempSegment: BodyPartConstant[] = []
 
@@ -124,14 +121,14 @@ export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
 }
 
 export function generateNameFor(role: Role) {
-    return Utility.truncateString(role) + "_" + Utility.truncateString(Game.time.toString(), 4, false)
+    return Utils.Utility.truncateString(role) + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false)
 }
 
 /**
  * This will need to generate a task for the creeps memory to hold on to so that it knows what to do after spawning.
  */
  export function generateTaskFor(role: Role, room: Room): Task | undefined {
-    Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
+    Utils.Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
     switch (role) {
         case Role.HARVESTER:
             if (room.creeps(Role.TRUCKER).length < room.find(FIND_SOURCES).length) {

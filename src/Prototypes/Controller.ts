@@ -1,4 +1,4 @@
-import { Logger, LogLevel } from '../utils/Logger';
+import { Logger } from '../utils/Logger';
 
 declare global {
     interface StructureController {

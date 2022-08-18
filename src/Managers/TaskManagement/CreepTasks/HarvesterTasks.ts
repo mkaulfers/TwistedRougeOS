@@ -1,13 +1,11 @@
-import { Logger, LogLevel } from "utils/Logger"
-import { Utility } from "utils/Utilities"
+import { Utils } from "utils/Index"
 import { Process } from "../../../Models/Process"
-import { Task, ProcessPriority, ProcessResult, Role } from "../../../utils/Enums"
 
 export function harvesterEarlyTask(creep: Creep) {
     let creepId = creep.id
 
     const earlyTask = () => {
-        Logger.log("CreepTask -> earlyTask()", LogLevel.TRACE)
+        Utils.Logger.log("CreepTask -> earlyTask()", LogLevel.TRACE)
         let creep = Game.getObjectById(creepId)
         if (!creep) return ProcessResult.FAILED
 
@@ -16,7 +14,7 @@ export function harvesterEarlyTask(creep: Creep) {
         if (!creep.memory.assignedPos) {
             closestSource = unrealizedHarvestingSource(creep)
         } else {
-            closestSource = Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
+            closestSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
         }
 
         let lowestEnergySpawn = Game.rooms[creep.room.name].find(FIND_MY_SPAWNS).sort((a, b) => a.store.energy - b.store.energy)[0]
@@ -41,12 +39,12 @@ export function harvesterSource(creep: Creep) {
     let creepId = creep.id
 
     const sourceTask = () => {
-        Logger.log("CreepTask -> sourceTask()", LogLevel.TRACE)
+        Utils.Logger.log("CreepTask -> sourceTask()", LogLevel.TRACE)
         let creep = Game.getObjectById(creepId)
         if (!creep) { return ProcessResult.FAILED }
         //log creepId
-        Logger.log(creepId, LogLevel.WARN)
-        let sourcePos = Utility.findPosForSource(creep)
+        Utils.Logger.log(creepId, LogLevel.WARN)
+        let sourcePos = Utils.Utility.findPosForSource(creep)
         let source = sourcePos?.findInRange(FIND_SOURCES, 2)[0]
 
         if (source) {

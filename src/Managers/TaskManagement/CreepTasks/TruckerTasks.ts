@@ -1,13 +1,11 @@
-import { Logger, LogLevel } from "utils/Logger"
-import { Utility } from "utils/Utilities"
-import {Process} from "../../../Models/Process"
-import { Task, ProcessPriority, ProcessResult, Role } from "../../../utils/Enums"
+import { Utils } from "utils/Index"
+import { Process } from "../../../Models/Process"
 
 export function truckerHarvester(creep: Creep) {
     let creepId = creep.id
 
     const truckerHarvesterTask = () => {
-        Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.TRACE)
+        Utils.Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.TRACE)
         let creep = Game.getObjectById(creepId);
         if (!creep) return ProcessResult.FAILED;
 
@@ -53,7 +51,7 @@ export function truckerHarvester(creep: Creep) {
             if (result === OK) {
                 return ProcessResult.RUNNING
             }
-            Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
+            Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
             return ProcessResult.INCOMPLETE
         } else {
             if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
@@ -91,7 +89,7 @@ export function truckerHarvester(creep: Creep) {
             if (result === OK) {
                 return ProcessResult.RUNNING
             }
-            Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
+            Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
             return ProcessResult.INCOMPLETE
         }
     }
@@ -105,7 +103,7 @@ export function truckerScientist(creep: Creep) {
     let creepId = creep.id;
 
     const truckerScientistTask = () => {
-        Logger.log("CreepTask -> truckerScientistTask()", LogLevel.TRACE);
+        Utils.Logger.log("CreepTask -> truckerScientistTask()", LogLevel.TRACE);
         let creep = Game.getObjectById(creepId);
         if (!creep) return ProcessResult.FAILED;
 
@@ -121,7 +119,7 @@ export function truckerScientist(creep: Creep) {
         if (working) {
             if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                 let potentialTargets: Creep[] = creep.room.creeps(Role.SCIENTIST);
-                potentialTargets = Utility.organizeTargets(potentialTargets, {resource: RESOURCE_ENERGY, order: 'asc'});
+                potentialTargets = Utils.Utility.organizeTargets(potentialTargets, {resource: RESOURCE_ENERGY, order: 'asc'});
 
                 let potTarget = potentialTargets[0];
                 if (potTarget) {
@@ -136,7 +134,7 @@ export function truckerScientist(creep: Creep) {
             if (result === OK) {
                 return ProcessResult.RUNNING
             }
-            Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
+            Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
             return ProcessResult.INCOMPLETE
         } else {
             if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
@@ -145,7 +143,7 @@ export function truckerScientist(creep: Creep) {
                     creep.room.find(FIND_DROPPED_RESOURCES),
                     creep.room.find(FIND_TOMBSTONES),
                     creep.room.find(FIND_STRUCTURES));
-                nearbyInterests = Utility.organizeTargets(nearbyInterests, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+                nearbyInterests = Utils.Utility.organizeTargets(nearbyInterests, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
 
                 potentialTargets.push(...nearbyInterests);
                 let priorityTargets = potentialTargets.filter(function(t) {
@@ -179,7 +177,7 @@ export function truckerScientist(creep: Creep) {
             if (result === OK) {
                 return ProcessResult.RUNNING
             }
-            Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
+            Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
             return ProcessResult.INCOMPLETE
 
         }
@@ -195,8 +193,8 @@ export function truckerStorage(creep: Creep) {
 
     const storageTask = () => {
         let creep = Game.creeps[creepId]
-        Logger.log("CreepTask -> storageTask()", LogLevel.TRACE);
-        Logger.log("Why is there a truckerStorageTask running?!?!", LogLevel.ERROR);
+        Utils.Logger.log("CreepTask -> storageTask()", LogLevel.TRACE);
+        Utils.Logger.log("Why is there a truckerStorageTask running?!?!", LogLevel.ERROR);
         return ProcessResult.FAILED
     }
 
