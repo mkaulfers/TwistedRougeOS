@@ -1,4 +1,5 @@
 import { Logger, LogLevel } from "utils/Logger";
+import { Utility } from "utils/Utilities";
 import { Role } from "../utils/Enums";
 import { baseHarBody } from "./SpawnManager";
 
@@ -57,10 +58,11 @@ Room.prototype.validSourcePositions = function (): RoomPosition[] {
 
     for (let position of nonValidatedPositions) {
         if (roomTerrain.get(position.x, position.y) != TERRAIN_MASK_WALL) {
-            validPositions.push(RoomPosition(position.x, position.y, this.name))
+            validPositions.push(new RoomPosition(position.x, position.y, this.name))
         }
     }
 
+    this.memory.validPackedSourcePositions = Utility.packPositionArray(validPositions)
     return validPositions
 }
 
@@ -77,7 +79,6 @@ Room.prototype.getAvailableSpawn = function (): StructureSpawn | undefined {
 Room.prototype.sourcesEnergyPotential = function (): number {
     let validSourcePositions = this.validSourcePositions()
     let positionalEnergy = validSourcePositions.length * (baseHarBody.filter(x => x == WORK).length * 2)
-    Logger.log(`Source Positions: ${validSourcePositions.length}, Energy: ${positionalEnergy}`, LogLevel.DEBUG)
     return positionalEnergy > this.sources().length * 10 ? this.sources().length * 10 : positionalEnergy
 }
 
@@ -89,3 +90,5 @@ Room.prototype.harvestersWorkPotential = function (): number {
     }
     return harvestersPotential * 2
 }
+
+

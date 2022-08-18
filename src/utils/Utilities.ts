@@ -7,6 +7,14 @@ export class Utility {
         return pos.x * 50 + pos.y
     }
 
+    static packPositionArray(pos: RoomPosition[]): number[] {
+        let result: number[] = []
+        for (let i = 0; i < pos.length; i++) {
+            result.push(Utility.packPosition(pos[i]))
+        }
+        return result
+    }
+
     static unpackPostionToRoom(flatPos: number, roomName: string): RoomPosition {
         let x = Math.floor(flatPos / 50)
         let y = Math.floor(flatPos % 50)

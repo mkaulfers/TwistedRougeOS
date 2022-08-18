@@ -31,6 +31,8 @@ export function scheduleThreatMonitor(room: Room) {
 
     const monitorTask = () => {
         let room = Game.rooms[roomName]
+
+        //TODO: There is a bug here. When you respwn, the controller is undefined. It's possible the room is not being set properly or that the scheduler isn't removing the dead process from memory.
         let controller = room.controller
         if (!controller) return
         if (room.controller?.my)

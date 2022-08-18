@@ -1,6 +1,7 @@
 import { Role, Task } from "../utils/Enums";
 import { Logger, LogLevel } from "../utils/Logger";
 import { Utility } from "utils/Utilities";
+import { getUnassignedPackedPos } from "../Managers/TaskManagement/CreepTasks/HarvesterTasks";
 
 declare global {
     interface Room {
@@ -83,6 +84,7 @@ Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
         body,
         name, {
         memory: {
+            assignedPos: role == Role.HARVESTER ? getUnassignedPackedPos(this) : undefined,
             task: task,
             role: role,
             working: false,

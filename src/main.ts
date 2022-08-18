@@ -9,6 +9,7 @@ import "./Managers/RoomManager";
 
 declare global {
   interface CreepMemory {
+    assignedPos?: number
     task?: Task
     role: string
     working: boolean
@@ -18,6 +19,7 @@ declare global {
 
   interface RoomMemory {
     claim?: string;
+    validPackedSourcePositions: number[];
   }
 
   interface Memory {
