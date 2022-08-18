@@ -141,7 +141,7 @@ export class Utility {
      * @param creep the creep to find a source position for.
      * @returns a room position that is a valid source position for the creep, or undefined if no valid position was found.
      */
-     static findPosForSource(creep: Creep): RoomPosition | undefined {
+    static findPosForSource(creep: Creep): RoomPosition | undefined {
         let sources = creep.room.find(FIND_SOURCES)
         Logger.log(sources.length.toString(), LogLevel.WARN)
         for (let source of sources) {
@@ -166,5 +166,59 @@ export class Utility {
             }
         }
         return
+    }
+
+    /**
+     * Description: Organizes potential targets based on ResourceConstant && StructureType, and sorts them in a defined order.
+     * @param targets An array of potential targets: Creep | AnyStoreStructure | Resource | Tombstone.
+     * @param options An object containing the following properties: `resource, structures, order`.
+     * @returns An array of approved targets or undefined
+     */
+    static organizeTargets(targets: (Creep | AnyStructure | Resource | Tombstone)[], options?: {
+        resource?: ResourceConstant,
+        structures?: StructureConstant[],
+        order?: ('desc' | 'asc')
+        }): any[] {
+
+        if (!targets) return targets;
+        if (!options) options = {};
+        if (!options.order) {
+            options.order = 'desc';
+        }
+
+        targets = _
+        .chain(targets) // s) => ('store' in s && wantedStructures.indexOf(s.structureType) >= 0 && s.store.energy > 0) || ('resourceType' in s && s.resourceType === RESOURCE_ENERGY)
+        .filter(function(t) {
+
+            if (!options || !options.structures && !options.resource) {
+                return t;
+            }
+            if (options.structures) {
+                if ('structureType' in t && options.structures.indexOf(t.structureType) == -1) return;
+            }
+            if (options.resource) {
+                if (('store' in t && t.store[options?.resource!] == 0) ||
+                ('amount' in t && t.amount < 5) ||
+                (!('store' in t) && !('amount' in t))) return;
+            }
+            return t;
+
+        })
+        .sortByOrder(function(t: (Creep | AnyStructure | Resource | Tombstone)) {
+            if (options?.resource) {
+                if ('store' in t) {
+                    return t.store[options.resource];
+                } else if ('amount' in t) {
+                    return t.amount;
+                } else {
+                    return;
+                }
+            } else {
+                return;
+            }
+        }, options.order)
+        .value();
+
+        return targets;
     }
 }
