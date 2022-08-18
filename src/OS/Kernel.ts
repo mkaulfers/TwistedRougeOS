@@ -41,7 +41,6 @@ export class Kernel {
 
     loadProcesses() {
         Logger.log("Kernel -> loadProcesses()", LogLevel.TRACE)
-        Utility.loadMemoryProcesses()
 
         for (let rmName in Game.rooms) {
             let room = Game.rooms[rmName]

@@ -1,5 +1,6 @@
 import {Process} from "../../Models/Process"
-import { ProcessPriority } from "../../utils/Enums"
+import { ProcessPriority, ProcessResult } from "../../utils/Enums"
+import { Logger, LogLevel } from "../../utils/Logger";
 
 export function schedulePixelSale() {
     let pixelSaleProcessId = "generate_pixels"
@@ -30,6 +31,8 @@ export function scheduleThreatMonitor(room: Room) {
 
     const monitorTask = () => {
         let room = Game.rooms[roomName]
+
+        //TODO: There is a bug here. When you respwn, the controller is undefined. It's possible the room is not being set properly or that the scheduler isn't removing the dead process from memory.
         let controller = room.controller
         if (!controller) return
         if (room.controller?.my)
@@ -55,4 +58,36 @@ export function scheduleThreatMonitor(room: Room) {
 
     let newProcess = new Process(roomProcessId, ProcessPriority.LOW, monitorTask)
     global.scheduler.addProcess(newProcess)
+}
+
+export function scheduleMemoryMonitor(): void | ProcessResult {
+
+    const memoryTask = () => {
+        cleanupDeadCreeps()
+        cleanupDeadRooms()
+    }
+
+    let process = new Process('memory_monitor', ProcessPriority.CRITICAL, memoryTask)
+    global.scheduler.addProcess(process)
+}
+
+function cleanupDeadCreeps() {
+    for (const name in Memory.creeps) {
+        if (!Game.creeps[name]) {
+            Logger.log(`Removing dead creep: ${name}`, LogLevel.INFO)
+            global.scheduler.removeProcess(name)
+            delete Memory.creeps[name]
+        }
+    }
+    Logger.log(`No creep memory removed.`, LogLevel.TRACE)
+}
+
+function cleanupDeadRooms() {
+    for (const name in Memory.rooms) {
+        if (!Game.rooms[name]) {
+            Logger.log(`Removing dead room: ${name}`, LogLevel.INFO)
+            delete Memory.rooms[name]
+        }
+    }
+    Logger.log(`No room memory removed.`, LogLevel.TRACE)
 }

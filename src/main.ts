@@ -9,6 +9,7 @@ import "./Managers/RoomManager";
 
 declare global {
   interface CreepMemory {
+    assignedPos?: number
     task?: Task
     role: string
     working: boolean
@@ -18,6 +19,7 @@ declare global {
 
   interface RoomMemory {
     claim?: string;
+    validPackedSourcePositions: number[];
   }
 
   interface Memory {
@@ -34,7 +36,6 @@ declare global {
   }
 
   interface Room {
-    creeps(role: Role | undefined): Creep[]
     /**
       * Returns a role that should be pre-spawned. The spawn should be scheduled for when a
       * creep is about to die + distance to location - spawn time = 0.
@@ -54,7 +55,6 @@ declare global {
      */
     shouldSpawn(role: Role): boolean
     scheduleTasks(): void
-    spawnCreep(role: Role): void
   }
 
   interface StructureSpawn {

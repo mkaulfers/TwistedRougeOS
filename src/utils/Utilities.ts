@@ -7,6 +7,14 @@ export class Utility {
         return pos.x * 50 + pos.y
     }
 
+    static packPositionArray(pos: RoomPosition[]): number[] {
+        let result: number[] = []
+        for (let i = 0; i < pos.length; i++) {
+            result.push(Utility.packPosition(pos[i]))
+        }
+        return result
+    }
+
     static unpackPostionToRoom(flatPos: number, roomName: string): RoomPosition {
         let x = Math.floor(flatPos / 50)
         let y = Math.floor(flatPos % 50)
@@ -126,37 +134,6 @@ export class Utility {
             iteration++
         }
         return
-    }
-
-    static loadMemoryProcesses(): void | ProcessResult {
-        let process = new Process('cleanup_memory', ProcessPriority.INDIFFERENT, this.cleanupMemory)
-        global.scheduler.addProcess(process)
-    }
-
-    static cleanupMemory = () => {
-        this.cleanupDeadCreeps()
-        this.cleanupDeadRooms()
-    }
-
-    static cleanupDeadCreeps() {
-        for (const name in Memory.creeps) {
-            if (!Game.creeps[name]) {
-                Logger.log(`Removing dead creep: ${name}`, LogLevel.INFO)
-                global.scheduler.removeProcess(name)
-                delete Memory.creeps[name]
-            }
-        }
-        Logger.log(`No creep memory removed.`, LogLevel.TRACE)
-    }
-
-    static cleanupDeadRooms() {
-        for (const name in Memory.rooms) {
-            if (!Game.rooms[name]) {
-                Logger.log(`Removing dead room: ${name}`, LogLevel.INFO)
-                delete Memory.rooms[name]
-            }
-        }
-        Logger.log(`No room memory removed.`, LogLevel.TRACE)
     }
 
     /**
