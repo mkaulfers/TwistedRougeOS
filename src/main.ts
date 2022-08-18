@@ -4,8 +4,8 @@ import { Scheduler } from "OS/Scheduler";
 import { Logger, LogLevel } from "./utils/Logger"
 import { Role, Task } from "./utils/Enums";
 import "./Managers/TaskManagement/TaskManager";
-import "./Managers/TaskManagement/CreepTasks/UtilityCreepTasks";
 import "./Managers/RoomManager";
+import './Prototypes/Index'
 
 declare global {
   interface CreepMemory {
@@ -33,31 +33,6 @@ declare global {
       kernel: Kernel
       scheduler: Scheduler
     }
-  }
-
-  interface Room {
-    /**
-      * Returns a role that should be pre-spawned. The spawn should be scheduled for when a
-      * creep is about to die + distance to location - spawn time = 0.
-      */
-    roleToPreSpawn(): Role
-    /**
-     * We should only call this once per creep we are adding to the queue.
-     * When it is called, it will add the creep to the scheduler, which will process it
-     * when it's ready. However we need to make sure that it's not called again for the same creep.
-     * @param role  role to spawn
-    */
-    scheduleSpawn(role: Role): void
-
-    /**
-     * Returns a boolean value indicating whether a role should be spawned.
-     * @param role checks to see if provided role should be spawned.
-     */
-    shouldSpawn(role: Role): boolean
-    scheduleTasks(): void
-  }
-
-  interface StructureSpawn {
   }
 }
 

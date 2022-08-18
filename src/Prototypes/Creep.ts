@@ -1,4 +1,4 @@
-import { Logger, LogLevel } from "utils/Logger";
+import { Logger, LogLevel } from '../utils/Logger';
 
 declare global {
     interface Creep {
@@ -14,10 +14,6 @@ declare global {
         destroy(target?: Structure | Creep): number;
         nMRController(target: string): number;
         isBoosted(): boolean;               // Placeholder
-    }
-
-    interface StructureController {
-        isSigned(): boolean;
     }
 }
 
@@ -312,13 +308,4 @@ Creep.prototype.isBoosted = function () {
     Logger.log("Creep -> isBoosted()", LogLevel.TRACE)
     Logger.log(`${this.name} -> isBoosted(). IsBoosted is currently a placeholder.`, LogLevel.ERROR);
     return false;
-}
-
-StructureController.prototype.isSigned = function () {
-    Logger.log("Controller -> isSigned()", LogLevel.TRACE)
-
-    let sign = this.sign;
-    let spawn = Game.spawns[_.keys(Game.spawns)[0]]
-    if (!sign || sign.username !== spawn.owner.username) return false;
-    return true;
 }
