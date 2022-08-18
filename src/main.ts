@@ -5,6 +5,7 @@ import { Logger, LogLevel } from "./utils/Logger"
 import { Role, Task } from "./utils/Enums";
 import "./Managers/TaskManagement/TaskManager";
 import "./Managers/RoomManager";
+import './Prototypes/Index'
 
 declare global {
   interface CreepMemory {
