@@ -20,7 +20,7 @@ export const baseHarBody: BodyPartConstant[] = [MOVE, CARRY, WORK, WORK]
 export const baseSciBody: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
 export const baseTruBody: BodyPartConstant[] = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
 
-const engSegment: BodyPartConstant[] = [CARRY, WORK, WORK]
+const engSegment: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
 const harSegment: BodyPartConstant[] = [WORK]
 const sciSegment: BodyPartConstant[] = [CARRY, WORK, WORK]
 const truSegment: BodyPartConstant[] = [CARRY, CARRY, MOVE]
