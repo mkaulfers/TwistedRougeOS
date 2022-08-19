@@ -197,8 +197,8 @@ var trucker = {
         if (room.creeps().filter(x => x.memory.role == Role.HARVESTER).length < 1) { return false }
         Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.DEBUG)
         Logger.log(`Demand to Meet: ${room.harvestersWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.DEBUG)
-        if (room.truckersCarryCapacity() > room.harvestersWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)) { return true }
-        return false
+        if (room.truckersCarryCapacity() > room.harvestersWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)) { return false }
+        return true
     },
     baseBody: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
     segment: [CARRY, CARRY, MOVE],

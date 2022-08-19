@@ -1,3 +1,4 @@
+import { remove } from "lodash"
 import { Process } from "Models/Process"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
@@ -36,6 +37,11 @@ export default class Scheduler {
         if (!pausedProcesses) return
         this.processQueue.set(pausedProcesses.id, pausedProcesses)
         this.pausedProcesses.delete(id)
+    }
+
+    swapProcess(creep: Creep, task: Task) {
+        creep.memory.task = task
+        this.removeProcess(creep.name)
     }
 
     constructor() {
