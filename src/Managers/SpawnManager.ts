@@ -1,53 +1,18 @@
 import { Utils } from '../utils/Index'
-
-declare global {
-    interface Room {
-        spawnCreep(role: Role, spawn: StructureSpawn): void
-    }
-}
+import { Roles } from '../Creeps/Index';
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 /**
- * ------------------------------------------------------------------
- * SPAWN PROPERTIES
- * ------------------------------------------------------------------
- */
-
-export const baseEngBody: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
-export const baseHarBody: BodyPartConstant[] = [MOVE, CARRY, WORK, WORK]
-export const baseSciBody: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
-export const baseTruBody: BodyPartConstant[] = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
-
-const engSegment: BodyPartConstant[] = [CARRY, MOVE, WORK, WORK]
-const harSegment: BodyPartConstant[] = [WORK]
-const sciSegment: BodyPartConstant[] = [CARRY, WORK, WORK]
-const truSegment: BodyPartConstant[] = [CARRY, CARRY, MOVE]
+* ------------------------------------------------------------------
+* SPAWN PROPERTIES
+* ------------------------------------------------------------------
+*/
 
 /**
 * ------------------------------------------------------------------
 * Spawn Flags
 * ------------------------------------------------------------------
 */
-
-
-export function shouldSpawnEngineer(): boolean {
-    return false
-}
-
-export function shouldSpawnHarvester(room: Room): boolean {
-    Utils.Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
-    let sourcePotential = room.sourcesEnergyPotential()
-    let harvestersWorkPotential = room.harvestersWorkPotential()
-    Utils.Logger.log(`Source Potential: ${sourcePotential} Harvesters Work Potential: ${harvestersWorkPotential}`, LogLevel.DEBUG)
-    return sourcePotential > harvestersWorkPotential
-}
-
-export function shouldSpawnScientist(): boolean {
-    return false
-}
-
-export function shouldSpawnTrucker(): boolean {
-    return false
-}
 
 /**
 * ------------------------------------------------------------------
@@ -70,20 +35,20 @@ export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
 
     switch (role) {
         case Role.ENGINEER:
-            tempBody = baseEngBody
-            tempSegment = engSegment
+            tempBody = Roles.Engineer.baseBody
+            tempSegment = Roles.Engineer.segment
             break
         case Role.HARVESTER:
-            tempBody = baseHarBody
-            tempSegment = harSegment
+            tempBody = Roles.Harvester.baseBody
+            tempSegment = Roles.Harvester.segment
             break
         case Role.SCIENTIST:
-            tempBody = baseSciBody
-            tempSegment = sciSegment
+            tempBody = Roles.Scientist.baseBody
+            tempSegment = Roles.Scientist.segment
             break
         case Role.TRUCKER:
-            tempBody = baseTruBody
-            tempSegment = truSegment
+            tempBody = Roles.Trucker.baseBody
+            tempSegment = Roles.Trucker.segment
             break
     }
 

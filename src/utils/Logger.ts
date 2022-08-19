@@ -1,3 +1,5 @@
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './Enums';
+
 export class Logger {
     static devLogLevel: LogLevel
     static log(message: string, level: LogLevel): void {

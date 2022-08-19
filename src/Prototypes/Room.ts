@@ -1,6 +1,9 @@
 import { Managers } from 'Managers/Index';
 import { Utils } from 'utils/Index';
+import { Roles } from '../Creeps/Index';
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums';
 
+;
 declare global {
     interface Room {
         /**
@@ -22,6 +25,7 @@ declare global {
         shouldSpawn(role: Role): boolean
         scheduleTasks(): void
         creeps(role?: Role): Creep[];
+        spawnCreep(role: Role, spawn: StructureSpawn): void
 
         /**
         * Checks if a position around a source is a wall, or a valid position a creep can reach to harvest.
@@ -103,7 +107,7 @@ Room.prototype.getAvailableSpawn = function (): StructureSpawn | undefined {
 
 Room.prototype.sourcesEnergyPotential = function (): number {
     let validSourcePositions = this.validSourcePositions()
-    let positionalEnergy = validSourcePositions.length * (Managers.SpawnManager.baseHarBody.filter(x => x == WORK).length * 2)
+    let positionalEnergy = validSourcePositions.length * (Roles.Harvester.baseBody.filter(x => x == WORK).length * 2)
     return positionalEnergy > this.sources().length * 10 ? this.sources().length * 10 : positionalEnergy
 }
 
@@ -119,13 +123,13 @@ Room.prototype.harvestersWorkPotential = function (): number {
 Room.prototype.shouldSpawn = function (role: Role): boolean {
     switch (role) {
         case Role.ENGINEER:
-            return Managers.SpawnManager.shouldSpawnEngineer()
+            return Roles.Engineer.shouldSpawn()
         case Role.HARVESTER:
-            return Managers.SpawnManager.shouldSpawnHarvester(this)
+            return Roles.Harvester.shouldSpawn(this)
         case Role.SCIENTIST:
-            return Managers.SpawnManager.shouldSpawnScientist()
+            return Roles.Scientist.shouldSpawn()
         case Role.TRUCKER:
-            return Managers.SpawnManager.shouldSpawnTrucker()
+            return Roles.Trucker.shouldSpawn()
     }
 }
 
@@ -143,7 +147,7 @@ Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
         body,
         name, {
         memory: {
-            assignedPos: role == Role.HARVESTER ? Managers.HarvesterTasks.getUnassignedPackedPos(this) : undefined,
+            assignedPos: role == Role.HARVESTER ? Roles.Harvester.getUnassignedPackedPos(this) : undefined,
             task: task,
             role: role,
             working: false,

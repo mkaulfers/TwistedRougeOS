@@ -3,6 +3,7 @@ import { Utils } from './utils/Index';
 import { OS } from "OS/Index";
 import { Managers } from "Managers/Index";
 import './Prototypes/Index'
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './utils/Enums'
 
 declare global {
   interface CreepMemory {
@@ -42,7 +43,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
 function setup() {
   // DEV MODE LOGGING
-  Utils.Logger.devLogLevel = LogLevel.ALL
+  Utils.Logger.devLogLevel = LogLevel.ALL;
   if (!global.kernel) {
     Utils.Logger.log("Building new kernel.", LogLevel.DEBUG)
     global.kernel = new OS.Kernel()
