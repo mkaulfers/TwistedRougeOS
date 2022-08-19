@@ -1,9 +1,7 @@
-import { Managers } from 'Managers/Index';
-import { Utils } from 'utils/Index';
-import { Roles } from '../Creeps/Index';
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums';
-
-;
+import { Managers } from 'Managers/Index'
+import { Utils } from 'utils/Index'
+import { Roles } from '../Creeps/Index'
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 declare global {
     interface Room {
         /**
@@ -38,7 +36,16 @@ declare global {
         validSourcePositions(): RoomPosition[]
         getAvailableSpawn(): StructureSpawn | undefined
         sourcesEnergyPotential(): number
+
+        // n WORK bodies in the room, on harvesters, x 2 per tick.
         harvestersWorkPotential(): number
+
+        // n CARRY bodies in the room, on truckers, x 50.
+        truckersCarryCapacity(): number
+
+        // Gets the distance from sources to each storage capable structure in the room.
+        // Spawn, Extension, Tower, Storage, Link, PowerSpawn, Nuker, Labs, Factory, etc..
+        averageDistanceFromSourcesToStructures(): number
         sources(): Source[]
       }
 }
@@ -120,6 +127,27 @@ Room.prototype.harvestersWorkPotential = function (): number {
     return harvestersPotential * 2
 }
 
+Room.prototype.truckersCarryCapacity = function (): number {
+    let truckers = this.creeps(Role.TRUCKER)
+    let truckersCapacity = 0
+    for (let trucker of truckers) {
+        truckersCapacity += trucker.getActiveBodyparts(CARRY) * 50
+    }
+    return truckersCapacity
+}
+
+Room.prototype.averageDistanceFromSourcesToStructures = function (): number {
+    let sources = this.find(FIND_SOURCES)
+    let structures = this.find(FIND_STRUCTURES)
+    let distance = 0
+    for (let source of sources) {
+        for (let structure of structures) {
+            distance += source.pos.getRangeTo(structure)
+        }
+    }
+    return distance / structures.length
+}
+
 Room.prototype.shouldSpawn = function (role: Role): boolean {
     switch (role) {
         case Role.ENGINEER:
@@ -129,7 +157,7 @@ Room.prototype.shouldSpawn = function (role: Role): boolean {
         case Role.SCIENTIST:
             return Roles.Scientist.shouldSpawn()
         case Role.TRUCKER:
-            return Roles.Trucker.shouldSpawn()
+            return Roles.Trucker.shouldSpawn(this)
     }
 }
 

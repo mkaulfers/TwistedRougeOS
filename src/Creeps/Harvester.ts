@@ -43,13 +43,17 @@ var harvester = {
             Utils.Logger.log("CreepTask -> sourceTask()", LogLevel.TRACE)
             let creep = Game.getObjectById(creepId)
             if (!creep) { return ProcessResult.FAILED }
-            //log creepId
-            Utils.Logger.log(creepId, LogLevel.WARN)
-            let sourcePos = Utils.Utility.findPosForSource(creep)
-            let source = sourcePos?.findInRange(FIND_SOURCES, 2)[0]
 
-            if (source) {
-                creep.mine(source)
+            let closestSource: Source | undefined = undefined
+
+            if (!creep.memory.assignedPos) {
+                closestSource = harvester.unrealizedHarvestingSource(creep)
+            } else {
+                closestSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
+            }
+
+            if (closestSource) {
+                creep.mine(closestSource)
                 return ProcessResult.RUNNING
             }
             return ProcessResult.INCOMPLETE

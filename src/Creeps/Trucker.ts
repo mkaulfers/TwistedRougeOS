@@ -1,5 +1,6 @@
 import { Process } from "Models/Process";
 import { Utils } from "utils/Index"
+import { Logger } from "utils/Logger";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 var trucker = {
@@ -192,11 +193,16 @@ var trucker = {
         let newProcess = new Process(creep.name, ProcessPriority.LOW, storageTask)
         global.scheduler.addProcess(newProcess)
     },
-    shouldSpawn(): boolean {
+    shouldSpawn(room: Room): boolean {
+        if (room.creeps().filter(x => x.memory.role == Role.HARVESTER).length < 1) { return false }
+        Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.DEBUG)
+        Logger.log(`Demand to Meet: ${room.harvestersWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.DEBUG)
+        if (room.truckersCarryCapacity() > room.harvestersWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)) { return true }
         return false
     },
     baseBody: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
     segment: [CARRY, CARRY, MOVE],
+    carryModifier: 2.2
 }
 
 export default trucker;
