@@ -43,7 +43,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
 function setup() {
   // DEV MODE LOGGING
-  Utils.Logger.devLogLevel = LogLevel.ALL;
+  Utils.Logger.devLogLevel = LogLevel.DEBUG;
   if (!global.kernel) {
     Utils.Logger.log("Building new kernel.", LogLevel.DEBUG)
     global.kernel = new OS.Kernel()
