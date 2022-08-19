@@ -13,11 +13,9 @@ var engineer = {
             if (!creep) return ProcessResult.FAILED;
 
             if (creep.memory.working == undefined || creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
-                console.log("work false")
                 creep.memory.working = false;
                 delete creep.memory.target;
             } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
-                console.log("work true")
                 creep.memory.working = true;
                 delete creep.memory.target;
             }
@@ -28,7 +26,7 @@ var engineer = {
                     let potentialTargets: ConstructionSite[] = creep.room.find(FIND_CONSTRUCTION_SITES);
                     potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { hits: true, order: 'asc' })
 
-                    if (potentialTargets) {
+                    if (potentialTargets.length > 0) {
                         creep.memory.target = potentialTargets[0].id;
                     } else {
                         return ProcessResult.RUNNING
