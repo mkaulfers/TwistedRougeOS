@@ -1,4 +1,3 @@
-import './Enums';
 import { Logger } from './Logger';
 import { Utility } from './Utilities';
 

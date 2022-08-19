@@ -1,6 +1,8 @@
 import { Process } from "Models/Process";
 import { Logger } from "utils/Logger";
 import { Roles } from "Creeps/Index";
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../../utils/Enums'
+
 
 export function scheduleSpawnMonitor(room: Room) {
     const roomId = room.name

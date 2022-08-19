@@ -1,5 +1,6 @@
 import { Process } from "Models/Process";
 import { Utils } from "utils/Index"
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 var trucker = {
     truckerHarvester: function(creep: Creep) {

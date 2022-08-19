@@ -1,5 +1,6 @@
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 var harvester = {
     harvesterEarlyTask: function(creep: Creep) {

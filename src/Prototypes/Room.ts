@@ -1,6 +1,8 @@
 import { Managers } from 'Managers/Index';
 import { Utils } from 'utils/Index';
-import { Roles } from '../Creeps/Index'
+import { Roles } from '../Creeps/Index';
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums';
+
 ;
 declare global {
     interface Room {

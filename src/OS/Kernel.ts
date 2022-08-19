@@ -1,5 +1,6 @@
 import { Logger } from "utils/Logger"
 import { Process } from "../Models/Process"
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export default class Kernel {
     executeProcesses() {

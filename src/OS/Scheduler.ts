@@ -1,4 +1,5 @@
 import { Process } from "Models/Process"
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export default class Scheduler {
     processQueue: Map<string, Process>
