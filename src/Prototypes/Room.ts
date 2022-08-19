@@ -123,7 +123,7 @@ Room.prototype.harvestersWorkPotential = function (): number {
 Room.prototype.shouldSpawn = function (role: Role): boolean {
     switch (role) {
         case Role.ENGINEER:
-            return Roles.Engineer.shouldSpawn()
+            return Roles.Engineer.shouldSpawn(this)
         case Role.HARVESTER:
             return Roles.Harvester.shouldSpawn(this)
         case Role.SCIENTIST:
