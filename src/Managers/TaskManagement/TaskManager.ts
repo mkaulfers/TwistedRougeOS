@@ -18,6 +18,7 @@ export function scheduleSpawnMonitor(room: Room) {
                 let result = room.shouldSpawn(role)
                 if (result) {
                     room.spawnCreep(role, availableSpawn)
+                    return;
                 }
             }
         }

@@ -58,7 +58,7 @@ var engineer = {
 
                     if (priorityTargets.length > 0) {
                         creep.memory.target = priorityTargets[0].id;
-                    } else if (potentialTargets) {
+                    } else if (potentialTargets.length > 0) {
                         let pTarget = creep.pos.findClosestByRange(potentialTargets)
                         if (pTarget) {
                             creep.memory.target = pTarget.id;
