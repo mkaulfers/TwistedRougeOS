@@ -168,12 +168,13 @@ export class Utility {
     }
 
     /**
-     * Description: Organizes potential targets based on ResourceConstant && StructureType, and sorts them in a defined order.
+     * Description: Organizes potential targets based on ResourceConstant && StructureType, and sorts them in a defined order. Don't do both hits and resource.
      * @param targets An array of potential targets: Creep | AnyStoreStructure | Resource | Tombstone.
      * @param options An object containing the following properties: `resource, structures, order`.
      * @returns An array of approved targets or undefined
      */
-    static organizeTargets(targets: (Creep | AnyStructure | Resource | Tombstone)[], options?: {
+     static organizeTargets(targets: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite)[], options?: {
+        hits?: boolean,
         resource?: ResourceConstant,
         structures?: StructureConstant[],
         order?: ('desc' | 'asc')
@@ -184,9 +185,10 @@ export class Utility {
         if (!options.order) {
             options.order = 'desc';
         }
+        if (options.hits && options.resource) return targets; // Need to modify to return error codes.
 
         targets = _
-        .chain(targets) // s) => ('store' in s && wantedStructures.indexOf(s.structureType) >= 0 && s.store.energy > 0) || ('resourceType' in s && s.resourceType === RESOURCE_ENERGY)
+        .chain(targets)
         .filter(function(t) {
 
             if (!options || !options.structures && !options.resource) {
@@ -194,6 +196,11 @@ export class Utility {
             }
             if (options.structures) {
                 if ('structureType' in t && options.structures.indexOf(t.structureType) == -1) return;
+            }
+            if (options.hits) {
+                if (('hits' in t && t.hits === t.hitsMax) ||
+                ('remove' in t && t.progress === t.progressTotal) ||
+                (!('hits' in t) && !('remove' in t))) return;
             }
             if (options.resource) {
                 if (('store' in t && t.store[options?.resource!] == 0) ||
@@ -203,12 +210,20 @@ export class Utility {
             return t;
 
         })
-        .sortByOrder(function(t: (Creep | AnyStructure | Resource | Tombstone)) {
+        .sortByOrder(function(t: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite)) {
             if (options?.resource) {
                 if ('store' in t) {
                     return t.store[options.resource];
                 } else if ('amount' in t) {
                     return t.amount;
+                } else {
+                    return;
+                }
+            } else if (options?.hits) {
+                if ('hits' in t) {
+                    return t.hitsMax / t.hits;
+                } else if ('remove' in t) {
+                    return t.progressTotal / t.progress;
                 } else {
                     return;
                 }

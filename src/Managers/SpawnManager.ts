@@ -102,6 +102,8 @@ export function generateNameFor(role: Role) {
             return Task.HARVESTER_SOURCE
         case Role.TRUCKER:
             break;
+        case Role.ENGINEER:
+            return Task.ENGINEER_BUILDING;
     }
     return undefined
 }

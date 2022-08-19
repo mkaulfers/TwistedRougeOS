@@ -63,17 +63,7 @@ var trucker = {
                             source.pos.findInRange(FIND_STRUCTURES, 2),
                             source.pos.findInRange(FIND_TOMBSTONES, 2),
                             source.pos.findInRange(FIND_DROPPED_RESOURCES, 2));
-                        nearbyInterests = _
-                            .chain(nearbyInterests)
-                            .filter((s) => ('store' in s && s.store.energy > 0) || ('resourceType' in s && s.resourceType === RESOURCE_ENERGY))
-                            .sortByOrder(function(s: (AnyStoreStructure | Resource | Tombstone)) {
-                                if ('store' in s) {
-                                    return s.store.energy;
-                                } else {
-                                    return s.amount;
-                                }
-                            }, 'desc')
-                            .value();
+                        nearbyInterests = Utils.Utility.organizeTargets(nearbyInterests, {resource: RESOURCE_ENERGY})
 
                         potentialTargets.push(...nearbyInterests);
                     });
