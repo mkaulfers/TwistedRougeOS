@@ -117,13 +117,9 @@ var engineer = {
         global.scheduler.addProcess(newProcess)
     },
     shouldSpawn: function(room: Room): boolean {
+        if (!(room.controller && room.controller.my && room.controller.level >= 3)) { return false}
+        if (room.creeps(Role.ENGINEER).length < room.controller.level - 1) { return true}
         return false
-        // let engineers = room.creeps(Role.ENGINEER);
-        // if (engineers.length < 1) {
-        //     return true;
-        // } else {
-        //     return false;
-        // }
     },
     baseBody: [CARRY, MOVE, WORK, WORK],
     segment: [CARRY, MOVE, WORK, WORK],
