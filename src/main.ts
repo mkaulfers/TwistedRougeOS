@@ -16,13 +16,14 @@ declare global {
   }
 
   interface RoomMemory {
-    claim?: string;
-    validPackedSourcePositions: number[];
+    costMatrix: string
   }
 
   interface Memory {
     uuid: number;
     log: any;
+    kernel: string
+    scheduler: string
   }
 
   namespace NodeJS {
@@ -55,7 +56,6 @@ function setup() {
 }
 
 function boot() {
-  global.kernel.loadMemory()
   global.kernel.loadProcesses()
   global.kernel.sortProcesses()
 }
@@ -65,7 +65,8 @@ function execute() {
 }
 
 function end() {
-  //Serialize the Kernel to memory.
+  Memory.kernel = JSON.stringify(global.kernel)
+  Memory.scheduler = JSON.stringify(global.scheduler)
 }
 
 function displaySimpleStats() {
