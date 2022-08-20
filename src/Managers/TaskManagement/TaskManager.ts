@@ -80,7 +80,7 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
     global.scheduler.addProcess(process)
 }
 
-export function scheduleConstructonMonitor(room: Room): void | ProcessResult {
+export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
     const roomName = room.name
     if (global.scheduler.processQueue.has(`${roomName}_construction_monitor`)) { return }
 
