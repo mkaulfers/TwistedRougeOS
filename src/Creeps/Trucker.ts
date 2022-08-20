@@ -55,6 +55,12 @@ var trucker = {
                 }
                 let target = Game.getObjectById(creep.memory.target);
 
+                if (!target ||
+                    'store' in target && target.store.getFreeCapacity() == 0) {
+                    delete creep.memory.target;
+                    return ProcessResult.RUNNING;
+                }
+
                 // Runs give and returns running or incomplete based on return value
                 var result = creep.give(target, RESOURCE_ENERGY);
                 if (result === OK) {
