@@ -13,11 +13,10 @@ var trucker = {
             if (!creep) return ProcessResult.FAILED;
 
             // Switches working value if full or empty
-            if (creep.memory.working == undefined || creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
-                creep.memory.working = false;
-                delete creep.memory.target;
-            } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
-                creep.memory.working = true;
+            if (creep.memory.working == undefined) creep.memory.working = false;
+            if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
+            (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                creep.memory.working = !creep.memory.working;
                 delete creep.memory.target;
             }
             const working = creep.memory.working;
@@ -124,11 +123,10 @@ var trucker = {
             if (!creep) return ProcessResult.FAILED;
 
             // Switches working value if full or empty
-            if (creep.memory.working == undefined || creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
-                creep.memory.working = false;
-                delete creep.memory.target;
-            } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
-                creep.memory.working = true;
+            if (creep.memory.working == undefined) creep.memory.working = false;
+            if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
+            (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                creep.memory.working = !creep.memory.working;
                 delete creep.memory.target;
             }
             const working = creep.memory.working;
@@ -226,21 +224,11 @@ var trucker = {
         global.scheduler.addProcess(newProcess)
     },
     dispatch: function(room: Room) {
-        // let truckersCapacity = room.truckersCarryCapacity()
-        // let isSpawnDemandMet = room.isSpawnDemandMet()
-        // let isScientistDemandMet = room.isScientistDemandMet()
-
-        // Utils.Logger.log(`Trucker Capacity: ${truckersCapacity}`, LogLevel.DEBUG)
-        // Utils.Logger.log(`Spawn Demand: ${isSpawnDemandMet.demand}`, LogLevel.DEBUG)
-        // Utils.Logger.log(`Scientist Demand: ${isScientistDemandMet.demand}`, LogLevel.DEBUG)
 
         if (room.energyAvailable < room.energyCapacityAvailable) {
             let truckers = room.creeps(Role.TRUCKER)
             Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.DEBUG)
             for (let trucker of truckers) {
-                // if (!trucker.memory.task) {
-                //     global.scheduler.swapProcess(trucker, Task.TRUCKER_STORAGE)
-                // }
                 if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_SCIENTIST) {
                     Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.DEBUG)
                     global.scheduler.swapProcess(trucker, Task.TRUCKER_STORAGE)
@@ -252,9 +240,6 @@ var trucker = {
             Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.DEBUG)
 
             for (let trucker of truckers) {
-                // if (!trucker.memory.task) {
-                //     global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)
-                // }
                 if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_STORAGE) {
                     Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.DEBUG)
                     global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)

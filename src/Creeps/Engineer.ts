@@ -12,11 +12,10 @@ var engineer = {
             let creep = Game.getObjectById(creepId);
             if (!creep) return ProcessResult.FAILED;
 
-            if (creep.memory.working == undefined || creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
-                creep.memory.working = false;
-                delete creep.memory.target;
-            } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
-                creep.memory.working = true;
+            if (creep.memory.working == undefined) creep.memory.working = false;
+            if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
+            (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                creep.memory.working = !creep.memory.working;
                 delete creep.memory.target;
             }
             const working = creep.memory.working;
@@ -99,11 +98,10 @@ var engineer = {
             let creep = Game.getObjectById(creepId);
             if (!creep) return ProcessResult.FAILED;
 
-            if (creep.memory.working == undefined || creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
-                creep.memory.working = false;
-                delete creep.memory.target;
-            } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
-                creep.memory.working = true;
+            if (creep.memory.working == undefined) creep.memory.working = false;
+            if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
+            (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                creep.memory.working = !creep.memory.working;
                 delete creep.memory.target;
             }
             const working = creep.memory.working;
@@ -194,11 +192,10 @@ var engineer = {
             let creep = Game.getObjectById(creepId);
             if (!creep) return ProcessResult.FAILED;
 
-            if (creep.memory.working == undefined || creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
-                creep.memory.working = false;
-                delete creep.memory.target;
-            } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
-                creep.memory.working = true;
+            if (creep.memory.working == undefined) creep.memory.working = false;
+            if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
+            (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                creep.memory.working = !creep.memory.working;
                 delete creep.memory.target;
             }
             const working = creep.memory.working;
