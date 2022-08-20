@@ -3,18 +3,23 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/E
 
 declare global {
     interface Creep {
-        travel(pos: RoomPosition): number;
-        getOffExit(): number;
-        moveToDefault(pos: RoomPosition): number;
-        take(target: AnyStoreStructure | Resource | Tombstone, resource: ResourceConstant, quantity?: number): number;
-        give(target: AnyStoreStructure | Creep, resource: ResourceConstant, quantity?: number): number;
-        mine(target: Source | Mineral): number;
-        work(target: Structure | ConstructionSite): number;
-        praise(target: StructureController): number;
-        firstaid(target: Creep): number;
-        destroy(target?: Structure | Creep): number;
-        nMRController(target: string): number;
-        isBoosted(): boolean;               // Placeholder
+        travel(pos: RoomPosition): number
+        getOffExit(): number
+        moveToDefault(pos: RoomPosition): number
+        take(target: AnyStoreStructure | Resource | Tombstone, resource: ResourceConstant, quantity?: number): number
+        give(target: AnyStoreStructure | Creep, resource: ResourceConstant, quantity?: number): number
+        mine(target: Source | Mineral): number
+        work(target: Structure | ConstructionSite): number
+        praise(target: StructureController): number
+        firstaid(target: Creep): number
+        destroy(target?: Structure | Creep): number
+        nMRController(target: string): number
+        isBoosted(): boolean               // Placeholder
+        upgradeEnergyConsumptionPerTick(): number
+        repairEnergyConsumptionPerTick(): number
+        buildEnergyConsumptionPerTick(): number
+        dismantleEnergyConsumptionPerTick(): number
+
     }
 }
 
@@ -120,7 +125,7 @@ Creep.prototype.give = function (target, resource, quantity) {
         case ERR_NOT_IN_RANGE:
             return this.travel(target.pos);
         case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
-            Logger.log(`${this.name} recieved result ${result} from Give with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
+            // Logger.log(`${this.name} recieved result ${result} from Give with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
             return result;
     }
     return OK;
@@ -178,8 +183,11 @@ Creep.prototype.praise = function (target) {
     switch (result) {
         case OK: case ERR_BUSY:
             return OK;
-        case ERR_NOT_IN_RANGE:
-            return this.travel(target.pos);
+        case ERR_NOT_IN_RANGE: case ERR_NOT_ENOUGH_ENERGY:
+            if (!this.pos.inRangeTo(target, 3)) {
+                return this.travel(target.pos);
+            }
+            return result;
         case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
             Logger.log(`${this.name} recieved result ${result} from Praise with args (${target.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
             return result;
@@ -309,4 +317,20 @@ Creep.prototype.isBoosted = function () {
     Logger.log("Creep -> isBoosted()", LogLevel.TRACE)
     Logger.log(`${this.name} -> isBoosted(). IsBoosted is currently a placeholder.`, LogLevel.ERROR);
     return false;
+}
+
+Creep.prototype.upgradeEnergyConsumptionPerTick = function () {
+    return this.getActiveBodyparts(WORK)
+}
+
+Creep.prototype.buildEnergyConsumptionPerTick = function () {
+    return this.getActiveBodyparts(WORK) * 5
+}
+
+Creep.prototype.repairEnergyConsumptionPerTick = function () {
+    return this.getActiveBodyparts(WORK)
+}
+
+Creep.prototype.dismantleEnergyConsumptionPerTick = function () {
+    return this.getActiveBodyparts(WORK) * -0.25
 }

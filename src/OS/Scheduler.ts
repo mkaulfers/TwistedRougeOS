@@ -38,6 +38,11 @@ export default class Scheduler {
         this.pausedProcesses.delete(id)
     }
 
+    swapProcess(creep: Creep, task: Task) {
+        creep.memory.task = task
+        this.removeProcess(creep.name)
+    }
+
     constructor() {
         this.pausedProcesses = new Map<string, Process>()
         this.processQueue = new Map<string, Process>()

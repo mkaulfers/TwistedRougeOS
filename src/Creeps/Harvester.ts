@@ -1,5 +1,6 @@
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
+
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 var harvester = {
@@ -14,7 +15,13 @@ var harvester = {
             let closestSource: Source | undefined = undefined
 
             if (!creep.memory.assignedPos) {
-                closestSource = harvester.unrealizedHarvestingSource(creep)
+                let sources = creep.room.sources()
+                for (let source of sources) {
+                    if (!source.isHarvestingAtMaxEfficiency()) {
+                        closestSource = source
+                        creep.memory.assignedPos = Utils.Utility.packPosition(source.assignablePosition())
+                    }
+                }
             } else {
                 closestSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
             }
@@ -47,12 +54,22 @@ var harvester = {
             let closestSource: Source | undefined = undefined
 
             if (!creep.memory.assignedPos) {
-                closestSource = harvester.unrealizedHarvestingSource(creep)
+                let sources = creep.room.sources()
+                for (let source of sources) {
+                    if (!source.isHarvestingAtMaxEfficiency()) {
+                        closestSource = source
+                        creep.memory.assignedPos = Utils.Utility.packPosition(source.assignablePosition())
+                    }
+                }
             } else {
                 closestSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
             }
 
             if (closestSource) {
+                if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                    creep.drop(RESOURCE_ENERGY)
+                }
+
                 creep.mine(closestSource)
                 return ProcessResult.RUNNING
             }
@@ -65,51 +82,34 @@ var harvester = {
     },
     shouldSpawn: function(room: Room): boolean {
         Utils.Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
-        let sourcePotential = room.sourcesEnergyPotential()
-        let harvestersWorkPotential = room.harvestersWorkPotential()
-        Utils.Logger.log(`Source Potential: ${sourcePotential} Harvesters Work Potential: ${harvestersWorkPotential}`, LogLevel.DEBUG)
-        return sourcePotential > harvestersWorkPotential
+        let sources = room.sources()
+        let allSourcesRealized = true
+        for (let source of sources) {
+            if (!source.isHarvestingAtMaxEfficiency()) {
+                allSourcesRealized = false
+            }
+        }
+        return !allSourcesRealized
+    },
+    dispatchHarvesters: function(room: Room) {
+        let harvesters = room.creeps(Role.HARVESTER)
+        let truckers = room.creeps(Role.TRUCKER)
+        if (truckers.length < 1) {
+            for (let harvester of harvesters) {
+                if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_SOURCE) {
+                    global.scheduler.swapProcess(harvester, Task.HARVESTER_EARLY)
+                }
+            }
+        } else {
+            for (let harvester of harvesters) {
+                if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_EARLY) {
+                    global.scheduler.swapProcess(harvester, Task.HARVESTER_SOURCE)
+                }
+            }
+        }
     },
     baseBody: [CARRY, MOVE, WORK, WORK],
-    segment: [WORK],
-
-    // Extra functions
-    unrealizedHarvestingSource: function(creep: Creep): Source | undefined {
-        let creepClosestSource = creep.pos.findInRange(FIND_SOURCES, 2)[0]
-        if (creepClosestSource) { return creepClosestSource }
-
-        let unrealizedSource: Source | undefined = undefined
-        let sources = Game.rooms[creep.memory.homeRoom].sources()
-
-        for (let source of sources) {
-            if (!unrealizedSource) { unrealizedSource = source }
-            let creeps = source.pos.findInRange(FIND_MY_CREEPS, 1)
-            let workParts = creeps.reduce((acc, cur) => acc + cur.getActiveBodyparts(WORK), 0)
-            if (workParts < 2) {
-                unrealizedSource = source
-            }
-        }
-
-        return unrealizedSource
-    },
-    getUnassignedPackedPos: function(room: Room): number | undefined {
-        let validPackedPositions = room.memory.validPackedSourcePositions
-
-        if (!validPackedPositions) {
-            room.validSourcePositions()
-            validPackedPositions = room.memory.validPackedSourcePositions
-        }
-
-        let harvesterAssignedPositions = room.creeps().filter(x => x.memory.role == Role.HARVESTER).map(x => x.memory.assignedPos)
-
-        for( let validPosition of validPackedPositions) {
-            if (!harvesterAssignedPositions.includes(validPosition)) {
-                return validPosition
-            }
-        }
-
-        return undefined
-    },
+    segment: [WORK]
 }
 
 export default harvester;

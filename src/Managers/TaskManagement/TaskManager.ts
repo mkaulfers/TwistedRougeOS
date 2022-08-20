@@ -42,14 +42,11 @@ export function scheduleCreepTask(room: Room) {
             case Task.HARVESTER_SOURCE:
                 Roles.Harvester.harvesterSource(creep)
                 break
-            case Task.TRUCKER_HARVESTER:
-                Roles.Trucker.truckerHarvester(creep)
+            case Task.TRUCKER_STORAGE:
+                Roles.Trucker.truckerStorage(creep)
                 break
             case Task.TRUCKER_SCIENTIST:
                 Roles.Trucker.truckerScientist(creep)
-                break
-            case Task.TRUCKER_STORAGE:
-                Roles.Trucker.truckerStorage(creep)
                 break
             case Task.SCIENTIST_UPGRADING:
                 Roles.Scientist.scientistUpgrading(creep)
@@ -67,4 +64,17 @@ export function scheduleCreepTask(room: Room) {
     }
 }
 
+export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
+    const roomName = room.name
+    if (global.scheduler.processQueue.has(`${roomName}_task_monitor`)) { return }
 
+    const roomTaskMonitor = () => {
+        let room = Game.rooms[roomName]
+        Roles.Harvester.dispatchHarvesters(room)
+        Roles.Scientist.dispatchScientists(room)
+        Roles.Trucker.dispatchTruckers(room)
+    }
+
+    let process = new Process(`${roomName}_task_monitor`, ProcessPriority.CRITICAL, roomTaskMonitor)
+    global.scheduler.addProcess(process)
+}

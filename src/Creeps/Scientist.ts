@@ -19,7 +19,7 @@ var scientist = {
             if (!controller) return ProcessResult.FAILED;
 
             var result = creep.praise(controller);
-            if (result === OK) {
+            if (result === OK || result === ERR_NOT_ENOUGH_ENERGY) {
                 return ProcessResult.RUNNING;
             }
             Logger.log(`${creep.name} generated error code ${result} while attempting to praise ${controller.structureType}${JSON.stringify(controller.pos)}.`, LogLevel.ERROR);
@@ -30,8 +30,19 @@ var scientist = {
         let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
         global.scheduler.addProcess(newProcess)
     },
-    shouldSpawn: function(): boolean {
-        return false
+    shouldSpawn: function(room: Room): boolean {
+        let sources = room.sources()
+        let areAllSourcesRealized = sources.every(source => source.isHarvestingAtMaxEfficiency())
+        let isAllEnergyUsed = room.currentHarvesterWorkPotential() >= room.scientistEnergyConsumption()
+        return areAllSourcesRealized && isAllEnergyUsed
+    },
+    dispatchScientists: function(room: Room) {
+        let scientists = room.creeps(Role.SCIENTIST)
+        for (let scientist of scientists) {
+            if (!scientist.memory.task) {
+                global.scheduler.swapProcess(scientist, Task.SCIENTIST_UPGRADING)
+            }
+        }
     },
     baseBody: [CARRY, MOVE, WORK, WORK],
     segment: [CARRY, WORK, WORK],
