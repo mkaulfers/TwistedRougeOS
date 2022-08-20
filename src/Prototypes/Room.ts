@@ -60,11 +60,11 @@ declare global {
 
         isSpawnDemandMet(): {met: boolean, demand: number}
         isScientistDemandMet(): {met: boolean, demand: number}
-
         /**
          * Returns target goal for rampart HP in the room
         */
         rampartHPTarget(): number;
+        updateCostMatrix(): void
     }
 }
 
@@ -76,6 +76,7 @@ Room.prototype.scheduleTasks = function () {
     Managers.TaskManager.scheduleSpawnMonitor(this)
     Managers.UtilityTasks.scheduleMemoryMonitor()
     Managers.TaskManager.scheduleRoomTaskMonitor(this)
+    Managers.TaskManager.scheduleConstructionMonitor(this)
 }
 
 Room.prototype.creeps = function (role?: Role): Creep[] {
@@ -311,4 +312,9 @@ Room.prototype.rampartHPTarget = function(): number {
             return 10000000;
     }
     return 0;
+}
+
+Room.prototype.updateCostMatrix = function () {
+    let costMatrix = Utils.Utility.distanceTransform(this.name)
+    this.memory.costMatrix = JSON.stringify(costMatrix.serialize())
 }
