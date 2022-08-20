@@ -16,13 +16,15 @@ declare global {
   }
 
   interface RoomMemory {
-    claim?: string;
-    validPackedSourcePositions: number[];
+    claim?: string
+    costMatrix: string
   }
 
   interface Memory {
     uuid: number;
     log: any;
+    kernel: string
+    scheduler: string
   }
 
   namespace NodeJS {
@@ -42,6 +44,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
 });
 
 function setup() {
+  //TODO: Deserialize scheduler and kernel.
   // DEV MODE LOGGING
   Utils.Logger.devLogLevel = LogLevel.DEBUG;
   if (!global.kernel) {
@@ -55,7 +58,6 @@ function setup() {
 }
 
 function boot() {
-  global.kernel.loadMemory()
   global.kernel.loadProcesses()
   global.kernel.sortProcesses()
 }
@@ -65,7 +67,7 @@ function execute() {
 }
 
 function end() {
-  //Serialize the Kernel to memory.
+  //TODO: Serialize scheduler and kernel.
 }
 
 function displaySimpleStats() {

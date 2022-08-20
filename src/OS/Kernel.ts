@@ -34,10 +34,6 @@ export default class Kernel {
         return cost
     }
 
-    loadMemory() {
-        //On global reset, load saved kernel memory.
-    }
-
     loadProcesses() {
         Logger.log("Kernel -> loadProcesses()", LogLevel.TRACE)
 
