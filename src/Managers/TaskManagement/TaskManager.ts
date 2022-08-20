@@ -43,14 +43,11 @@ export function scheduleCreepTask(room: Room) {
             case Task.HARVESTER_SOURCE:
                 Roles.Harvester.harvesterSource(creep)
                 break
-            case Task.TRUCKER_HARVESTER:
-                Roles.Trucker.truckerHarvester(creep)
+            case Task.TRUCKER_STORAGE:
+                Roles.Trucker.truckerStorage(creep)
                 break
             case Task.TRUCKER_SCIENTIST:
                 Roles.Trucker.truckerScientist(creep)
-                break
-            case Task.TRUCKER_STORAGE:
-                Roles.Trucker.truckerStorage(creep)
                 break
             case Task.SCIENTIST_UPGRADING:
                 Roles.Scientist.scientistUpgrading(creep)
@@ -74,7 +71,8 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
 
     const roomTaskMonitor = () => {
         let room = Game.rooms[roomName]
-        dispatchHarvesters(room.creeps(undefined))
+        dispatchHarvesters(room)
+        dispatchScientists(room)
         dispatchTruckers(room)
     }
 
@@ -82,9 +80,10 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
     global.scheduler.addProcess(process)
 }
 
-function dispatchHarvesters(creeps: Creep[]) {
-    let harvesters = creeps.filter(x => x.memory.role == Role.HARVESTER)
-    if (creeps.filter(x => x.memory.role == Role.TRUCKER).length < 1) {
+function dispatchHarvesters(room: Room) {
+    let harvesters = room.creeps(Role.HARVESTER)
+    let truckers = room.creeps(Role.TRUCKER)
+    if (truckers.length < 1) {
         for (let harvester of harvesters) {
             if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_SOURCE) {
                 global.scheduler.swapProcess(harvester, Task.HARVESTER_EARLY)
@@ -99,49 +98,60 @@ function dispatchHarvesters(creeps: Creep[]) {
     }
 }
 
-function dispatchTruckers(room: Room) {
-    dispatchScientistsTruckers(room)
-}
-
-function dispatchScientistsTruckers(room: Room) {
-    Logger.log(`Scientist Demand: ${scientistEnergyDemand(room)}`, LogLevel.DEBUG)
-    Logger.log(`Trucker Demand Met: ${truckerScientistDemandMet(room)}`, LogLevel.DEBUG)
-
-    if (scientistEnergyDemand(room) > truckerScientistDemandMet(room)) {
-        let truckers = room.creeps(undefined).filter(x => x.memory.role == Role.TRUCKER)
-        for (let trucker of truckers) {
-            if (!trucker.memory.task || trucker.memory.task != Task.TRUCKER_SCIENTIST) {
-                global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)
-            }
-        }
-    } else {
-        let truckers = room.creeps(undefined).filter(x => x.memory.role == Role.TRUCKER)
-        for (let trucker of truckers) {
-            if (!trucker.memory.task || trucker.memory.task != Task.TRUCKER_HARVESTER) {
-                global.scheduler.swapProcess(trucker, Task.TRUCKER_HARVESTER)
-            }
-        }
-    }
-}
-
-
-function scientistEnergyDemand(room: Room): number {
-    let scientists = room.creeps(undefined).filter(x => x.memory.role == Role.SCIENTIST)
-    let totalWorkParts = 0
+function dispatchScientists(room: Room) {
+    let scientists = room.creeps(Role.SCIENTIST)
     for (let scientist of scientists) {
-        totalWorkParts += scientist.getActiveBodyparts(WORK)
+        if (!scientist.memory.task) {
+            global.scheduler.swapProcess(scientist, Task.SCIENTIST_UPGRADING)
+        }
     }
-
-    let averageDistanceFromSourcesToStructures = room.averageDistanceFromSourcesToStructures()
-    let totalDemand = totalWorkParts * (averageDistanceFromSourcesToStructures * trucker.carryModifier)
-    return totalDemand
 }
 
-function truckerScientistDemandMet(room: Room): number {
-    let demandMetByTrucker = 0
-    let truckers = room.creeps(undefined).filter(x => x.memory.role == Role.TRUCKER)
-    for (let _trucker of truckers) {
-        demandMetByTrucker += _trucker.getActiveBodyparts(CARRY) * trucker.carryModifier
+function dispatchTruckers(room: Room) {
+    let truckersCapacity = room.truckersCarryCapacity()
+    let isSpawnDemandMet = room.isSpawnDemandMet()
+    let isScientistDemandMet = room.isScientistDemandMet()
+
+    Logger.log(`Trucker Capacity: ${truckersCapacity}`, LogLevel.DEBUG)
+    Logger.log(`Spawn Demand: ${isSpawnDemandMet.demand}`, LogLevel.DEBUG)
+    Logger.log(`Scientist Demand: ${isScientistDemandMet.demand}`, LogLevel.DEBUG)
+
+    if (!isSpawnDemandMet.met || room.creeps(Role.SCIENTIST).length < 1) {
+        dispatchStorageTruckers(room)
+    } else {
+        dispatchScientistTruckers(room)
     }
-    return demandMetByTrucker
 }
+
+function dispatchStorageTruckers(room: Room) {
+    let truckers = room.creeps(Role.TRUCKER)
+
+    for (let trucker of truckers) {
+        if (!trucker.memory.task) {
+            global.scheduler.swapProcess(trucker, Task.TRUCKER_STORAGE)
+        }
+    }
+}
+
+function dispatchScientistTruckers(room: Room) {
+    let truckers = room.creeps(Role.TRUCKER)
+
+    for (let trucker of truckers) {
+        if (!trucker.memory.task) {
+            global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)
+        }
+    }
+
+    if (truckers.filter(trucker => trucker.memory.task == Task.TRUCKER_SCIENTIST).length < 1) {
+        for (let trucker of truckers) {
+            trucker.memory.task = undefined
+        }
+    }
+}
+
+
+
+
+
+
+

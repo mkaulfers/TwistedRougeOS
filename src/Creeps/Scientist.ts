@@ -30,8 +30,11 @@ var scientist = {
         let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
         global.scheduler.addProcess(newProcess)
     },
-    shouldSpawn: function(): boolean {
-        return false
+    shouldSpawn: function(room: Room): boolean {
+        let sources = room.sources()
+        let areAllSourcesRealized = sources.every(source => source.isHarvestingAtMaxEfficiency())
+        let isAllEnergyUsed = room.currentHarvesterWorkPotential() >= room.scientistEnergyConsumption()
+        return areAllSourcesRealized && isAllEnergyUsed
     },
     baseBody: [CARRY, MOVE, WORK, WORK],
     segment: [CARRY, WORK, WORK],
