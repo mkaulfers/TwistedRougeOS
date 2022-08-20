@@ -59,7 +59,7 @@ Creep.prototype.moveToDefault = function (pos: RoomPosition) {
     Logger.log("Creep -> moveToDefault()", LogLevel.TRACE)
 
     // Visualization for fun, will remove long term.
-    return this.moveTo(pos, {
+    return this.moveTo(pos, { reusePath: 5,
         visualizePathStyle: {
             fill: 'transparent',
             stroke: '#fff',

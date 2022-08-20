@@ -66,8 +66,15 @@ var harvester = {
             }
 
             if (closestSource) {
-                if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
-                    creep.drop(RESOURCE_ENERGY)
+                // TODO: Modify to cache or put in memory the container / Link
+                if (creep.store.getFreeCapacity() < 10) {
+                    let dumps = creep.pos.findInRange(FIND_STRUCTURES, 1);
+                    if (dumps.length > 0) {
+                        let accepted: StructureConstant[] = [STRUCTURE_CONTAINER, STRUCTURE_LINK];
+                        dumps = _.filter(dumps, function(d) { return (accepted.indexOf(d.structureType) >= 0)});
+                        let dump: any = dumps[0];
+                        creep.give(dump, RESOURCE_ENERGY);
+                    }
                 }
 
                 creep.mine(closestSource)

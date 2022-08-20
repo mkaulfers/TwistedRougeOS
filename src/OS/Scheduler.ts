@@ -40,6 +40,7 @@ export default class Scheduler {
 
     swapProcess(creep: Creep, task: Task) {
         creep.memory.task = task
+        delete creep.memory.target;
         this.removeProcess(creep.name)
     }
 
