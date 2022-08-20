@@ -3,7 +3,7 @@ import { Managers } from 'Managers/Index'
 import { Utils } from 'utils/Index'
 import { Utility } from 'utils/Utilities'
 import { Roles } from '../Creeps/Index'
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from '../utils/Enums'
 
 declare global {
     interface Room {

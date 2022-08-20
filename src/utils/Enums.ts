@@ -47,4 +47,11 @@ export enum LogLevel {
     FATAL = "[FATAL]:",
 }
 
+export enum StampType {
+    FAST_FILLER = 'fast_filler',
+    EXTENSIONS = 'extensions',
+    LABS = 'labs',
+    ANCHOR = 'anchor'
+}
+
 
