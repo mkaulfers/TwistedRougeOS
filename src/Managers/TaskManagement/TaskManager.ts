@@ -89,9 +89,10 @@ export function scheduleConstructonMonitor(room: Room): void | ProcessResult {
         let costMatrix: CostMatrix | undefined = undefined
         if (!room.memory.costMatrix) {
            costMatrix = Utils.Utility.distanceTransform(roomName)
-           room.memory.costMatrix = JSON.stringify(costMatrix)
+           room.memory.costMatrix = JSON.stringify(costMatrix.serialize())
         } else {
-            costMatrix = JSON.parse(room.memory.costMatrix)
+            costMatrix = PathFinder.CostMatrix.deserialize(JSON.parse(room.memory.costMatrix))
+            Logger.log(`Cost: ${costMatrix.get(6, 2)}`, LogLevel.DEBUG)
         }
     }
 

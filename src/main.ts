@@ -16,6 +16,7 @@ declare global {
   }
 
   interface RoomMemory {
+    claim?: string
     costMatrix: string
   }
 
@@ -43,8 +44,9 @@ export const loop = ErrorMapper.wrapLoop(() => {
 });
 
 function setup() {
+  //TODO: Deserialize scheduler and kernel.
   // DEV MODE LOGGING
-  Utils.Logger.devLogLevel = LogLevel.ALL;
+  Utils.Logger.devLogLevel = LogLevel.DEBUG;
   if (!global.kernel) {
     Utils.Logger.log("Building new kernel.", LogLevel.DEBUG)
     global.kernel = new OS.Kernel()
@@ -65,8 +67,7 @@ function execute() {
 }
 
 function end() {
-  Memory.kernel = JSON.stringify(global.kernel)
-  Memory.scheduler = JSON.stringify(global.scheduler)
+  //TODO: Serialize scheduler and kernel.
 }
 
 function displaySimpleStats() {
