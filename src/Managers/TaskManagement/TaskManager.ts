@@ -78,10 +78,3 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
     let process = new Process(`${roomName}_task_monitor`, ProcessPriority.CRITICAL, roomTaskMonitor)
     global.scheduler.addProcess(process)
 }
-
-
-
-
-
-
-

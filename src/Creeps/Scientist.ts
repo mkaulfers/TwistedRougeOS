@@ -19,7 +19,7 @@ var scientist = {
             if (!controller) return ProcessResult.FAILED;
 
             var result = creep.praise(controller);
-            if (result === OK) {
+            if (result === OK || result === ERR_NOT_ENOUGH_ENERGY) {
                 return ProcessResult.RUNNING;
             }
             Logger.log(`${creep.name} generated error code ${result} while attempting to praise ${controller.structureType}${JSON.stringify(controller.pos)}.`, LogLevel.ERROR);
