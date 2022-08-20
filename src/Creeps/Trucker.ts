@@ -219,60 +219,53 @@ var trucker = {
         let newProcess = new Process(creep.name, ProcessPriority.LOW, truckerScientistTask)
         global.scheduler.addProcess(newProcess)
     },
+    dispatch: function(room: Room) {
+        // let truckersCapacity = room.truckersCarryCapacity()
+        // let isSpawnDemandMet = room.isSpawnDemandMet()
+        // let isScientistDemandMet = room.isScientistDemandMet()
+
+        // Utils.Logger.log(`Trucker Capacity: ${truckersCapacity}`, LogLevel.DEBUG)
+        // Utils.Logger.log(`Spawn Demand: ${isSpawnDemandMet.demand}`, LogLevel.DEBUG)
+        // Utils.Logger.log(`Scientist Demand: ${isScientistDemandMet.demand}`, LogLevel.DEBUG)
+
+        if (room.energyAvailable < room.energyCapacityAvailable) {
+            let truckers = room.creeps(Role.TRUCKER)
+            Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.DEBUG)
+            for (let trucker of truckers) {
+                // if (!trucker.memory.task) {
+                //     global.scheduler.swapProcess(trucker, Task.TRUCKER_STORAGE)
+                // }
+                if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_SCIENTIST) {
+                    Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.DEBUG)
+                    global.scheduler.swapProcess(trucker, Task.TRUCKER_STORAGE)
+                }
+            }
+        } else {
+            let truckers = room.creeps(Role.TRUCKER)
+            if (!(truckers.length > 0)) return;
+            Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.DEBUG)
+
+            for (let trucker of truckers) {
+                // if (!trucker.memory.task) {
+                //     global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)
+                // }
+                if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_STORAGE) {
+                    Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.DEBUG)
+                    global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)
+                }
+            }
+
+            if (truckers.filter(trucker => trucker.memory.task == Task.TRUCKER_SCIENTIST).length < 1) {
+                    truckers[0].memory.task = undefined
+            }
+        }
+    },
     shouldSpawn(room: Room): boolean {
         if (room.creeps().filter(x => x.memory.role == Role.HARVESTER).length < 1) { return false }
         Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.DEBUG)
         Logger.log(`Demand to Meet: ${room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.DEBUG)
         if (room.truckersCarryCapacity() > room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)) { return false }
         return true
-    },
-    dispatchTruckers: function(room: Room) {
-        let truckersCapacity = room.truckersCarryCapacity()
-        let isSpawnDemandMet = room.isSpawnDemandMet()
-        let isScientistDemandMet = room.isScientistDemandMet()
-
-        Utils.Logger.log(`Trucker Capacity: ${truckersCapacity}`, LogLevel.DEBUG)
-        Utils.Logger.log(`Spawn Demand: ${isSpawnDemandMet.demand}`, LogLevel.DEBUG)
-        Utils.Logger.log(`Scientist Demand: ${isScientistDemandMet.demand}`, LogLevel.DEBUG)
-        //!isSpawnDemandMet.met || room.creeps(Role.SCIENTIST).length < 1
-        console.log(Game.spawns["Spawn1"].store.getCapacity()!, Game.spawns["Spawn1"].store.energy!)
-        if (Game.spawns["Spawn1"].store.getCapacity(RESOURCE_ENERGY) > Game.spawns["Spawn1"].store.energy) {
-            this.dispatchStorageTruckers(room)
-        } else {
-            this.dispatchScientistTruckers(room)
-        }
-    },
-    dispatchStorageTruckers: function(room: Room) {
-        let truckers = room.creeps(Role.TRUCKER)
-        Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.DEBUG)
-        for (let trucker of truckers) {
-            // if (!trucker.memory.task) {
-            //     global.scheduler.swapProcess(trucker, Task.TRUCKER_STORAGE)
-            // }
-            if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_SCIENTIST) {
-                Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.DEBUG)
-                global.scheduler.swapProcess(trucker, Task.TRUCKER_STORAGE)
-            }
-        }
-    },
-    dispatchScientistTruckers: function(room: Room) {
-        let truckers = room.creeps(Role.TRUCKER)
-        if (!(truckers.length > 0)) return;
-        Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.DEBUG)
-
-        for (let trucker of truckers) {
-            // if (!trucker.memory.task) {
-            //     global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)
-            // }
-            if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_STORAGE) {
-                Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.DEBUG)
-                global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)
-            }
-        }
-
-        if (truckers.filter(trucker => trucker.memory.task == Task.TRUCKER_SCIENTIST).length < 1) {
-                truckers[0].memory.task = undefined
-        }
     },
     baseBody: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
     segment: [CARRY, CARRY, MOVE],

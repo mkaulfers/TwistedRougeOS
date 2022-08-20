@@ -43,13 +43,12 @@ var engineer = {
             } else {
                 if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                     let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
-                    let nearbyInterests = Array.prototype.concat(
+                    potentialTargets = Array.prototype.concat(
                         creep.room.find(FIND_DROPPED_RESOURCES),
                         creep.room.find(FIND_TOMBSTONES),
                         creep.room.find(FIND_STRUCTURES));
-                    nearbyInterests = Utils.Utility.organizeTargets(nearbyInterests, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
 
-                    potentialTargets.push(...nearbyInterests);
                     let priorityTargets = potentialTargets.filter(function(t) {
                         (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
                     });     // Only used creep! because of creep not existing being caught at the beginning of the process
@@ -93,6 +92,7 @@ var engineer = {
         global.scheduler.addProcess(newProcess)
     },
     engineerRepairing: function(creep: Creep) {
+        Utils.Logger.log("CreepTask -> repairTask()", LogLevel.DEBUG)
         let creepId = creep.id
 
         const repairingTask = () => {
@@ -105,6 +105,7 @@ var engineer = {
         global.scheduler.addProcess(newProcess)
     },
     engineerUpgrading: function(creep: Creep) {
+        Utils.Logger.log("CreepTask -> eUpgraderTask()", LogLevel.DEBUG)
         let creepId = creep.id
 
         const upgradingTask = () => {
@@ -115,6 +116,52 @@ var engineer = {
         creep.memory.task = Task.ENGINEER_UPGRADING
         let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
         global.scheduler.addProcess(newProcess)
+    },
+    dispatch: function(room: Room) {
+        let engineers = room.creeps(Role.ENGINEER)
+
+        let cSites: ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
+        cSites = Utils.Utility.organizeTargets(cSites, { hits: true, order: 'asc' })
+
+        let rSites: AnyStructure[] = room.find(FIND_STRUCTURES);
+        let accepted: StructureConstant[] = [
+            STRUCTURE_EXTENSION,
+            STRUCTURE_ROAD,
+            STRUCTURE_SPAWN,
+            STRUCTURE_LINK,
+            STRUCTURE_STORAGE,
+            STRUCTURE_TOWER,
+            STRUCTURE_OBSERVER,
+            STRUCTURE_POWER_SPAWN,
+            STRUCTURE_EXTRACTOR,
+            STRUCTURE_LAB,
+            STRUCTURE_TERMINAL,
+            STRUCTURE_CONTAINER,
+            STRUCTURE_NUKER,
+            STRUCTURE_FACTORY
+        ];
+        rSites = Utils.Utility.organizeTargets(rSites, { hits: true , structures: accepted})
+
+        let uSites: AnyStructure[] = room.find(FIND_STRUCTURES);
+        uSites = Utils.Utility.organizeTargets(uSites, { hits: true , structures: [STRUCTURE_WALL, STRUCTURE_RAMPART]})
+
+        let eRSites = Array.prototype.concat(
+            _.filter(rSites, (r) => (r.hits <= (r.hitsMax / 2) )),
+            _.filter(uSites, (r) => (r.hits <= (room.rampartHPTarget() * 0.75) ))
+        );
+
+        for (let engineer of engineers) {
+            if ((!engineer.memory.task || engineer.memory.task !== Task.ENGINEER_REPAIRING) && eRSites.length > 0) {
+                global.scheduler.swapProcess(engineer, Task.ENGINEER_REPAIRING)
+            } else if ((!engineer.memory.task || engineer.memory.task !== Task.ENGINEER_BUILDING) && cSites.length > 0) {
+                global.scheduler.swapProcess(engineer, Task.ENGINEER_BUILDING)
+            } else if ((!engineer.memory.task || engineer.memory.task !== Task.ENGINEER_REPAIRING) && rSites.length > 0) {
+                global.scheduler.swapProcess(engineer, Task.ENGINEER_REPAIRING)
+            } else if ((!engineer.memory.task || engineer.memory.task !== Task.ENGINEER_UPGRADING) && uSites.length > 0) {
+                global.scheduler.swapProcess(engineer, Task.ENGINEER_UPGRADING)
+            }
+        }
+
     },
     shouldSpawn: function(room: Room): boolean {
         if (!(room.controller && room.controller.my && room.controller.level >= 3)) { return false}

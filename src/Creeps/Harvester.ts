@@ -87,18 +87,7 @@ var harvester = {
         let newProcess = new Process(creep.name, ProcessPriority.LOW, sourceTask)
         global.scheduler.addProcess(newProcess)
     },
-    shouldSpawn: function(room: Room): boolean {
-        Utils.Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
-        let sources = room.sources()
-        let allSourcesRealized = true
-        for (let source of sources) {
-            if (!source.isHarvestingAtMaxEfficiency()) {
-                allSourcesRealized = false
-            }
-        }
-        return !allSourcesRealized
-    },
-    dispatchHarvesters: function(room: Room) {
+    dispatch: function(room: Room) {
         let harvesters = room.creeps(Role.HARVESTER)
         let truckers = room.creeps(Role.TRUCKER)
         if (truckers.length < 1) {
@@ -114,6 +103,17 @@ var harvester = {
                 }
             }
         }
+    },
+    shouldSpawn: function(room: Room): boolean {
+        Utils.Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
+        let sources = room.sources()
+        let allSourcesRealized = true
+        for (let source of sources) {
+            if (!source.isHarvestingAtMaxEfficiency()) {
+                allSourcesRealized = false
+            }
+        }
+        return !allSourcesRealized
     },
     baseBody: [CARRY, MOVE, WORK, WORK],
     segment: [WORK]
