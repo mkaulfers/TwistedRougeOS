@@ -2,6 +2,7 @@ import { Process } from "Models/Process";
 import { Logger } from "utils/Logger";
 import { Roles } from "Creeps/Index";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../../utils/Enums'
+import { Utils } from "utils/Index";
 
 
 export function scheduleSpawnMonitor(room: Room) {
@@ -76,5 +77,25 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
     }
 
     let process = new Process(`${roomName}_task_monitor`, ProcessPriority.CRITICAL, roomTaskMonitor)
+    global.scheduler.addProcess(process)
+}
+
+export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
+    const roomName = room.name
+    if (global.scheduler.processQueue.has(`${roomName}_construction_monitor`)) { return }
+
+    const constructionMonitor = () => {
+        let room = Game.rooms[roomName]
+        let costMatrix: CostMatrix | undefined = undefined
+        if (!room.memory.costMatrix) {
+           costMatrix = Utils.Utility.distanceTransform(roomName)
+           room.memory.costMatrix = JSON.stringify(costMatrix.serialize())
+        } else {
+            costMatrix = PathFinder.CostMatrix.deserialize(JSON.parse(room.memory.costMatrix))
+            Logger.log(`Cost: ${costMatrix.get(6, 2)}`, LogLevel.DEBUG)
+        }
+    }
+
+    let process = new Process(`${roomName}_construction_monitor`, ProcessPriority.MEDIUM, constructionMonitor)
     global.scheduler.addProcess(process)
 }

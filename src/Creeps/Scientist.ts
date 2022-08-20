@@ -15,6 +15,7 @@ var scientist = {
                 return ProcessResult.FAILED ;
             }
 
+            if (!Game.rooms[creep.memory.homeRoom]) return ProcessResult.FAILED;
             let controller = Game.rooms[creep.memory.homeRoom].controller;
             if (!controller) return ProcessResult.FAILED;
 

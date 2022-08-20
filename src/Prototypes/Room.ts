@@ -61,6 +61,7 @@ declare global {
 
         isSpawnDemandMet(): {met: boolean, demand: number}
         isScientistDemandMet(): {met: boolean, demand: number}
+        updateCostMatrix(): void
     }
 }
 
@@ -72,6 +73,7 @@ Room.prototype.scheduleTasks = function () {
     Managers.TaskManager.scheduleSpawnMonitor(this)
     Managers.UtilityTasks.scheduleMemoryMonitor()
     Managers.TaskManager.scheduleRoomTaskMonitor(this)
+    Managers.TaskManager.scheduleConstructionMonitor(this)
 }
 
 Room.prototype.creeps = function (role?: Role): Creep[] {
@@ -287,4 +289,9 @@ Room.prototype.isScientistDemandMet = function (): {met: boolean, demand: number
         truckersFulfillingDemand += _trucker.getActiveBodyparts(CARRY) * (this.averageDistanceFromSourcesToStructures() * trucker.carryModifier)
     }
     return { met: truckersFulfillingDemand >= totalDemand, demand: totalDemand }
+}
+
+Room.prototype.updateCostMatrix = function () {
+    let costMatrix = Utils.Utility.distanceTransform(this.name)
+    this.memory.costMatrix = JSON.stringify(costMatrix.serialize())
 }

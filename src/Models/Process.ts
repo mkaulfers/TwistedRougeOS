@@ -54,6 +54,8 @@ export class Process {
     }
 
     toString() {
-        return `Process ID:       | ${this.id}\nCurrent Priority: | ${this.currentPriority}\nCPU Used:         | ${this.getAvgCpuUsed()}\n`
+        return `Process ID:       | ${this.id}\n` +
+               `Current Priority: | ${this.currentPriority}\n` +
+               `CPU Used:         | ${this.getAvgCpuUsed()}\n`
     }
 }
