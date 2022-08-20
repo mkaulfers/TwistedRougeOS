@@ -119,7 +119,7 @@ var engineer = {
     shouldSpawn: function(room: Room): boolean {
         return false
         // let engineers = room.creeps(Role.ENGINEER);
-        // if (engineers.length < 3) {
+        // if (engineers.length < 1) {
         //     return true;
         // } else {
         //     return false;

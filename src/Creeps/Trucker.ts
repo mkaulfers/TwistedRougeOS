@@ -8,29 +8,101 @@ var trucker = {
         let creepId = creep.id
 
         const truckerHarvesterTask = () => {
-            Utils.Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.TRACE)
+            Utils.Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.DEBUG)
+            let creep = Game.getObjectById(creepId);
+            if (!creep) return ProcessResult.FAILED;
 
-            let creep = Game.getObjectById(creepId)
-            if (!creep) { return ProcessResult.FAILED }
+            // Switches working value if full or empty
+            if (creep.memory.working == undefined || creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
+                creep.memory.working = false;
+                delete creep.memory.target;
+            } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
+                creep.memory.working = true;
+                delete creep.memory.target;
+            }
+            const working = creep.memory.working;
 
-            let room = Game.rooms[creep.memory.homeRoom]
+            if (working) {
+                // Determines new target
+                if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                    let potentialTargets: Structure[] = creep.room.find(FIND_MY_STRUCTURES, {filter: function(s) {
+                        // Limits find to the below structureTypes
+                        switch (s.structureType) {
+                            case STRUCTURE_SPAWN:
+                            case STRUCTURE_POWER_SPAWN:
+                            case STRUCTURE_EXTENSION:
+                                // Returns only targets with room for energy
+                                if (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                                    return s;
+                                } else {
+                                    return;
+                                }
+                        }
+                        return;
+                    }});
 
-            if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-                let lowestSpawn = room.lowestSpawn()!
-                creep.give(lowestSpawn, RESOURCE_ENERGY)
-                return ProcessResult.RUNNING
-            } else {
-                let source = room.sourceWithMostDroppedEnergy()
-                let target = source?.droppedEnergy()
-                if (!target) { return ProcessResult.FAILED }
+                    // Targets closest, or storage, or terminal, in that order.
+                    let potTarget = creep.pos.findClosestByRange(potentialTargets);
+                    if (potTarget) {
+                        creep.memory.target = potTarget.id;
+                    } else if (creep.room.storage) {
+                        creep.memory.target = creep.room.storage.id;
+                    } else if (creep.room.terminal) {
+                        creep.memory.target = creep.room.terminal.id;
+                    } else {
+                        return ProcessResult.RUNNING
+                    }
+                }
+                let target = Game.getObjectById(creep.memory.target);
 
-                let result = creep.take(target, RESOURCE_ENERGY)
-                if (result == OK) {
+                // Runs give and returns running or incomplete based on return value
+                var result = creep.give(target, RESOURCE_ENERGY);
+                if (result === OK) {
                     return ProcessResult.RUNNING
                 }
-            }
+                Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
+                return ProcessResult.INCOMPLETE
+            } else {
+                // Determines new target
+                if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                    let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
+                    // Finds structures, tombstones, and dropped resources
+                    potentialTargets = Array.prototype.concat(
+                        creep.room.find(FIND_STRUCTURES),
+                        creep.room.find(FIND_TOMBSTONES),
+                        creep.room.find(FIND_DROPPED_RESOURCES));
+                    // Limits potential targets to only ones with energy, and if a structure, only structures that are containers or links.
+                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, {resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+                    let potTarget = creep.pos.findClosestByRange(potentialTargets);
 
-            return ProcessResult.INCOMPLETE
+                    // Targets closest if closest will fill or most energy target, in that order
+                    if ((potTarget && 'store' in potTarget && potTarget.store.getFreeCapacity()! > creep.store.getFreeCapacity()) ||
+                        (potTarget && 'amount' in potTarget && potTarget.amount > creep.store.getFreeCapacity())) {
+                        creep.memory.target = potTarget.id;
+                    } else if (potentialTargets.length > 0) {
+                        creep.memory.target = potentialTargets[0].id;
+                    } else {
+                        return ProcessResult.RUNNING
+                    }
+                }
+                let target = Game.getObjectById(creep.memory.target);
+
+                // Posterior check to change targets if the target can no longer fill the creep
+                if (!target ||
+                    'store' in target && target.store.energy < 25 ||
+                    'amount' in target && target.amount < 25) {
+                    delete creep.memory.target;
+                    return ProcessResult.RUNNING;
+                }
+
+                // Runs take and returns running or incomplete on result
+                result = creep.take(target, RESOURCE_ENERGY);
+                if (result === OK) {
+                    return ProcessResult.RUNNING
+                }
+                Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
+                return ProcessResult.INCOMPLETE
+            }
         }
 
         creep.memory.task = Task.TRUCKER_STORAGE
@@ -41,27 +113,106 @@ var trucker = {
         let creepId = creep.id;
 
         const truckerScientistTask = () => {
-            Utils.Logger.log("CreepTask -> truckerScientistTask()", LogLevel.TRACE);
+            Utils.Logger.log("CreepTask -> truckerScientistTask()", LogLevel.DEBUG);
             let creep = Game.getObjectById(creepId);
-            if (!creep) { return ProcessResult.FAILED; }
+            if (!creep) return ProcessResult.FAILED;
 
-            let room = Game.rooms[creep.memory.homeRoom];
+            // Switches working value if full or empty
+            if (creep.memory.working == undefined || creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0) {
+                creep.memory.working = false;
+                delete creep.memory.target;
+            } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
+                creep.memory.working = true;
+                delete creep.memory.target;
+            }
+            const working = creep.memory.working;
 
-            if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
-                let lowestScientist = room.lowestScientist()!
-                creep.give(lowestScientist, RESOURCE_ENERGY)
-                return ProcessResult.RUNNING
-            } else {
-                let source = room.sourceWithMostDroppedEnergy()
-                let target = source?.droppedEnergy()
-                if (!target) { return ProcessResult.FAILED }
+            if (working) {
+                // Determines new target
+                if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                    // Targets scientists, sorted by how much energy they have in them
+                    let potentialTargets: Creep[] = creep.room.creeps(Role.SCIENTIST);
+                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, {resource: RESOURCE_ENERGY, order: 'asc', rNeed: true});
+                    let potTarget = creep.pos.findClosestByRange(potentialTargets);
 
-                let result = creep.take(target, RESOURCE_ENERGY)
-                if (result == OK) {
+                    // Targets closest if scientist will take > 25 energy, or most empty scientist, in that order
+                    if (potTarget && potTarget.store.getFreeCapacity() > 25) {
+                        creep.memory.target = potTarget.id;
+                    } else  if (potentialTargets.length > 0) {
+                        creep.memory.target = potentialTargets[0].id;
+                    } else {
+                        return ProcessResult.RUNNING
+                    }
+                }
+                let target = Game.getObjectById(creep.memory.target);
+
+                // Posterior check to change targets if the target can no longer take the creeps energy
+                if (!target ||
+                    'store' in target && target.store.getFreeCapacity() < 15) {
+                    delete creep.memory.target;
+                    return ProcessResult.RUNNING;
+                }
+
+                // Runs give and returns running or incomplete based on result
+                var result = creep.give(target, RESOURCE_ENERGY);
+                if (result === OK) {
                     return ProcessResult.RUNNING
                 }
+                Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
+                return ProcessResult.INCOMPLETE
+            } else {
+                // Determines new target
+                if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                    let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
+                    // Finds structures, tombstones, and dropped resources
+                    let nearbyInterests = Array.prototype.concat(
+                        creep.room.find(FIND_DROPPED_RESOURCES),
+                        creep.room.find(FIND_TOMBSTONES),
+                        creep.room.find(FIND_STRUCTURES));
+                    // Limits potential targets to only ones with energy, and if a structure, only structures that are containers or links.
+                    nearbyInterests = Utils.Utility.organizeTargets(nearbyInterests, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+
+                    potentialTargets.push(...nearbyInterests);
+                    let priorityTargets = potentialTargets.filter(function(t) {
+                        (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
+                    });     // Only used creep! because of creep not existing being caught at the beginning of the process
+
+                    // Targets the biggest target if it will fill the creep, or the closest target if no targets will completely fill the creep,
+                    // or the first target if closest couldn't be determined, or storage, in that order.
+                    if (priorityTargets.length > 0) {
+                        creep.memory.target = priorityTargets[0].id;
+                    } else if (potentialTargets.length > 0) {
+                        let pTarget = creep.pos.findClosestByRange(potentialTargets)
+                        if (pTarget) {
+                            creep.memory.target = pTarget.id;
+                        } else {
+                            creep.memory.target = potentialTargets[0].id;
+                        }
+                    } else if (creep.room.storage) {
+                        creep.memory.target = creep.room.storage.id;
+                    } else {
+                        return ProcessResult.RUNNING
+                    }
+                }
+                let target = Game.getObjectById(creep.memory.target);
+
+                // Posterior check to change targets if the target is of very low energy value
+                if (!target ||
+                    'store' in target && target.store.energy < 25 ||
+                    'amount' in target && target.amount < 25) {
+                    delete creep.memory.target;
+                    ProcessResult.RUNNING;
+                }
+
+                // Runs take and returns running or incomplete based on the result.
+                result = creep.take(target, RESOURCE_ENERGY);
+                if (result === OK) {
+                    return ProcessResult.RUNNING
+                }
+                Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
+                return ProcessResult.INCOMPLETE
+
             }
-            return ProcessResult.INCOMPLETE
         }
 
         creep.memory.task = Task.TRUCKER_SCIENTIST
@@ -83,8 +234,9 @@ var trucker = {
         Utils.Logger.log(`Trucker Capacity: ${truckersCapacity}`, LogLevel.DEBUG)
         Utils.Logger.log(`Spawn Demand: ${isSpawnDemandMet.demand}`, LogLevel.DEBUG)
         Utils.Logger.log(`Scientist Demand: ${isScientistDemandMet.demand}`, LogLevel.DEBUG)
-
-        if (!isSpawnDemandMet.met || room.creeps(Role.SCIENTIST).length < 1) {
+        //!isSpawnDemandMet.met || room.creeps(Role.SCIENTIST).length < 1
+        console.log(Game.spawns["Spawn1"].store.getCapacity()!, Game.spawns["Spawn1"].store.energy!)
+        if (Game.spawns["Spawn1"].store.getCapacity(RESOURCE_ENERGY) > Game.spawns["Spawn1"].store.energy) {
             this.dispatchStorageTruckers(room)
         } else {
             this.dispatchScientistTruckers(room)
@@ -92,26 +244,34 @@ var trucker = {
     },
     dispatchStorageTruckers: function(room: Room) {
         let truckers = room.creeps(Role.TRUCKER)
-
+        Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.DEBUG)
         for (let trucker of truckers) {
-            if (!trucker.memory.task) {
+            // if (!trucker.memory.task) {
+            //     global.scheduler.swapProcess(trucker, Task.TRUCKER_STORAGE)
+            // }
+            if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_SCIENTIST) {
+                Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.DEBUG)
                 global.scheduler.swapProcess(trucker, Task.TRUCKER_STORAGE)
             }
         }
     },
     dispatchScientistTruckers: function(room: Room) {
         let truckers = room.creeps(Role.TRUCKER)
+        if (!(truckers.length > 0)) return;
+        Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.DEBUG)
 
         for (let trucker of truckers) {
-            if (!trucker.memory.task) {
+            // if (!trucker.memory.task) {
+            //     global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)
+            // }
+            if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_STORAGE) {
+                Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.DEBUG)
                 global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)
             }
         }
 
         if (truckers.filter(trucker => trucker.memory.task == Task.TRUCKER_SCIENTIST).length < 1) {
-            for (let trucker of truckers) {
-                trucker.memory.task = undefined
-            }
+                truckers[0].memory.task = undefined
         }
     },
     baseBody: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
