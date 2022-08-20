@@ -55,7 +55,7 @@ var trucker = {
                 let target = Game.getObjectById(creep.memory.target);
 
                 if (!target ||
-                    'store' in target && target.store.energy == 0) {
+                    'store' in target && target.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                     delete creep.memory.target;
                     return ProcessResult.RUNNING;
                 }
