@@ -2,9 +2,6 @@ import { Process } from "Models/Process";
 import { Logger } from "utils/Logger";
 import { Roles } from "Creeps/Index";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../../utils/Enums'
-import trucker from "Creeps/Trucker";
-import harvester from "Creeps/Harvester";
-import scientist from "Creeps/Scientist";
 
 
 export function scheduleSpawnMonitor(room: Room) {
@@ -73,9 +70,9 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
 
     const roomTaskMonitor = () => {
         let room = Game.rooms[roomName]
-        harvester.dispatchHarvesters(room)
-        scientist.dispatchScientists(room)
-        trucker.dispatchTruckers(room)
+        Roles.Harvester.dispatchHarvesters(room)
+        Roles.Scientist.dispatchScientists(room)
+        Roles.Trucker.dispatchTruckers(room)
     }
 
     let process = new Process(`${roomName}_task_monitor`, ProcessPriority.CRITICAL, roomTaskMonitor)
