@@ -2,9 +2,6 @@ import { Process } from "Models/Process";
 import { Logger } from "utils/Logger";
 import { Roles } from "Creeps/Index";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../../utils/Enums'
-import trucker from "Creeps/Trucker";
-import harvester from "Creeps/Harvester";
-import scientist from "Creeps/Scientist";
 
 
 export function scheduleSpawnMonitor(room: Room) {
