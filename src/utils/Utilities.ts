@@ -176,6 +176,7 @@ export class Utility {
      static organizeTargets(targets: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite)[], options?: {
         hits?: boolean,
         resource?: ResourceConstant,
+        rNeed?: boolean,
         structures?: StructureConstant[],
         order?: ('desc' | 'asc')
         }): any[] {
@@ -205,7 +206,13 @@ export class Utility {
             if (options.resource) {
                 if (('store' in t && t.store[options?.resource!] == 0) ||
                 ('amount' in t && t.amount < 5) ||
-                (!('store' in t) && !('amount' in t))) return;
+                (!('store' in t) && !('amount' in t))) {
+                    if (options.rNeed) {
+                        return t;
+                    } else {
+                        return;
+                    }
+                }
             }
             return t;
 
