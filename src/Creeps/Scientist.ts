@@ -36,6 +36,14 @@ var scientist = {
         let isAllEnergyUsed = room.currentHarvesterWorkPotential() >= room.scientistEnergyConsumption()
         return areAllSourcesRealized && isAllEnergyUsed
     },
+    dispatchScientists: function(room: Room) {
+        let scientists = room.creeps(Role.SCIENTIST)
+        for (let scientist of scientists) {
+            if (!scientist.memory.task) {
+                global.scheduler.swapProcess(scientist, Task.SCIENTIST_UPGRADING)
+            }
+        }
+    },
     baseBody: [CARRY, MOVE, WORK, WORK],
     segment: [CARRY, WORK, WORK],
 }

@@ -3,6 +3,8 @@ import { Logger } from "utils/Logger";
 import { Roles } from "Creeps/Index";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../../utils/Enums'
 import trucker from "Creeps/Trucker";
+import harvester from "Creeps/Harvester";
+import scientist from "Creeps/Scientist";
 
 
 export function scheduleSpawnMonitor(room: Room) {
@@ -71,82 +73,13 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
 
     const roomTaskMonitor = () => {
         let room = Game.rooms[roomName]
-        dispatchHarvesters(room)
-        dispatchScientists(room)
-        dispatchTruckers(room)
+        harvester.dispatchHarvesters(room)
+        scientist.dispatchScientists(room)
+        trucker.dispatchTruckers(room)
     }
 
     let process = new Process(`${roomName}_task_monitor`, ProcessPriority.CRITICAL, roomTaskMonitor)
     global.scheduler.addProcess(process)
-}
-
-function dispatchHarvesters(room: Room) {
-    let harvesters = room.creeps(Role.HARVESTER)
-    let truckers = room.creeps(Role.TRUCKER)
-    if (truckers.length < 1) {
-        for (let harvester of harvesters) {
-            if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_SOURCE) {
-                global.scheduler.swapProcess(harvester, Task.HARVESTER_EARLY)
-            }
-        }
-    } else {
-        for (let harvester of harvesters) {
-            if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_EARLY) {
-                global.scheduler.swapProcess(harvester, Task.HARVESTER_SOURCE)
-            }
-        }
-    }
-}
-
-function dispatchScientists(room: Room) {
-    let scientists = room.creeps(Role.SCIENTIST)
-    for (let scientist of scientists) {
-        if (!scientist.memory.task) {
-            global.scheduler.swapProcess(scientist, Task.SCIENTIST_UPGRADING)
-        }
-    }
-}
-
-function dispatchTruckers(room: Room) {
-    let truckersCapacity = room.truckersCarryCapacity()
-    let isSpawnDemandMet = room.isSpawnDemandMet()
-    let isScientistDemandMet = room.isScientistDemandMet()
-
-    Logger.log(`Trucker Capacity: ${truckersCapacity}`, LogLevel.DEBUG)
-    Logger.log(`Spawn Demand: ${isSpawnDemandMet.demand}`, LogLevel.DEBUG)
-    Logger.log(`Scientist Demand: ${isScientistDemandMet.demand}`, LogLevel.DEBUG)
-
-    if (!isSpawnDemandMet.met || room.creeps(Role.SCIENTIST).length < 1) {
-        dispatchStorageTruckers(room)
-    } else {
-        dispatchScientistTruckers(room)
-    }
-}
-
-function dispatchStorageTruckers(room: Room) {
-    let truckers = room.creeps(Role.TRUCKER)
-
-    for (let trucker of truckers) {
-        if (!trucker.memory.task) {
-            global.scheduler.swapProcess(trucker, Task.TRUCKER_STORAGE)
-        }
-    }
-}
-
-function dispatchScientistTruckers(room: Room) {
-    let truckers = room.creeps(Role.TRUCKER)
-
-    for (let trucker of truckers) {
-        if (!trucker.memory.task) {
-            global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)
-        }
-    }
-
-    if (truckers.filter(trucker => trucker.memory.task == Task.TRUCKER_SCIENTIST).length < 1) {
-        for (let trucker of truckers) {
-            trucker.memory.task = undefined
-        }
-    }
 }
 
 

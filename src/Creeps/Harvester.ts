@@ -1,5 +1,6 @@
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
+
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 var harvester = {
@@ -89,6 +90,23 @@ var harvester = {
             }
         }
         return !allSourcesRealized
+    },
+    dispatchHarvesters: function(room: Room) {
+        let harvesters = room.creeps(Role.HARVESTER)
+        let truckers = room.creeps(Role.TRUCKER)
+        if (truckers.length < 1) {
+            for (let harvester of harvesters) {
+                if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_SOURCE) {
+                    global.scheduler.swapProcess(harvester, Task.HARVESTER_EARLY)
+                }
+            }
+        } else {
+            for (let harvester of harvesters) {
+                if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_EARLY) {
+                    global.scheduler.swapProcess(harvester, Task.HARVESTER_SOURCE)
+                }
+            }
+        }
     },
     baseBody: [CARRY, MOVE, WORK, WORK],
     segment: [WORK]
