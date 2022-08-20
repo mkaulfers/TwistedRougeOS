@@ -88,3 +88,13 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
 
 
 
+    const roomTaskMonitor = () => {
+        let room = Game.rooms[roomName]
+        Roles.Harvester.dispatchHarvesters(room)
+        Roles.Scientist.dispatchScientists(room)
+        Roles.Trucker.dispatchTruckers(room)
+    }
+
+    let process = new Process(`${roomName}_task_monitor`, ProcessPriority.CRITICAL, roomTaskMonitor)
+    global.scheduler.addProcess(process)
+}

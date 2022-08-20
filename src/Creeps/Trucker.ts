@@ -18,6 +18,7 @@ var trucker = {
             if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                 let lowestSpawn = room.lowestSpawn()!
                 creep.give(lowestSpawn, RESOURCE_ENERGY)
+                return ProcessResult.RUNNING
             } else {
                 let source = room.sourceWithMostDroppedEnergy()
                 let target = source?.droppedEnergy()
@@ -49,6 +50,7 @@ var trucker = {
             if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                 let lowestScientist = room.lowestScientist()!
                 creep.give(lowestScientist, RESOURCE_ENERGY)
+                return ProcessResult.RUNNING
             } else {
                 let source = room.sourceWithMostDroppedEnergy()
                 let target = source?.droppedEnergy()

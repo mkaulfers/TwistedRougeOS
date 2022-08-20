@@ -1,5 +1,4 @@
 import trucker from 'Creeps/Trucker'
-import { assign } from 'lodash'
 import { Managers } from 'Managers/Index'
 import { Utils } from 'utils/Index'
 import { Utility } from 'utils/Utilities'
