@@ -7,6 +7,15 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/E
 declare global {
     interface Source {
         nearbyEnergy(): number
+
+        /**
+        * Checks if a position around a source is a wall, or a valid position a creep can reach to harvest.
+        * O is a valid position.
+        * X is a wall.
+        *     O O O
+        *     O X O
+        *     O O O
+        */
         validPositions(): RoomPosition[]
         isHarvestingAtMaxEfficiency(): boolean
         assignablePosition(): RoomPosition

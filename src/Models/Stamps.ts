@@ -1,7 +1,7 @@
 import { StampType } from "utils/Enums";
 
 export const Stamp = {
-    build: function(startPos: RoomPosition, stamp: StampType) {
+    build: function(startPos: RoomPosition, stamp: StampType, visualize = false): RoomPosition[] {
         let site: {xMod: number, yMod: number, structureType: BuildableStructureConstant}[]
         switch (stamp) {
             case StampType.FAST_FILLER:
@@ -15,9 +15,21 @@ export const Stamp = {
         }
 
         let room = Game.rooms[startPos.roomName]
-        for (let s of site) {
-            room.createConstructionSite(startPos.x + s.xMod, startPos.y + s.yMod, s.structureType);
+        let positions: RoomPosition[] = []
+        if (visualize) {
+            let positions: RoomPosition[] = []
+            for (let s of site) {
+                let roomVisual = new RoomVisual(room.name)
+                roomVisual.structure(startPos.x + s.xMod, startPos.y + s.yMod, s.structureType)
+                positions.push(new RoomPosition(startPos.x + s.xMod, startPos.y + s.yMod, room.name))
+            }
+            return positions
+        } else {
+            for (let s of site) {
+                room.createConstructionSite(startPos.x + s.xMod, startPos.y + s.yMod, s.structureType);
+            }
         }
+        return positions
     }
 }
 

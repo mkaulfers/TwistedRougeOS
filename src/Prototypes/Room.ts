@@ -26,16 +26,6 @@ declare global {
         scheduleTasks(): void
         creeps(role?: Role): Creep[];
         spawnCreep(role: Role, spawn: StructureSpawn): void
-
-        // /**
-        // * Checks if a position around a source is a wall, or a valid position a creep can reach to harvest.
-        // * O is a valid position.
-        // * X is a wall.
-        // *     O O O
-        // *     O X O
-        // *     O O O
-        // */
-        // validSourcePositions(): RoomPosition[]
         getAvailableSpawn(): StructureSpawn | undefined
         sourcesEnergyPotential(): number
 
