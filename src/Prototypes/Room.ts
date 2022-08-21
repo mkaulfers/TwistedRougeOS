@@ -66,7 +66,7 @@ Room.prototype.scheduleTasks = function () {
     Managers.TaskManager.scheduleSpawnMonitor(this)
     Managers.UtilityTasks.scheduleMemoryMonitor()
     Managers.TaskManager.scheduleRoomTaskMonitor(this)
-    Managers.TaskManager.scheduleConstructionMonitor(this)
+    // Managers.TaskManager.scheduleConstructionMonitor(this)
 }
 
 Room.prototype.creeps = function (role?: Role): Creep[] {
@@ -177,7 +177,6 @@ Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
         body,
         name, {
         memory: {
-            assignedPos: role == Role.HARVESTER && assignableSource ? Utils.Utility.packPosition(assignableSource.assignablePosition()) : undefined,
             task: task,
             role: role,
             working: false,

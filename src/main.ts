@@ -44,7 +44,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
 });
 
 function setup() {
-  //TODO: Deserialize scheduler and kernel.
+  // TODO: Deserialize scheduler and kernel.
   // DEV MODE LOGGING
   Utils.Logger.devLogLevel = LogLevel.DEBUG;
   if (!global.kernel) {
