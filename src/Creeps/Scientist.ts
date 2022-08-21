@@ -31,19 +31,19 @@ var scientist = {
         let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
         global.scheduler.addProcess(newProcess)
     },
-    shouldSpawn: function(room: Room): boolean {
-        let sources = room.sources()
-        let areAllSourcesRealized = sources.every(source => source.isHarvestingAtMaxEfficiency())
-        let isAllEnergyUsed = room.currentHarvesterWorkPotential() >= room.scientistEnergyConsumption()
-        return areAllSourcesRealized && isAllEnergyUsed
-    },
-    dispatchScientists: function(room: Room) {
+    dispatch: function(room: Room) {
         let scientists = room.creeps(Role.SCIENTIST)
         for (let scientist of scientists) {
             if (!scientist.memory.task) {
                 global.scheduler.swapProcess(scientist, Task.SCIENTIST_UPGRADING)
             }
         }
+    },
+    shouldSpawn: function(room: Room): boolean {
+        let sources = room.sources()
+        let areAllSourcesRealized = sources.every(source => source.isHarvestingAtMaxEfficiency())
+        let isAllEnergyUsed = room.currentHarvesterWorkPotential() >= room.scientistEnergyConsumption()
+        return areAllSourcesRealized && isAllEnergyUsed
     },
     baseBody: [CARRY, MOVE, WORK, WORK],
     segment: [CARRY, WORK, WORK],

@@ -71,9 +71,11 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
 
     const roomTaskMonitor = () => {
         let room = Game.rooms[roomName]
-        Roles.Harvester.dispatchHarvesters(room)
-        Roles.Scientist.dispatchScientists(room)
-        Roles.Trucker.dispatchTruckers(room)
+        let roles = _.keys(Roles) as Array<keyof typeof Roles>; // triage change to make this role-confirming section work.
+
+        _.forEach(roles, function(role) {
+            Roles[role].dispatch(room);
+        });
     }
 
     let process = new Process(`${roomName}_task_monitor`, ProcessPriority.CRITICAL, roomTaskMonitor)

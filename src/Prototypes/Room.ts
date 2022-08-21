@@ -1,7 +1,6 @@
 import trucker from 'Creeps/Trucker'
 import { Managers } from 'Managers/Index'
 import { Utils } from 'utils/Index'
-import { Utility } from 'utils/Utilities'
 import { Roles } from '../Creeps/Index'
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from '../utils/Enums'
 
@@ -61,6 +60,10 @@ declare global {
 
         isSpawnDemandMet(): {met: boolean, demand: number}
         isScientistDemandMet(): {met: boolean, demand: number}
+        /**
+         * Returns target goal for rampart HP in the room
+        */
+        rampartHPTarget(): number;
         updateCostMatrix(): void
     }
 }
@@ -289,6 +292,26 @@ Room.prototype.isScientistDemandMet = function (): {met: boolean, demand: number
         truckersFulfillingDemand += _trucker.getActiveBodyparts(CARRY) * (this.averageDistanceFromSourcesToStructures() * trucker.carryModifier)
     }
     return { met: truckersFulfillingDemand >= totalDemand, demand: totalDemand }
+}
+
+Room.prototype.rampartHPTarget = function(): number {
+    if (!this.controller) return 0;
+    switch (this.controller.level) {
+        case 1:
+        case 2:
+        case 3:
+            return 100000;
+        case 4:
+            return 500000;
+        case 5:
+            return 1000000;
+        case 6:
+            return 5000000;
+        case 7:
+        case 8:
+            return 10000000;
+    }
+    return 0;
 }
 
 Room.prototype.updateCostMatrix = function () {
