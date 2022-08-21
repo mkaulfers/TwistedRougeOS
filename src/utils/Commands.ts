@@ -4,6 +4,10 @@ declare global {
     namespace NodeJS {
         interface Global {
             /**
+             * Returns help text for specific commmands
+             */
+            help(cmd: string): string;
+            /**
              * Toggles a visual so that one may see its effects.
              */
             toggleVisual(visual: string): number;
@@ -13,6 +17,21 @@ declare global {
             visualToggles?: {[key: string]: boolean};
         }
       }
+}
+
+global.help = function(cmd) {
+    switch (cmd) {
+        case 'toggleVisual' || 'togglevisual' || 'visual' || 'visuals':
+        case 'toggle' || 'toggles':
+            let response = `toggleVisual(visual: string) is used to toggle visual booleans so that you may see the visuals. \n
+                The accepted values are: \n'roomPlanning'\n'distanceTransform'\n'pathfinding'\n'worldRoomScoring'\n'worldRemotes'\n'worldPathfinding'`
+            console.log(response);
+            return response;
+        default:
+            response = `${cmd} lacks a written description at the moment. Maybe you can add one if the function actually exists!`
+            console.log(response);
+            return response;
+    }
 }
 
 global.toggleVisual = function(visual) {
