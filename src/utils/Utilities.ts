@@ -57,7 +57,7 @@ export class Utility {
         return topDownPass;
     }
 
-    private static validPos(x: number, y: number, size: number, room: Room): boolean {
+    private static validPos(x: number, y: number, size: number, room: Room, vizualizedPositions?: RoomPosition[]): boolean {
         if (x < 0 || y < 0) return false
         if (x >= 50 || y >= 50) return false
         if (x - Math.floor(size / 2) < 0 || y - Math.floor(size / 2) < 0) return false
@@ -75,7 +75,28 @@ export class Utility {
             x.type != LOOK_POWER_CREEPS &&
             x.type != LOOK_TOMBSTONES &&
             x.type != LOOK_RUINS &&
-            x.type != LOOK_NUKES)
+            x.type != LOOK_NUKES &&
+            x.type != LOOK_CONSTRUCTION_SITES &&
+            x.type != LOOK_STRUCTURES
+            )
+
+        if (vizualizedPositions) {
+            let visArea = room.lookAtArea(
+                y - Math.floor(size / 2),
+                x - Math.floor(size / 2),
+                y + Math.floor(size / 2),
+                x + Math.floor(size / 2),
+                true
+            )
+
+            for (let result of visArea) {
+                for (let vizPos of vizualizedPositions) {
+                    if (result.x == vizPos.x && result.y == vizPos.y) {
+                        return false
+                    }
+                }
+            }
+        }
 
         if (results.length > 0) return false
 
@@ -92,7 +113,7 @@ export class Utility {
      * ODD numbers are treated as a diameter
      * - (Ex 5 is 5x5, 7 is 7x7).
      */
-    static findPosForStamp(x: number, y: number, size: number, room: Room): RoomPosition | undefined {
+    static findPosForStamp(x: number, y: number, size: number, room: Room, vizualizedPositions?: RoomPosition[]): RoomPosition | undefined {
         if (size % 2 == 0) {
             size = size * 2 + 1
         }
@@ -100,32 +121,32 @@ export class Utility {
         let queue: number[][] = []
         queue.push([x, y])
         let iteration = 0
-        while (queue.length > 0 && iteration < 100) {
+        while (queue.length > 0 && iteration < 50) {
             let currPos = queue[queue.length - 1]
             queue.pop()
 
             let posX = currPos[0]
             let posY = currPos[1]
 
-            if (this.validPos(posX + 1, posY, size, room)) {
+            if (this.validPos(posX + 1, posY, size, room, vizualizedPositions)) {
                 return new RoomPosition(posX + 1, posY, room.name)
             } else {
                 queue.push([posX + 1, posY])
             }
 
-            if (this.validPos(posX - 1, posY, size, room)) {
+            if (this.validPos(posX - 1, posY, size, room, vizualizedPositions)) {
                 return new RoomPosition(posX - 1, posY, room.name)
             } else {
                 queue.push([Math.floor(posX - 1), posY])
             }
 
-            if (this.validPos(posX, posY + 1, size, room)) {
+            if (this.validPos(posX, posY + 1, size, room, vizualizedPositions)) {
                 return new RoomPosition(posX, posY + 1, room.name)
             } else {
                 queue.push([posX, posY + 1])
             }
 
-            if (this.validPos(posX, posY - 1, size, room)) {
+            if (this.validPos(posX, posY - 1, size, room, vizualizedPositions)) {
                 return new RoomPosition(posX, posY - 1, room.name)
             } else {
                 queue.push([posX, posY - 1])
