@@ -17,6 +17,7 @@ declare global {
 
   interface RoomMemory {
     claim?: string
+    remotes?: string[]
     costMatrix: string
     blueprint?: {
       type: string,
