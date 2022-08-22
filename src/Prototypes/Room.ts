@@ -53,8 +53,12 @@ declare global {
         /**
          * Returns target goal for rampart HP in the room
         */
-        rampartHPTarget(): number;
+        rampartHPTarget(): number
         updateCostMatrix(): void
+        /**
+         * A room's towers, as found within the last 100 ticks || last time one died.
+         */
+        towers(): StructureTower[] | undefined;
     }
 }
 
@@ -66,7 +70,7 @@ Room.prototype.scheduleTasks = function () {
     Managers.TaskManager.scheduleSpawnMonitor(this)
     Managers.UtilityTasks.scheduleMemoryMonitor()
     Managers.TaskManager.scheduleRoomTaskMonitor(this)
-    // Managers.TaskManager.scheduleConstructionMonitor(this)
+    Managers.TaskManager.scheduleConstructionMonitor(this)
 }
 
 Room.prototype.creeps = function (role?: Role): Creep[] {
@@ -307,3 +311,5 @@ Room.prototype.updateCostMatrix = function () {
     let costMatrix = Utils.Utility.distanceTransform(this.name)
     this.memory.costMatrix = JSON.stringify(costMatrix.serialize())
 }
+
+
