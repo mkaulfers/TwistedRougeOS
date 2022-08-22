@@ -55,10 +55,10 @@ export enum StampType {
 }
 
 export enum DangerLevel {
-    PEACEFUL = 5,
-    INVADERS = 4,
-    WARY = 3,
-    DANGER = 2,
-    NUKETHIS = 1,
+    PEACEFUL = 5,               // #00ff00
+    INVADERS = 4,               // #ccff33
+    WARY = 3,                   // #ffff1a
+    DANGER = 2,                 // #ff9900
+    NUKETHIS = 1,               // #ff0000
 }
 
