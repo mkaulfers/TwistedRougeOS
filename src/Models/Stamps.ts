@@ -110,7 +110,7 @@ const anchor: {xMod: number, yMod: number, structureType: BuildableStructureCons
 ]
 
 export const Stamps = {
-    fastFiller: fastFiller,
+    fast_filler: fastFiller,
     extensions: extensions,
     labs: labs,
     anchor: anchor
