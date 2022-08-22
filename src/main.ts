@@ -3,7 +3,7 @@ import { Utils } from './utils/Index';
 import { OS } from "OS/Index";
 import { Managers } from "Managers/Index";
 import './Prototypes/Index'
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './utils/Enums'
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel } from './utils/Enums'
 
 declare global {
   interface CreepMemory {
@@ -17,7 +17,13 @@ declare global {
 
   interface RoomMemory {
     claim?: string
+    remotes?: string[]
     costMatrix: string
+    blueprint?: {
+      type: string,
+      stampPos: number,
+      completed: boolean
+    }[]
   }
 
   interface Memory {
@@ -44,7 +50,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
 });
 
 function setup() {
-  //TODO: Deserialize scheduler and kernel.
+  // TODO: Deserialize scheduler and kernel.
   // DEV MODE LOGGING
   Utils.Logger.devLogLevel = LogLevel.DEBUG;
   if (!global.kernel) {

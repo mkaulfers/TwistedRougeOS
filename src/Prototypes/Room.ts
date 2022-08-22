@@ -53,8 +53,12 @@ declare global {
         /**
          * Returns target goal for rampart HP in the room
         */
-        rampartHPTarget(): number;
+        rampartHPTarget(): number
         updateCostMatrix(): void
+        /**
+         * A room's towers, as found within the last 100 ticks || last time one died.
+         */
+        towers(): StructureTower[] | undefined;
     }
 }
 
@@ -177,7 +181,6 @@ Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
         body,
         name, {
         memory: {
-            assignedPos: role == Role.HARVESTER && assignableSource ? Utils.Utility.packPosition(assignableSource.assignablePosition()) : undefined,
             task: task,
             role: role,
             working: false,
@@ -308,3 +311,5 @@ Room.prototype.updateCostMatrix = function () {
     let costMatrix = Utils.Utility.distanceTransform(this.name)
     this.memory.costMatrix = JSON.stringify(costMatrix.serialize())
 }
+
+

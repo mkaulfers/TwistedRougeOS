@@ -33,6 +33,7 @@ export const Stamp = {
     }
 }
 
+
 const fastFiller: {xMod: number, yMod: number, structureType: BuildableStructureConstant}[] = [
     {xMod: -2, yMod: -2, structureType: STRUCTURE_EXTENSION},
     {xMod: -1, yMod: -2, structureType: STRUCTURE_EXTENSION},
@@ -107,3 +108,10 @@ const anchor: {xMod: number, yMod: number, structureType: BuildableStructureCons
     {xMod: 0, yMod: 1, structureType: STRUCTURE_SPAWN},
     {xMod: 1, yMod: 1, structureType: STRUCTURE_ROAD}
 ]
+
+export const Stamps = {
+    fast_filler: fastFiller,
+    extensions: extensions,
+    labs: labs,
+    anchor: anchor
+}
