@@ -54,4 +54,11 @@ export enum StampType {
     ANCHOR = 'anchor'
 }
 
+export enum DangerLevel {
+    PEACEFUL = 5,
+    INVADERS = 4,
+    WARY = 3,
+    DANGER = 2,
+    NUKETHIS = 1,
+}
 

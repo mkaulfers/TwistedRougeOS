@@ -3,7 +3,7 @@ import { Utils } from './utils/Index';
 import { OS } from "OS/Index";
 import { Managers } from "Managers/Index";
 import './Prototypes/Index'
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './utils/Enums'
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel } from './utils/Enums'
 
 declare global {
   interface CreepMemory {
@@ -18,6 +18,11 @@ declare global {
   interface RoomMemory {
     claim?: string
     costMatrix: string
+    blueprint?: {
+      type: string,
+      stampPos: number,
+      completed: boolean
+    }[]
   }
 
   interface Memory {
