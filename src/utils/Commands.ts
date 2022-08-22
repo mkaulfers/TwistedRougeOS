@@ -1,22 +1,18 @@
 import { LogLevel } from './Enums';
 
 declare global {
-    namespace NodeJS {
-        interface Global {
             /**
              * Returns help text for specific commmands
              */
-            help(cmd: string): string;
+            function help(cmd: string): string;
             /**
              * Toggles a visual so that one may see its effects.
              */
-            toggleVisual(visual: string): number;
+            function toggleVisual(visual: string): number;
             /**
              * A heap-saved variable for housing the visual toggles.
              */
-            visualToggles?: {[key: string]: boolean};
-        }
-      }
+            var visualToggles: {[key: string]: boolean};
 }
 
 global.help = function(cmd) {

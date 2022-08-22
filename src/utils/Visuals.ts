@@ -72,7 +72,7 @@ var visuals = {
     },
     roomPlanning: function() {
         for (const roomName in Memory.rooms) {
-            if (!Memory.rooms[roomName].blueprint) continue;
+            if (!Memory.rooms[roomName] || !Memory.rooms[roomName].blueprint) continue;
             let roomPlan = Memory.rooms[roomName].blueprint;
             let rVis = new RoomVisual(roomName);
             for (let i = 0; i < roomPlan!.length; i++) {
@@ -90,6 +90,7 @@ var visuals = {
                     rVis.structure(pos.x, pos.y, roomPlan![i].type);
                 }
             }
+            rVis.connectRoads();
         }
     },
     distanceTransform: function() {
