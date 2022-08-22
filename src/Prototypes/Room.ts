@@ -177,7 +177,7 @@ Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
         body,
         name, {
         memory: {
-            assignedPos: role == Role.HARVESTER && assignableSource ? Utils.Utility.packPosition(assignableSource.assignablePosition()) : undefined,
+            assignedPos: undefined,
             task: task,
             role: role,
             working: false,

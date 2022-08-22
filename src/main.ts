@@ -18,6 +18,12 @@ declare global {
   interface RoomMemory {
     claim?: string
     costMatrix: string
+    blueprintAnchor: number
+    blueprint: {
+      type: string,
+      stampPos: number,
+      completed: boolean
+    }[]
   }
 
   interface Memory {
