@@ -38,6 +38,14 @@ declare global {
       log: any
     }
   }
+
+  interface RoomCache {
+    towers?: Id<StructureTower>[];
+  }
+
+  var Cache: {
+    rooms?: {[key: string]: RoomCache},
+  }
 }
 
 export const loop = ErrorMapper.wrapLoop(() => {
