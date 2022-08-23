@@ -4,31 +4,35 @@ import { Logger } from "utils/Logger";
 import { Roles } from "Creeps/Index";
 import { Utils } from "utils/Index";
 import { Stamp } from "Models/Stamps";
+import { result } from 'lodash';
 
 const buildOrder: (StampType | BuildableStructureConstant)[] = [
     // STRUCTURE_CONTAINER,
     // STRUCTURE_CONTAINER,
-    StampType.LABS,
-    StampType.ANCHOR,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
     StampType.FAST_FILLER,
-    STRUCTURE_TOWER,
-    STRUCTURE_TOWER,
-    STRUCTURE_TOWER,
-    STRUCTURE_TOWER,
-    STRUCTURE_TOWER,
-    STRUCTURE_TOWER,
-    STRUCTURE_EXTENSION,
-    STRUCTURE_EXTENSION,
-    STRUCTURE_EXTENSION,
-    STRUCTURE_EXTENSION
+    StampType.ANCHOR,
+    StampType.LABS,
+    // STRUCTURE_SPAWN,
+    // STRUCTURE_SPAWN,
+    // STRUCTURE_SPAWN,
+    StampType.EXTENSIONS,
+    StampType.EXTENSIONS,
+    StampType.EXTENSIONS,
+    StampType.EXTENSIONS,
+    StampType.EXTENSIONS,
+    StampType.EXTENSIONS,
+    StampType.EXTENSIONS,
+    StampType.EXTENSIONS,
+    // STRUCTURE_TOWER,
+    // STRUCTURE_TOWER,
+    // STRUCTURE_EXTENSION,
+    // STRUCTURE_EXTENSION,
+    // STRUCTURE_TOWER,
+    // STRUCTURE_TOWER,
+    // STRUCTURE_EXTENSION,
+    // STRUCTURE_EXTENSION,
+    // STRUCTURE_TOWER,
+    // STRUCTURE_TOWER,
 ]
 
 export function planRoom(room: Room, visualize: boolean, planAgain: boolean = false) {
@@ -66,20 +70,51 @@ function generateNewVisual(room: Room) {
             building == StampType.EXTENSIONS ||
             building == StampType.FAST_FILLER) {
 
-            let stampPos = findPosForStamp(blueprintAnchor, Stamp.getStampSize(building), visualizedPositons)
+            let stampPos = findPosForStamp(blueprintAnchor, building, visualizedPositons)
             if (stampPos) {
                 Stamp.build(stampPos, building, visualizedPositons, roomVisual)
             }
         } else {
-            let partPos = findPosForStamp(blueprintAnchor, 3, visualizedPositons)
+            // let size = 1
+            // switch (building) {
+            //     case STRUCTURE_SPAWN:
+            //         size = 3; break
+            //     case STRUCTURE_EXTENSION:
+            //         size = 1; break
+            //     case STRUCTURE_TOWER:
+            //         size = 3; break
+            // }
 
-            if (partPos) {
-                visualizedPositons.push(partPos)
-                Logger.log(`Visualized Count: ${visualizedPositons.length}`, LogLevel.DEBUG)
-                roomVisual.structure(partPos.x, partPos.y, building)
-            }
+            // let partPos = findPosForStamp(blueprintAnchor, size, visualizedPositons)
+
+            // if (partPos) {
+            //     visualizedPositons.push(partPos)
+            //     roomVisual.structure(partPos.x, partPos.y, building)
+            // }
         }
     }
+
+    let roadPositions: PathStep[] = []
+    let sources = room.find(FIND_SOURCES)
+    let minerals = room.find(FIND_MINERALS)
+
+    // for (let source of sources) {
+    //     roadPositions = roadPositions.concat(getRoadPositionsFrom(source.pos, blueprintAnchor))
+    // }
+
+    // for (let mineral of minerals) {
+    //     roadPositions = roadPositions.concat(getRoadPositionsFrom(mineral.pos, blueprintAnchor))
+    // }
+
+    // for (let visualizedPos of visualizedPositons) {
+    //     //Remove any visualized positions from the road positions.
+    //     roadPositions = roadPositions.filter(pos => !(pos.x == visualizedPos.x && pos.y == visualizedPos.y))
+    // }
+
+    // for (let roadPos of roadPositions) {
+    //     roomVisual.structure(roadPos.x, roadPos.y, STRUCTURE_ROAD)
+    // }
+
     roomVisual.connectRoads()
 }
 
@@ -89,54 +124,58 @@ function generateNewRoomPlan(room: Room) {
     room.memory.blueprint = blueprint
 }
 
-function validPos(startPos: RoomPosition, size: number, vizualizedPositions?: RoomPosition[]): boolean {
-    let room = Game.rooms[startPos.roomName]
-    let x = startPos.x
-    let y = startPos.y
-    let isOffset = size % 2 == 0
+function getRoadPositionsFrom(startPos: RoomPosition, endPos: RoomPosition): PathStep[] {
+    let positions: PathStep[] = []
+    positions = positions.concat(startPos.findPathTo(endPos, { ignoreCreeps: true }))
+    return positions
+}
 
+function validPosV2(x: number, y: number, room: Room, structure: StampType | BuildableStructureConstant, visualizedPositions?: RoomPosition[]): boolean {
     if (x < 0 || y < 0) return false
-    if (x >= 50 || y >= 50) return false
-    if (x - Math.floor(size / 2) < 0 || y - Math.floor(size / 2) < 0) return false
-    if (x + Math.floor(size / 2) >= 50 || y + Math.floor(size / 2) >= 50) return false
+    if (x > 49 || y > 49) return false
 
-    let results = room.lookAtArea(
-        y - Math.floor(isOffset ? 1 : size / 2),
-        x - Math.floor(isOffset ? 1 : size / 2),
-        y + Math.floor(isOffset ? 2 : size / 2),
-        x + Math.floor(isOffset ? 2 : size / 2),
-        true
-    ).filter(x => x.type != LOOK_CREEPS &&
-        x.terrain != 'plain' &&
-        x.terrain != 'swamp' &&
-        x.type != LOOK_POWER_CREEPS &&
-        x.type != LOOK_TOMBSTONES &&
-        x.type != LOOK_RUINS &&
-        x.type != LOOK_NUKES &&
-        x.type != LOOK_CONSTRUCTION_SITES &&
-        x.type != LOOK_STRUCTURES
-    )
 
-    if (vizualizedPositions) {
-        let visArea = room.lookAtArea(
-            y - Math.floor(isOffset ? 1 : size / 2),
-            x - Math.floor(isOffset ? 1 : size / 2),
-            y + Math.floor(isOffset ? 2 : size / 2),
-            x + Math.floor(isOffset ? 2 : size / 2),
-            true
-        )
 
-        for (let result of visArea) {
-            for (let vizPos of vizualizedPositions) {
-                if (result.x == vizPos.x && result.y == vizPos.y) {
+    if (structure == StampType.ANCHOR ||
+        structure == StampType.LABS ||
+        structure == StampType.EXTENSIONS ||
+        structure == StampType.FAST_FILLER) {
+        let rawStamp = Stamp.getStamp(structure)
+        let stampPositions: { x: number, y: number }[] = []
+        for (let part of rawStamp) {
+            stampPositions.push({ x: x + part.xMod, y: y + part.yMod })
+        }
+
+        if (visualizedPositions) {
+            for (let stampPos of stampPositions) {
+                for (let vizualizedPos of visualizedPositions) {
+                    if (stampPos.x == vizualizedPos.x && stampPos.y == vizualizedPos.y) {
+                        return false
+                    }
+                }
+            }
+        }
+
+        for (let partPosition of stampPositions) {
+            if (partPosition.x < 0 || partPosition.y < 0) return false
+            if (partPosition.x > 49 || partPosition.y > 49) return false
+            Logger.log(`Part Position - X: ${partPosition.x}, Y: ${partPosition.y}`, LogLevel.DEBUG)
+
+            let position = new RoomPosition(partPosition.x, partPosition.y, room.name)
+
+            let positionResult = position.look()
+
+            for (let result of positionResult) {
+                if (result.terrain == 'wall' ||
+                    result.type == LOOK_NUKES ||
+                    result.type == LOOK_CONSTRUCTION_SITES ||
+                    result.type == LOOK_STRUCTURES) {
                     return false
                 }
             }
         }
+        return true
     }
-
-    if (results.length > 0) return false
-
     return true
 }
 
@@ -153,7 +192,9 @@ function validPos(startPos: RoomPosition, size: number, vizualizedPositions?: Ro
  * @param vizualizedPositions - Only provide if you wish to vizualize, it will not add construction sites to the room.
  * @returns - A position that your stamp will fit into.
  */
-function findPosForStamp(startPosition: RoomPosition, size: number, vizualizedPositions?: RoomPosition[]): RoomPosition | undefined {
+function findPosForStamp(startPosition: RoomPosition, structure: StampType | BuildableStructureConstant, vizualizedPositions?: RoomPosition[]): RoomPosition | undefined {
+    Logger.log(`Start Position: ${startPosition.x}, ${startPosition.y}`, LogLevel.DEBUG)
+
     let deltaX = 1;
     let deltaY = 0;
 
@@ -163,12 +204,12 @@ function findPosForStamp(startPosition: RoomPosition, size: number, vizualizedPo
     let y = 0;
     let segmentPassed = 0;
 
-    for (let k = 0; k < 2000; ++k) {
+    for (let k = 0; k < 1000; ++k) {
         x += deltaX;
         y += deltaY;
         ++segmentPassed;
 
-        if (validPos(new RoomPosition(startPosition.x + x, startPosition.y + y, startPosition.roomName), size, vizualizedPositions)) {
+        if (validPosV2(startPosition.x + x, startPosition.y + y, Game.rooms[startPosition.roomName], structure, vizualizedPositions)) {
             return new RoomPosition(startPosition.x + x, startPosition.y + y, startPosition.roomName)
         }
 
