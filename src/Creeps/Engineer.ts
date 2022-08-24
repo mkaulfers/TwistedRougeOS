@@ -8,7 +8,7 @@ var engineer = {
         let creepId = creep.id
 
         const buildingTask = () => {
-            Utils.Logger.log("CreepTask -> builderTask()", LogLevel.DEBUG)
+            Utils.Logger.log("CreepTask -> builderTask()", LogLevel.TRACE)
             let creep = Game.getObjectById(creepId);
             if (!creep) return ProcessResult.FAILED;
 
@@ -94,7 +94,7 @@ var engineer = {
         let creepId = creep.id
 
         const repairingTask = () => {
-            Utils.Logger.log("CreepTask -> repairTask()", LogLevel.DEBUG)
+            Utils.Logger.log("CreepTask -> repairTask()", LogLevel.TRACE)
             let creep = Game.getObjectById(creepId);
             if (!creep) return ProcessResult.FAILED;
 
@@ -188,7 +188,7 @@ var engineer = {
         let creepId = creep.id
 
         const upgradingTask = () => {
-            Utils.Logger.log("CreepTask -> eUpgradingTask()", LogLevel.DEBUG)
+            Utils.Logger.log("CreepTask -> eUpgradingTask()", LogLevel.TRACE)
             let creep = Game.getObjectById(creepId);
             if (!creep) return ProcessResult.FAILED;
 
@@ -270,7 +270,7 @@ var engineer = {
         global.scheduler.addProcess(newProcess)
     },
     dispatch: function(room: Room) {
-        Utils.Logger.log("CreepDispatch -> engineer.dispatch()", LogLevel.DEBUG)
+        Utils.Logger.log("CreepDispatch -> engineer.dispatch()", LogLevel.TRACE)
 
         let engineers = room.creeps(Role.ENGINEER)
 
@@ -305,34 +305,21 @@ var engineer = {
         );
 
         for (let engineer of engineers) {
-            let switchNeeded = [
-                !engineer.memory.task,
-                engineer.memory.task !== Task.ENGINEER_REPAIRING,
-                eRSites.length > 0,
-                cSites.length > 0,
-                rSites.length > 0,
-                uSites.length > 0
-            ];
+
             switch (true) {
                 case (engineer.memory.task !== Task.ENGINEER_REPAIRING &&
                     eRSites.length > 0):
-                    //([true,true,true,(true || false),(true || false),(true || false)]):
-                    console.log(`eRSites.length ${eRSites.length}`)
                     global.scheduler.swapProcess(engineer, Task.ENGINEER_REPAIRING)
                     break;
                 case (engineer.memory.task !== Task.ENGINEER_BUILDING &&
                     eRSites.length === 0 &&
                     cSites.length > 0):
-                    //([true,true,false,true,(true || false),(true || false)]):
-                    console.log(`cSites.length ${cSites.length}`)
                     global.scheduler.swapProcess(engineer, Task.ENGINEER_BUILDING)
                     break;
                 case (engineer.memory.task !== Task.ENGINEER_REPAIRING &&
                     eRSites.length === 0 &&
                     cSites.length === 0 &&
                     rSites.length > 0):
-                    //([true,true,false,false,true,(true || false)]):
-                    console.log(`rSites.length ${rSites.length}`)
                     global.scheduler.swapProcess(engineer, Task.ENGINEER_REPAIRING)
                     break;
                 case (engineer.memory.task !== Task.ENGINEER_UPGRADING &&
@@ -340,8 +327,6 @@ var engineer = {
                     cSites.length === 0 &&
                     rSites.length === 0 &&
                     uSites.length > 0):
-                    //([true,true,false,false,false,true]):
-                    console.log(`uSites.length ${uSites.length}`)
                     global.scheduler.swapProcess(engineer, Task.ENGINEER_UPGRADING)
                     break;
             }

@@ -10,7 +10,7 @@ var ThreatManager = {
         if (global.scheduler.processQueue.has(roomProcessId)) { return }
 
         const monitorTask = () => {
-            Utils.Logger.log(`ThreatManager -> ${roomProcessId}`, LogLevel.DEBUG)
+            Utils.Logger.log(`ThreatManager -> ${roomProcessId}`, LogLevel.TRACE)
             let room = Game.rooms[roomName]
 
             // Handle Turrets
@@ -24,7 +24,7 @@ var ThreatManager = {
                     if (Game.time % 50 == 0) ThreatManager.towerHeal(room);
                     break;
                 case (playerAttackers.length == 0 && invaderAttackers.length > 0):
-                    Logger.log(`CanKill: ${ThreatManager.canKill(invaderAttackers[0])}`, LogLevel.DEBUG);
+                    Logger.log(`CanKill: ${ThreatManager.canKill(invaderAttackers[0])}`, LogLevel.INFO);
                     break;
                 case (playerAttackers.length > 0 && invaderAttackers.length == 0): case (playerAttackers.length > 0 && invaderAttackers.length > 0):
 
@@ -70,7 +70,7 @@ var ThreatManager = {
         global.scheduler.addProcess(newProcess)
     },
     safeModer: function(room: Room) {
-        Utils.Logger.log(`ThreatManager -> safeModer`, LogLevel.DEBUG)
+        Utils.Logger.log(`ThreatManager -> safeModer`, LogLevel.TRACE)
 
         // TODO: There is a bug here. When you respawn, the controller is undefined. It's possible the room is not being set properly or that the scheduler isn't removing the dead process from memory.
         let controller = room.controller
@@ -125,7 +125,7 @@ var ThreatManager = {
 
     },
     canKill: function(creep: AnyCreep): boolean {
-        Utils.Logger.log(`ThreatManager -> canKill`, LogLevel.DEBUG)
+        Utils.Logger.log(`ThreatManager -> canKill`, LogLevel.TRACE)
 
         // TODO: Flesh out power creep handling
         if ('rename' in creep) return true;
@@ -165,7 +165,7 @@ var ThreatManager = {
         }
     },
     towerAttack: function(target: AnyCreep) {
-        Utils.Logger.log(`ThreatManager -> towerAttack`, LogLevel.DEBUG)
+        Utils.Logger.log(`ThreatManager -> towerAttack`, LogLevel.TRACE)
 
         let room = target.room as Room;
         let towers = room.towers();
@@ -177,7 +177,7 @@ var ThreatManager = {
         }
     },
     towerHeal: function(room: Room) {
-        Utils.Logger.log(`ThreatManager -> towerHeal`, LogLevel.DEBUG)
+        Utils.Logger.log(`ThreatManager -> towerHeal`, LogLevel.TRACE)
 
         let towers = room.towers();
         if (!towers) return;
