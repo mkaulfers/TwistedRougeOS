@@ -42,6 +42,7 @@ declare global {
   interface RoomCache {
     towers?: Id<StructureTower>[];
     towerTarget?: Id<AnyCreep>;
+    links?: {[key: Id<StructureLink>]: string};
   }
 
   var Cache: {
