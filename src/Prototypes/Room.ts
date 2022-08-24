@@ -65,7 +65,7 @@ declare global {
 Room.prototype.scheduleTasks = function () {
     Utils.Logger.log("Room -> setupTasks()", LogLevel.TRACE)
     Managers.UtilityTasks.schedulePixelSale()
-    Managers.UtilityTasks.scheduleThreatMonitor(this)
+    Managers.ThreatManager.scheduleThreatMonitor(this)
     Managers.TaskManager.scheduleCreepTask(this)
     Managers.TaskManager.scheduleSpawnMonitor(this)
     Managers.UtilityTasks.scheduleMemoryMonitor()
@@ -312,4 +312,33 @@ Room.prototype.updateCostMatrix = function () {
     this.memory.costMatrix = JSON.stringify(costMatrix.serialize())
 }
 
+Room.prototype.towers = function() {
+    if (!global.Cache) global.Cache = {};
+    if (!global.Cache.rooms) global.Cache.rooms = {};
+    if (!global.Cache.rooms[this.name]) global.Cache.rooms[this.name] = {};
+    if (!global.Cache.rooms[this.name].towers || Game.time % 100 == 0) {
+        let towers: StructureTower[] = this.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
+        if (towers.length == 0) return undefined;
+        let towerIds: Id<StructureTower>[] = [];
+        towers.forEach((t) => towerIds.push(t.id as Id<StructureTower>));
 
+        global.Cache.rooms[this.name].towers = towerIds;
+        return towers;
+    } else {
+        let towers: StructureTower[] = [];
+        let recalc = false;
+
+        for (let tid of global.Cache.rooms[this.name].towers!) {
+            let tower = Game.getObjectById(tid);
+            if (tower == null) {
+                recalc = true;
+                continue;
+            }
+            towers.push(tower);
+        }
+
+        if (recalc == true) delete global.Cache.rooms[this.name].towers;
+        if (towers.length == 0) return undefined;
+        return towers;
+    }
+}

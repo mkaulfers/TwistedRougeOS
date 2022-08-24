@@ -3,3 +3,4 @@ import './Controller';
 import './Room';
 import './RoomVisuals';
 import './Source';
+import './Tower';

@@ -31,7 +31,7 @@ Creep.prototype.travel = function (pos) {
         result = this.moveToDefault(pos);
     } else {
         let route = Game.map.findRoute(this.room.name, this.room.name);
-        if (route == ERR_NO_PATH) {
+        if (route == ERR_NO_PATH || !route || !route[0]) {
             result = ERR_NO_PATH;
         } else {
             let goto = this.pos.findClosestByRange(route[0].exit);
