@@ -51,7 +51,9 @@ export enum StampType {
     FAST_FILLER = 'fast_filler',
     EXTENSIONS = 'extensions',
     LABS = 'labs',
-    ANCHOR = 'anchor'
+    ANCHOR = 'anchor',
+    TOWER = 'tower_single',
+    EXTENSION = 'ext_single'
 }
 
 

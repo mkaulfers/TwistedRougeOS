@@ -1,7 +1,8 @@
-import { StampType } from "utils/Enums";
+import { LogLevel, StampType } from "utils/Enums";
+import { Logger } from "utils/Logger";
 
 export const Stamp = {
-    build: function (startPos: RoomPosition, stamp: StampType, visualizedPositions?: RoomPosition[], roomVisual?: RoomVisual) {
+    plan: function (startPos: RoomPosition, stamp: StampType, plannedPositions: RoomPosition[], roomVisual?: RoomVisual) {
         let site: { xMod: number, yMod: number, structureType: BuildableStructureConstant }[]
         switch (stamp) {
             case StampType.FAST_FILLER:
@@ -12,21 +13,24 @@ export const Stamp = {
                 site = labs; break
             case StampType.ANCHOR:
                 site = anchor; break
+            case StampType.TOWER:
+                site = tower; break
+            case StampType.EXTENSION:
+                site = extension; break
         }
 
         let room = Game.rooms[startPos.roomName]
-        if (visualizedPositions && roomVisual) {
-            for (let s of site) {
-                if (visualizedPositions.find(p => p.x == startPos.x + s.xMod && p.y == startPos.y + s.yMod)) continue
-                if (room.lookForAt(LOOK_TERRAIN, startPos.x + s.xMod, startPos.y + s.yMod).find(t => t == 'wall')) continue
-                if (s.structureType != STRUCTURE_ROAD) {
-                    visualizedPositions.push(new RoomPosition(startPos.x + s.xMod, startPos.y + s.yMod, room.name))
-                }
-                roomVisual.structure(startPos.x + s.xMod, startPos.y + s.yMod, s.structureType)
+
+        for (let part of site) {
+            if (plannedPositions.find(p => p.x == startPos.x + part.xMod && p.y == startPos.y + part.yMod) ||
+                room.lookForAt(LOOK_TERRAIN, startPos.x + part.xMod, startPos.y + part.yMod).find(t => t == 'wall')) continue
+
+            if (roomVisual) {
+                roomVisual.structure(startPos.x + part.xMod, startPos.y + part.yMod, part.structureType)
             }
-        } else {
-            for (let s of site) {
-                room.createConstructionSite(startPos.x + s.xMod, startPos.y + s.yMod, s.structureType);
+
+            if (part.structureType != STRUCTURE_ROAD) {
+                plannedPositions.push(new RoomPosition(startPos.x + part.xMod, startPos.y + part.yMod, startPos.roomName))
             }
         }
     },
@@ -37,9 +41,12 @@ export const Stamp = {
             case StampType.EXTENSIONS:
                 return 3
             case StampType.LABS:
-                return 4
+                return 5
             case StampType.ANCHOR:
-                return 3
+                return 5
+            case StampType.TOWER:
+            case StampType.EXTENSION:
+                return 1
         }
     },
     getStamp(type: StampType): { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] {
@@ -52,7 +59,20 @@ export const Stamp = {
                 return labs
             case StampType.ANCHOR:
                 return anchor
+            case StampType.TOWER:
+                return tower
+            case StampType.EXTENSION:
+                return extension
         }
+    },
+    containsPos(type: StampType, stampX: number, stampY: number, targetX: number, targetY: number): boolean {
+        let stamp = Stamp.getStamp(type)
+        for (let part of stamp) {
+            if (stampX + part.xMod == targetX && stampY + part.yMod == targetY) {
+                return true
+            }
+        }
+        return false
     }
 }
 
@@ -121,33 +141,81 @@ const extensions: { xMod: number, yMod: number, structureType: BuildableStructur
 ]
 
 const labs: { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] = [
+    { xMod: 0, yMod: -2, structureType: STRUCTURE_ROAD },
+    { xMod: 1, yMod: -2, structureType: STRUCTURE_ROAD },
+
+    { xMod: -1, yMod: -1, structureType: STRUCTURE_ROAD },
     { xMod: 0, yMod: -1, structureType: STRUCTURE_LAB },
     { xMod: 1, yMod: -1, structureType: STRUCTURE_LAB },
     { xMod: 2, yMod: -1, structureType: STRUCTURE_ROAD },
 
+    { xMod: -2, yMod: 0, structureType: STRUCTURE_ROAD },
     { xMod: -1, yMod: 0, structureType: STRUCTURE_LAB },
     { xMod: 0, yMod: 0, structureType: STRUCTURE_LAB },
     { xMod: 1, yMod: 0, structureType: STRUCTURE_ROAD },
     { xMod: 2, yMod: 0, structureType: STRUCTURE_LAB },
+    { xMod: 3, yMod: 0, structureType: STRUCTURE_ROAD },
 
+    { xMod: -2, yMod: 1, structureType: STRUCTURE_ROAD },
     { xMod: -1, yMod: 1, structureType: STRUCTURE_LAB },
     { xMod: 0, yMod: 1, structureType: STRUCTURE_ROAD },
     { xMod: 1, yMod: 1, structureType: STRUCTURE_LAB },
     { xMod: 2, yMod: 1, structureType: STRUCTURE_LAB },
+    { xMod: 3, yMod: 1, structureType: STRUCTURE_ROAD },
 
     { xMod: -1, yMod: 2, structureType: STRUCTURE_ROAD },
     { xMod: 0, yMod: 2, structureType: STRUCTURE_LAB },
-    { xMod: 1, yMod: 2, structureType: STRUCTURE_LAB }
+    { xMod: 1, yMod: 2, structureType: STRUCTURE_LAB },
+    { xMod: 2, yMod: 2, structureType: STRUCTURE_ROAD },
+
+    { xMod: 0, yMod: 3, structureType: STRUCTURE_ROAD },
+    { xMod: 1, yMod: 3, structureType: STRUCTURE_ROAD },
 ]
 
 const anchor: { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] = [
+    { xMod: -1, yMod: -2, structureType: STRUCTURE_ROAD },
+    { xMod: 0, yMod: -2, structureType: STRUCTURE_ROAD },
+    { xMod: 1, yMod: -2, structureType: STRUCTURE_ROAD },
+
+    { xMod: -2, yMod: -1, structureType: STRUCTURE_ROAD },
     { xMod: -1, yMod: -1, structureType: STRUCTURE_FACTORY },
     { xMod: 0, yMod: -1, structureType: STRUCTURE_NUKER },
     { xMod: 1, yMod: -1, structureType: STRUCTURE_POWER_SPAWN },
+    { xMod: 2, yMod: -1, structureType: STRUCTURE_ROAD },
+
+    { xMod: -2, yMod: 0, structureType: STRUCTURE_ROAD },
     { xMod: -1, yMod: 0, structureType: STRUCTURE_STORAGE },
     { xMod: 0, yMod: 0, structureType: STRUCTURE_ROAD },
     { xMod: 1, yMod: 0, structureType: STRUCTURE_LINK },
+    { xMod: 2, yMod: 0, structureType: STRUCTURE_ROAD },
+
+    { xMod: -2, yMod: 1, structureType: STRUCTURE_ROAD },
     { xMod: -1, yMod: 1, structureType: STRUCTURE_TERMINAL },
     { xMod: 0, yMod: 1, structureType: STRUCTURE_SPAWN },
-    { xMod: 1, yMod: 1, structureType: STRUCTURE_ROAD }
+    { xMod: 1, yMod: 1, structureType: STRUCTURE_ROAD },
+
+    { xMod: -1, yMod: 2, structureType: STRUCTURE_ROAD },
+    { xMod: 0, yMod: 2, structureType: STRUCTURE_ROAD },
+]
+
+const tower: { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] = [
+
+    { xMod: 0, yMod: -1, structureType: STRUCTURE_ROAD },
+
+
+    { xMod: -1, yMod: 0, structureType: STRUCTURE_ROAD },
+    { xMod: 0, yMod: 0, structureType: STRUCTURE_TOWER },
+    { xMod: 1, yMod: 0, structureType: STRUCTURE_ROAD },
+
+
+    { xMod: 0, yMod: 1, structureType: STRUCTURE_ROAD },
+
+]
+
+const extension: { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] = [
+    { xMod: 0, yMod: -1, structureType: STRUCTURE_ROAD },
+    { xMod: -1, yMod: 0, structureType: STRUCTURE_ROAD },
+    { xMod: 0, yMod: 0, structureType: STRUCTURE_EXTENSION },
+    { xMod: 1, yMod: 0, structureType: STRUCTURE_ROAD },
+    { xMod: 0, yMod: 1, structureType: STRUCTURE_ROAD },
 ]

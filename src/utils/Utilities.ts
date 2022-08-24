@@ -51,13 +51,13 @@ export class Utility {
                     topDownPass.get(x + 1, y + 1) + 1, topDownPass.get(x, y + 1) + 1,
                     topDownPass.get(x - 1, y + 1) + 1, topDownPass.get(x + 1, y) + 1);
                 topDownPass.set(x, y, value);
-                vis.circle(x, y, { radius: value / 15 });
+                // vis.circle(x, y, { radius: value / 15 });
             }
         }
 
         return topDownPass;
     }
-    
+
     /**
      * Description: Organizes potential targets based on ResourceConstant && StructureType, and sorts them in a defined order. Don't do both hits and resource.
      * @param targets An array of potential targets: Creep | AnyStoreStructure | Resource | Tombstone.

@@ -355,11 +355,10 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
         this.roads.push([x,y])
         break;
       case STRUCTURE_RAMPART:
-        this.circle(x,y,{
-          radius: 0.65,
+        this.rect(x - 0.5,y - 0.5, 1, 1,{
           fill: '#434C43',
           stroke: '#5D735F',
-          strokeWidth: 0.10,
+          strokeWidth: 0.07,
           opacity: opts.opacity
         })
         break;
@@ -488,7 +487,7 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
         if(rd){
           this.line(r[0],r[1],c[0],c[1],{
             color: color,
-            width: 0.35,
+            width: 0.10,
             opacity: opts.opacity || 1
           })
         }

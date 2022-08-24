@@ -91,7 +91,7 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
 
     const constructionMonitor = () => {
         let room = Game.rooms[roomName]
-        planRoom(room, true, true)
+        planRoom(room, true)
     }
 
     let process = new Process(`${roomName}_construction_monitor`, ProcessPriority.MEDIUM, constructionMonitor)

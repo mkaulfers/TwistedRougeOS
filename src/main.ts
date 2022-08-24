@@ -6,6 +6,11 @@ import './Prototypes/Index'
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './utils/Enums'
 
 declare global {
+  interface Coord {
+    x: number
+    y: number
+  }
+
   interface CreepMemory {
     assignedPos?: number
     task?: Task
@@ -18,12 +23,18 @@ declare global {
   interface RoomMemory {
     claim?: string
     costMatrix: string
-    blueprintAnchor: number
     blueprint: {
-      type: string,
-      stampPos: number,
-      completed: boolean
-    }[]
+      anchor: number,
+      containers: number[],
+      links: number[],
+      highways: number[],
+      ramparts: number[],
+      stamps: {
+        type: string,
+        stampPos: number,
+        completed: boolean
+      }[]
+    }
   }
 
   interface Memory {
