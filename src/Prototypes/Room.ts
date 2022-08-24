@@ -65,12 +65,12 @@ declare global {
 Room.prototype.scheduleTasks = function () {
     Utils.Logger.log("Room -> setupTasks()", LogLevel.TRACE)
     Managers.UtilityTasks.schedulePixelSale()
-    Managers.UtilityTasks.scheduleThreatMonitor(this)
+    Managers.ThreatManager.scheduleThreatMonitor(this)
     Managers.TaskManager.scheduleCreepTask(this)
     Managers.TaskManager.scheduleSpawnMonitor(this)
     Managers.UtilityTasks.scheduleMemoryMonitor()
     Managers.TaskManager.scheduleRoomTaskMonitor(this)
-    Managers.TaskManager.scheduleConstructionMonitor(this)
+    // Managers.TaskManager.scheduleConstructionMonitor(this)
 }
 
 Room.prototype.creeps = function (role?: Role): Creep[] {
@@ -315,6 +315,7 @@ Room.prototype.updateCostMatrix = function () {
 Room.prototype.towers = function() {
     if (!global.Cache) global.Cache = {};
     if (!global.Cache.rooms) global.Cache.rooms = {};
+    if (!global.Cache.rooms[this.name]) global.Cache.rooms[this.name] = {};
     if (!global.Cache.rooms[this.name].towers || Game.time % 100 == 0) {
         let towers: StructureTower[] = this.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
         if (towers.length == 0) return undefined;
