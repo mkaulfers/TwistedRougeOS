@@ -7,7 +7,7 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, Danger
 var LinkManager = {
     schedule: function(room: Room) {
         let roomName = room.name;
-        let roomProcessId = roomName + "_link_manager";
+        let roomProcessId = roomName + "_link_monitor";
         if (global.scheduler.processQueue.has(roomProcessId)) return;
 
         const task = () => {
