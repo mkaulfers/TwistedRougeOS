@@ -6,6 +6,7 @@ import { Utils } from "utils/Index";
 import { Stamp } from "Models/Stamps";
 import { getCutTiles, Rectangle } from './RampartPlanner';
 import { start } from 'repl';
+import { all } from 'lodash';
 
 const buildOrder: (StampType)[] = [
     StampType.FAST_FILLER,
@@ -106,33 +107,37 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
     let roadPositions: PathStep[] = []
     let sources = room.find(FIND_SOURCES)
     let minerals = room.find(FIND_MINERALS)
-    let leftExitPos = blueprintAnchor.findClosestByPath(FIND_EXIT_LEFT)
-    let rightExitPos = blueprintAnchor.findClosestByPath(FIND_EXIT_RIGHT)
-    let topExitPos = blueprintAnchor.findClosestByPath(FIND_EXIT_TOP)
-    let bottomExitPos = blueprintAnchor.findClosestByPath(FIND_EXIT_BOTTOM)
 
-    if (leftExitPos) {
-        let leftExitPath = blueprintAnchor.findPathTo(leftExitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
-        leftExitPath.splice(leftExitPath.length - 1, 1)
-        roadPositions = roadPositions.concat(leftExitPath)
+    let leftExits = getLeftExits(room)
+    for (let exit of leftExits) {
+        let shortestExit = blueprintAnchor.findClosestByPath(exit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+        let path = blueprintAnchor.findPathTo(shortestExit!, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+        path.splice(path.length - 1, 1)
+        roadPositions = roadPositions.concat(path)
     }
 
-    if (rightExitPos) {
-        let rightExitPath = blueprintAnchor.findPathTo(rightExitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
-        rightExitPath.splice(rightExitPath.length - 1, 1)
-        roadPositions = roadPositions.concat(rightExitPath)
+    let rightExits = getRightExits(room)
+    for (let exit of rightExits) {
+        let shortestExit = blueprintAnchor.findClosestByPath(exit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+        let path = blueprintAnchor.findPathTo(shortestExit!, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+        path.splice(path.length - 1, 1)
+        roadPositions = roadPositions.concat(path)
     }
 
-    if (topExitPos) {
-        let topExitPath = blueprintAnchor.findPathTo(topExitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
-        topExitPath.splice(topExitPath.length - 1, 1)
-        roadPositions = roadPositions.concat(topExitPath)
+    let topExits = getTopExits(room)
+    for (let exit of topExits) {
+        let shortestExit = blueprintAnchor.findClosestByPath(exit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+        let path = blueprintAnchor.findPathTo(shortestExit!, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+        path.splice(path.length - 1, 1)
+        roadPositions = roadPositions.concat(path)
     }
 
-    if (bottomExitPos) {
-        let bottomExitPath = blueprintAnchor.findPathTo(bottomExitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
-        bottomExitPath.splice(bottomExitPath.length - 1, 1)
-        roadPositions = roadPositions.concat(bottomExitPath)
+    let bottomExits = getBottomExits(room)
+    for (let exit of bottomExits) {
+        let shortestExit = blueprintAnchor.findClosestByPath(exit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+        let path = blueprintAnchor.findPathTo(shortestExit!, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+        path.splice(path.length - 1, 1)
+        roadPositions = roadPositions.concat(path)
     }
 
     for (let source of sources) {
@@ -358,6 +363,133 @@ function doesStampFitAtPosition(x: number, y: number, room: Room, structure: Sta
     return true
 }
 
+function getLeftExits(room: Room): RoomPosition[][] {
+    let posCache: RoomPosition[] = []
+    let splitSections: RoomPosition[][] = []
+
+    for (let y = 0; y < 50; y++) {
+        let position = room.lookAt(new RoomPosition(0, y, room.name))
+        let hasWall = false
+        for (let result of position) {
+            if (result.terrain == 'wall') {
+                hasWall = true
+                break
+            }
+        }
+
+        if (!hasWall) {
+            posCache.push(new RoomPosition(0, y, room.name))
+        } else {
+            splitSections.push(posCache)
+            posCache = []
+        }
+    }
+
+    for (let i = splitSections.length - 1; i >= 0; i--) {
+        if (splitSections[i].length == 0) {
+            splitSections.splice(i, 1)
+        }
+    }
+
+    return splitSections
+}
+
+function getRightExits(room: Room): RoomPosition[][] {
+    let posCache: RoomPosition[] = []
+    let splitSections: RoomPosition[][] = []
+
+    for (let y = 0; y < 50; y++) {
+        let position = room.lookAt(new RoomPosition(49, y, room.name))
+        let hasWall = false
+        for (let result of position) {
+            if (result.terrain == 'wall') {
+                hasWall = true
+                break
+            }
+        }
+
+        if (!hasWall) {
+            posCache.push(new RoomPosition(49, y, room.name))
+        }
+        else {
+            splitSections.push(posCache)
+            posCache = []
+        }
+    }
+
+    for (let i = splitSections.length - 1; i >= 0; i--) {
+        if (splitSections[i].length == 0) {
+            splitSections.splice(i, 1)
+        }
+    }
+
+    return splitSections
+}
+
+function getTopExits(room: Room): RoomPosition[][] {
+    let posCache: RoomPosition[] = []
+    let splitSections: RoomPosition[][] = []
+
+    for (let x = 0; x < 50; x++) {
+        let position = room.lookAt(new RoomPosition(x, 0, room.name))
+        let hasWall = false
+        for (let result of position) {
+            if (result.terrain == 'wall') {
+                hasWall = true
+                break
+            }
+        }
+
+        if (!hasWall) {
+            posCache.push(new RoomPosition(x, 0, room.name))
+        }
+        else {
+            splitSections.push(posCache)
+            posCache = []
+        }
+    }
+
+    for (let i = splitSections.length - 1; i >= 0; i--) {
+        if (splitSections[i].length == 0) {
+            splitSections.splice(i, 1)
+        }
+    }
+
+    return splitSections
+}
+
+    function getBottomExits(room: Room): RoomPosition[][] {
+    let posCache: RoomPosition[] = []
+    let splitSections: RoomPosition[][] = []
+
+    for (let x = 0; x < 50; x++) {
+        let position = room.lookAt(new RoomPosition(x, 49, room.name))
+        let hasWall = false
+        for (let result of position) {
+            if (result.terrain == 'wall') {
+                hasWall = true
+                break
+            }
+        }
+
+        if (!hasWall) {
+            posCache.push(new RoomPosition(x, 49, room.name))
+        }
+        else {
+            splitSections.push(posCache)
+            posCache = []
+        }
+    }
+
+    for (let i = splitSections.length - 1; i >= 0; i--) {
+        if (splitSections[i].length == 0) {
+            splitSections.splice(i, 1)
+        }
+    }
+
+    return splitSections
+}
+
 function generateBluePrintAnchor(room: Room, positions: RoomPosition[] = []): RoomPosition | undefined {
     let controller = room.controller
     if (!controller) return undefined
@@ -370,7 +502,7 @@ function generateBluePrintAnchor(room: Room, positions: RoomPosition[] = []): Ro
 
     let centeredPositions: PathStep[] = []
     for (let i = 0; i < positions.length; i++) {
-        for ( let j = 0; j < positions.length; j++) {
+        for (let j = 0; j < positions.length; j++) {
             if (i != j) {
                 let path = room.findPath(positions[i], positions[j], { ignoreCreeps: true })
                 centeredPositions.push(path[Math.floor(path.length - 1 / 2)])
