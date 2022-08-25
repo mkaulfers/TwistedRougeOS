@@ -3,7 +3,7 @@ import { Utils } from './utils/Index';
 import { OS } from "OS/Index";
 import { Managers } from "Managers/Index";
 import './Prototypes/Index'
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './utils/Enums'
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from './utils/Enums'
 
 declare global {
   interface Coord {
@@ -22,6 +22,7 @@ declare global {
 
   interface RoomMemory {
     claim?: string
+    remotes?: string[]
     costMatrix: string
     blueprint: {
       anchor: number,
@@ -49,6 +50,16 @@ declare global {
       log: any
     }
   }
+
+  interface RoomCache {
+    towers?: Id<StructureTower>[];
+    towerTarget?: Id<AnyCreep>;
+    links?: {[key: Id<StructureLink>]: string};
+  }
+
+  var Cache: {
+    rooms?: {[key: string]: RoomCache},
+  }
 }
 
 export const loop = ErrorMapper.wrapLoop(() => {
@@ -61,7 +72,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
 });
 
 function setup() {
-  //TODO: Deserialize scheduler and kernel.
+  // TODO: Deserialize scheduler and kernel.
   // DEV MODE LOGGING
   Utils.Logger.devLogLevel = LogLevel.DEBUG;
   if (!global.kernel) {

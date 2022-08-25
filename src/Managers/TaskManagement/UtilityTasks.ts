@@ -23,43 +23,6 @@ const mmoShardNames = new Set([
     'shard3'
 ])
 
-
-export function scheduleThreatMonitor(room: Room) {
-    let roomName = room.name
-    let roomProcessId = roomName + "_threat_monitor"
-    if (global.scheduler.processQueue.has(roomProcessId)) { return }
-
-    const monitorTask = () => {
-        let room = Game.rooms[roomName]
-
-        //TODO: There is a bug here. When you respwn, the controller is undefined. It's possible the room is not being set properly or that the scheduler isn't removing the dead process from memory.
-        let controller = room.controller
-        if (!controller) return
-        if (room.controller?.my)
-            if (controller.safeModeCooldown) return
-        if (!controller.safeModeAvailable) return
-        if (controller.upgradeBlocked > 0) return
-
-        const enemyAttackers = room.find(FIND_HOSTILE_CREEPS)
-        const nonInvaderAttackers = enemyAttackers.filter(enemyAttacker => enemyAttacker.owner.username != 'Invader')
-        if (!nonInvaderAttackers.length) return
-
-        const eventLog = room.getEventLog()
-        for (const eventItem of eventLog) {
-
-            if (eventItem.event != EVENT_ATTACK) continue
-
-            const attackTarget = Game.getObjectById(eventItem.data.targetId as Id<Structure>)
-            if (attackTarget != null && !attackTarget.structureType) continue
-            controller.activateSafeMode()
-            break
-        }
-    }
-
-    let newProcess = new Process(roomProcessId, ProcessPriority.LOW, monitorTask)
-    global.scheduler.addProcess(newProcess)
-}
-
 export function scheduleMemoryMonitor(): void | ProcessResult {
 
     const memoryTask = () => {

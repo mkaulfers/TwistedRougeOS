@@ -53,19 +53,24 @@ declare global {
         /**
          * Returns target goal for rampart HP in the room
         */
-        rampartHPTarget(): number;
+        rampartHPTarget(): number
         updateCostMatrix(): void
+        /**
+         * A room's towers, as found within the last 100 ticks || last time one died.
+         */
+        towers(): StructureTower[] | undefined;
     }
 }
 
 Room.prototype.scheduleTasks = function () {
     Utils.Logger.log("Room -> setupTasks()", LogLevel.TRACE)
     Managers.UtilityTasks.schedulePixelSale()
-    Managers.UtilityTasks.scheduleThreatMonitor(this)
+    Managers.ThreatManager.scheduleThreatMonitor(this)
     Managers.TaskManager.scheduleCreepTask(this)
     Managers.TaskManager.scheduleSpawnMonitor(this)
     Managers.UtilityTasks.scheduleMemoryMonitor()
     Managers.TaskManager.scheduleRoomTaskMonitor(this)
+    Managers.LinkManager.schedule(this);
     Managers.TaskManager.scheduleConstructionMonitor(this)
 }
 
@@ -177,7 +182,6 @@ Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
         body,
         name, {
         memory: {
-            assignedPos: undefined,
             task: task,
             role: role,
             working: false,
@@ -307,4 +311,35 @@ Room.prototype.rampartHPTarget = function(): number {
 Room.prototype.updateCostMatrix = function () {
     let costMatrix = Utils.Utility.distanceTransform(this.name)
     this.memory.costMatrix = JSON.stringify(costMatrix.serialize())
+}
+
+Room.prototype.towers = function() {
+    if (!global.Cache) global.Cache = {};
+    if (!global.Cache.rooms) global.Cache.rooms = {};
+    if (!global.Cache.rooms[this.name]) global.Cache.rooms[this.name] = {};
+    if (!global.Cache.rooms[this.name].towers || Game.time % 100 == 0) {
+        let towers: StructureTower[] = this.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
+        if (towers.length == 0) return undefined;
+        let towerIds: Id<StructureTower>[] = [];
+        towers.forEach((t) => towerIds.push(t.id as Id<StructureTower>));
+
+        global.Cache.rooms[this.name].towers = towerIds;
+        return towers;
+    } else {
+        let towers: StructureTower[] = [];
+        let recalc = false;
+
+        for (let tid of global.Cache.rooms[this.name].towers!) {
+            let tower = Game.getObjectById(tid);
+            if (tower == null) {
+                recalc = true;
+                continue;
+            }
+            towers.push(tower);
+        }
+
+        if (recalc == true) delete global.Cache.rooms[this.name].towers;
+        if (towers.length == 0) return undefined;
+        return towers;
+    }
 }

@@ -226,3 +226,10 @@ const extension: { xMod: number, yMod: number, structureType: BuildableStructure
     { xMod: 1, yMod: 0, structureType: STRUCTURE_ROAD },
     { xMod: 0, yMod: 1, structureType: STRUCTURE_ROAD },
 ]
+
+export const Stamps = {
+    fast_filler: fastFiller,
+    extensions: extensions,
+    labs: labs,
+    anchor: anchor
+}

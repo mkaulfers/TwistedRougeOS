@@ -12,6 +12,7 @@ declare global {
         _fluid(type: string, x: number, y: number, size: number): void;
         _mineral(type: string, x: number, y: number, size: number): void;
         _compound(type: string, x: number, y: number, size: number): void;
+        costMatrix(costMatrix: CostMatrix): RoomVisual;
     }
 }
 
@@ -25,7 +26,8 @@ const colors = {
     outline: '#8FBB93',
     speechText: '#000000',
     speechBackground: '#2ccf3b'
-  }
+}
+const factoryLevelGaps = calculateFactoryLevelGapsPoly();
 
 const speechSize = 0.5
 const speechFont = 'Times New Roman'
@@ -462,9 +464,9 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
     }
 
     return this;
-  }
+}
 
-  const dirs = [
+const dirs = [
     [],
     [0, -1],
     [1, -1],
@@ -474,9 +476,9 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
     [-1, 1],
     [-1, 0],
     [-1, -1]
-  ]
+]
 
-  RoomVisual.prototype.connectRoads = function(opts={}){
+RoomVisual.prototype.connectRoads = function(opts={}){
     let color = opts.color || colors.road || 'white'
     if(!this.roads) return
     this.roads.forEach(r=>{
@@ -487,7 +489,7 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
         if(rd){
           this.line(r[0],r[1],c[0],c[1],{
             color: color,
-            width: 0.10,
+            width: 0.35,
             opacity: opts.opacity || 1
           })
         }
@@ -495,10 +497,10 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
     })
 
     return this;
-  }
+}
 
 
-  RoomVisual.prototype.speech = function(text, x, y, opts={}) {
+RoomVisual.prototype.speech = function(text, x, y, opts={}) {
     var background = !!opts.background ? opts.background : colors.speechBackground
     var textcolor = !!opts.textcolor ? opts.textcolor : colors.speechText
     var textstyle = !!opts.textstyle ? opts.textstyle : false
@@ -536,10 +538,10 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
     })
 
     return this;
-  }
+}
 
 
-  RoomVisual.prototype.animatedPosition = function (x, y, opts={}) {
+RoomVisual.prototype.animatedPosition = function (x, y, opts={}) {
 
     let color = !!opts.color ? opts.color : 'blue'
     let opacity = !!opts.opacity ? opts.opacity : 0.5
@@ -565,24 +567,24 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
     this.poly(points, {stroke: color, opacity: opacity});
 
     return this;
-  }
+}
 
-  function rotate(x: number, y: number, s: number, c: number, px: number, py: number): [number, number] {
+function rotate(x: number, y: number, s: number, c: number, px: number, py: number): [number, number] {
     let xDelta = x * c - y * s;
     let yDelta = x * s + y * c;
     return [ px + xDelta, py + yDelta ];
-  }
+}
 
 
-  function relPoly(x: number,y: number, poly: [number, number][]): [number, number][] {
+function relPoly(x: number,y: number, poly: [number, number][]): [number, number][] {
     return poly.map(p=>{
       p[0] += x
       p[1] += y
       return p
     })
-  }
+}
 
-  RoomVisual.prototype.test = function test() {
+RoomVisual.prototype.test = function test() {
     let demopos = [19,24]
     this.clear()
     this.structure(demopos[0]+0,demopos[1]+0,STRUCTURE_LAB)
@@ -604,11 +606,11 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
     this.structure(demopos[0]+14,demopos[1]+1,STRUCTURE_CONTAINER)
     this.connectRoads();
     return this;
-  }
+}
 
 
-  /// #region RESOURCE BADGES
-  const ColorSets = {
+/// #region RESOURCE BADGES
+const ColorSets = {
     white:  ["#ffffff", "#4c4c4c"],
     grey:   ["#b4b4b4", "#4c4c4c"],
     red:    ["#ff7b7b", "#592121"],
@@ -616,8 +618,8 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
     green:  ["#00f4a2", "#236144"],
     blue:   ["#50d7f9", "#006181"],
     purple: ["#a071ff", "#371383"],
-  };
-  const ResourceColors: {[key: string]: string[]} = {
+};
+const ResourceColors: {[key: string]: string[]} = {
     [RESOURCE_ENERGY]:    ColorSets.yellow,
     [RESOURCE_POWER]:     ColorSets.red,
 
@@ -666,9 +668,9 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
     [RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE]:   ColorSets.yellow,
     [RESOURCE_CATALYZED_GHODIUM_ACID]:        ColorSets.white,
     [RESOURCE_CATALYZED_GHODIUM_ALKALIDE]:    ColorSets.white,
-  };
+};
 
-  const MINERALS: string[] = [
+const MINERALS: string[] = [
     RESOURCE_CATALYST,
     RESOURCE_HYDROGEN,
     RESOURCE_OXYGEN,
@@ -676,7 +678,7 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
     RESOURCE_UTRIUM,
     RESOURCE_ZYNTHIUM,
     RESOURCE_KEANIUM
-  ]
+]
 
 //   if (global.SYMBOLS) {
 //     const SYMBOL_MAP = {
@@ -756,57 +758,67 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
 //     }
 //   }
 
-  RoomVisual.prototype.resource = function(type, x, y, size = 0.25){
+RoomVisual.prototype.resource = function(type, x, y, size = 0.25){
     if (type == RESOURCE_ENERGY || type == RESOURCE_POWER)
-      this._fluid(type, x, y, size)
+        this._fluid(type, x, y, size)
     else if (MINERALS.includes(type))
-      this._mineral(type, x, y, size)
+        this._mineral(type, x, y, size)
     else if (ResourceColors[type] != undefined)
-      this._compound(type, x, y, size)
+        this._compound(type, x, y, size)
     // else if (global.SYMBOLS && SYMBOLS.includes(type))
     //   this._symbol(type, x, y, size)
     else
-      return ERR_INVALID_ARGS
+        return ERR_INVALID_ARGS
     return OK;
-  };
-  RoomVisual.prototype._fluid = function (type, x, y, size = 0.25) {
+};
+RoomVisual.prototype._fluid = function (type, x, y, size = 0.25) {
     this.circle(x, y, {
-      radius: size,
-      fill: ResourceColors[type][0],
-      opacity: 1,
+        radius: size,
+        fill: ResourceColors[type][0],
+        opacity: 1,
     })
     this.text(type[0], x, y-(size*0.1), {
-      font: (size*1.5),
-      color: ResourceColors[type][1],
-      backgroundColor: ResourceColors[type][0],
-      backgroundPadding: 0,
+        font: (size*1.5),
+        color: ResourceColors[type][1],
+        backgroundColor: ResourceColors[type][0],
+        backgroundPadding: 0,
     })
-  };
-  RoomVisual.prototype._mineral = function (type, x, y, size = 0.25) {
+};
+RoomVisual.prototype._mineral = function (type, x, y, size = 0.25) {
     this.circle(x, y, {
-      radius: size,
-      fill: ResourceColors[type][0],
-      opacity: 1,
+        radius: size,
+        fill: ResourceColors[type][0],
+        opacity: 1,
     })
     this.circle(x, y, {
-      radius: size * 0.8,
-      fill: ResourceColors[type][1],
-      opacity: 1,
+        radius: size * 0.8,
+        fill: ResourceColors[type][1],
+        opacity: 1,
     })
     this.text(type, x, y+(size*0.03), {
-      font: "bold "+(size*1.25)+" arial",
-      color: ResourceColors[type][0],
-      backgroundColor: ResourceColors[type][1],
-      backgroundPadding: 0,
+        font: "bold "+(size*1.25)+" arial",
+        color: ResourceColors[type][0],
+        backgroundColor: ResourceColors[type][1],
+        backgroundPadding: 0,
     })
-  };
-  RoomVisual.prototype._compound = function (type, x, y, size = 0.25) {
+};
+
+RoomVisual.prototype._compound = function (type, x, y, size = 0.25) {
     let label = type.replace("2", '₂');
 
     this.text(label, x, y, {
-      font: "bold "+(size*1)+" arial",
-      color: ResourceColors[type][1],
-      backgroundColor: ResourceColors[type][0],
-      backgroundPadding: 0.3*size,
+        font: "bold "+(size*1)+" arial",
+        color: ResourceColors[type][1],
+        backgroundColor: ResourceColors[type][0],
+        backgroundPadding: 0.3*size,
     })
-  };
+};
+
+RoomVisual.prototype.costMatrix = function(costMatrix) {
+    for (let x = 0; x < 50; x++) {
+        for (let y = 0; y < 50; y++) {
+            this.text(`${costMatrix.get(x,y)}`, x,y, {font: 0.5})
+        }
+    }
+    return this;
+}

@@ -56,4 +56,16 @@ export enum StampType {
     EXTENSION = 'ext_single'
 }
 
+export enum DangerLevel {
+    PEACEFUL = 5,               // #00ff00
+    INVADERS = 4,               // #ccff33
+    WARY = 3,                   // #ffff1a
+    DANGER = 2,                 // #ff9900
+    NUKETHIS = 1,               // #ff0000
+}
 
+export enum LinkState {
+    INPUT = 'input',
+    OUTPUT = 'output',
+    BOTH = 'both'
+}

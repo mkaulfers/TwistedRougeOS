@@ -8,7 +8,7 @@ var trucker = {
         let creepId = creep.id
 
         const truckerHarvesterTask = () => {
-            Utils.Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.DEBUG)
+            Utils.Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.TRACE)
             let creep = Game.getObjectById(creepId);
             if (!creep) return ProcessResult.FAILED;
 
@@ -27,6 +27,7 @@ var trucker = {
                     let potentialTargets: Structure[] = creep.room.find(FIND_MY_STRUCTURES, {filter: function(s) {
                         // Limits find to the below structureTypes
                         switch (s.structureType) {
+                            case STRUCTURE_TOWER:
                             case STRUCTURE_SPAWN:
                             case STRUCTURE_POWER_SPAWN:
                             case STRUCTURE_EXTENSION:
@@ -118,7 +119,7 @@ var trucker = {
         let creepId = creep.id;
 
         const truckerScientistTask = () => {
-            Utils.Logger.log("CreepTask -> truckerScientistTask()", LogLevel.DEBUG);
+            Utils.Logger.log("CreepTask -> truckerScientistTask()", LogLevel.TRACE);
             let creep = Game.getObjectById(creepId);
             if (!creep) return ProcessResult.FAILED;
 
@@ -224,24 +225,25 @@ var trucker = {
         global.scheduler.addProcess(newProcess)
     },
     dispatch: function(room: Room) {
-
-        if (room.energyAvailable < room.energyCapacityAvailable) {
+        let turrets = room.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER }});
+        turrets = turrets.filter((t) => { return ( 'store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)})
+        if (room.energyAvailable < room.energyCapacityAvailable || turrets.length > 0) {
             let truckers = room.creeps(Role.TRUCKER)
-            Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.DEBUG)
+            Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.TRACE)
             for (let trucker of truckers) {
                 if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_SCIENTIST) {
-                    Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.DEBUG)
+                    Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.TRACE)
                     global.scheduler.swapProcess(trucker, Task.TRUCKER_STORAGE)
                 }
             }
         } else {
             let truckers = room.creeps(Role.TRUCKER)
             if (!(truckers.length > 0)) return;
-            Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.DEBUG)
+            Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.TRACE)
 
             for (let trucker of truckers) {
                 if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_STORAGE) {
-                    Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.DEBUG)
+                    Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.TRACE)
                     global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)
                 }
             }
@@ -253,8 +255,8 @@ var trucker = {
     },
     shouldSpawn(room: Room): boolean {
         if (room.creeps().filter(x => x.memory.role == Role.HARVESTER).length < 1) { return false }
-        Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.DEBUG)
-        Logger.log(`Demand to Meet: ${room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.DEBUG)
+        Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.TRACE)
+        Logger.log(`Demand to Meet: ${room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.TRACE)
         if (room.truckersCarryCapacity() > room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)) { return false }
         return true
     },
