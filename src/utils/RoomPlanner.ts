@@ -40,9 +40,9 @@ export function planRoom(room: Room, visualize: boolean) {
         return
     }
 
-    // if (!blueprint) {
-    generateNewPlan(room, visualize)
-    // }
+    if (!blueprint) {
+        generateNewPlan(room, visualize)
+    }
 }
 
 function visualizeFromMemory(room: Room) {
