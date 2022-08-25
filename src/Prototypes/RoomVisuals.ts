@@ -27,6 +27,7 @@ const colors = {
     speechText: '#000000',
     speechBackground: '#2ccf3b'
 }
+const factoryLevelGaps = calculateFactoryLevelGapsPoly();
 
 const speechSize = 0.5
 const speechFont = 'Times New Roman'
@@ -53,7 +54,6 @@ function calculateFactoryLevelGapsPoly() {
     }
     return result;
 }
-const factoryLevelGaps = calculateFactoryLevelGapsPoly();
 
 RoomVisual.prototype.structure = function(x,y,type,opts={}){
     opts = Object.assign({
@@ -356,11 +356,10 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
         this.roads.push([x,y])
         break;
       case STRUCTURE_RAMPART:
-        this.circle(x,y,{
-          radius: 0.65,
-          fill: '#434C43',
-          stroke: '#5D735F',
-          strokeWidth: 0.10,
+        this.rect(x - 0.5,y - 0.5, 1, 1,{
+          fill: '#43A6C6',
+          stroke: '#75E6DA',
+          strokeWidth: 0.07,
           opacity: opts.opacity
         })
         break;
@@ -489,7 +488,7 @@ RoomVisual.prototype.connectRoads = function(opts={}){
         if(rd){
           this.line(r[0],r[1],c[0],c[1],{
             color: color,
-            width: 0.35,
+            width: 0.15,
             opacity: opts.opacity || 1
           })
         }

@@ -4,6 +4,7 @@ import { Roles } from "Creeps/Index";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from '../../utils/Enums'
 import { Utils } from "utils/Index";
 import { Stamp } from "Models/Stamps";
+import { planRoom } from "utils/RoomPlanner";
 
 
 export function scheduleSpawnMonitor(room: Room) {
@@ -75,6 +76,7 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
         let roles = _.keys(Roles) as Array<keyof typeof Roles>; // triage change to make this role-confirming section work.
 
         _.forEach(roles, function(role) {
+            if (room.creeps().length < 1) { return }
             Roles[role].dispatch(room);
         });
     }
@@ -85,71 +87,14 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
 
 export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
     const roomName = room.name
+
     if (global.scheduler.processQueue.has(`${roomName}_construction_monitor`)) { return }
 
     const constructionMonitor = () => {
         let room = Game.rooms[roomName]
-        let costMatrix: CostMatrix | undefined = undefined
-        if (!room.memory.costMatrix) {
-            costMatrix = Utils.Utility.distanceTransform(roomName)
-            room.memory.costMatrix = JSON.stringify(costMatrix.serialize())
-        } else {
-            costMatrix = PathFinder.CostMatrix.deserialize(JSON.parse(room.memory.costMatrix))
-        }
-
-        let result = costMatrix.get(21, 29)
-        Logger.log(`Cost: ${result}`, LogLevel.DEBUG)
-        let biggestSpace = 0
-        let roomPosition: RoomPosition | undefined = undefined
-        for (let x = 0; x < 50; x++) {
-            for (let y = 0; y < 50; y++) {
-                let cost = costMatrix.get(x, y)
-                if (!roomPosition) {
-                    roomPosition = new RoomPosition(x, y, roomName)
-                } else {
-                    if (cost > biggestSpace) {
-                        biggestSpace = cost
-                        roomPosition = new RoomPosition(x, y, roomName)
-                    }
-                }
-            }
-        }
-
-        if (!roomPosition) { return }
-        vizualizeRoom(roomPosition)
+        planRoom(room, true)
     }
 
     let process = new Process(`${roomName}_construction_monitor`, ProcessPriority.MEDIUM, constructionMonitor)
     global.scheduler.addProcess(process)
-}
-
-function vizualizeRoom(startPos: RoomPosition) {
-    let room = Game.rooms[startPos.roomName]
-    let stampsToBuild: { type: StampType, size: number }[] = [
-        { type: StampType.FAST_FILLER, size: 5 },
-        { type: StampType.EXTENSIONS, size: 5 },
-        { type: StampType.EXTENSIONS, size: 5 },
-        { type: StampType.EXTENSIONS, size: 5 },
-        { type: StampType.EXTENSIONS, size: 5 },
-        { type: StampType.EXTENSIONS, size: 5 },
-        { type: StampType.EXTENSIONS, size: 5 },
-        { type: StampType.EXTENSIONS, size: 5 },
-        { type: StampType.EXTENSIONS, size: 5 },
-        { type: StampType.ANCHOR, size: 3 },
-        { type: StampType.LABS, size: 5 }
-    ]
-
-    let vizualizedPositions: RoomPosition[] = []
-
-    for (let stamp of stampsToBuild) {
-        let pos = Utils.Utility.findPosForStamp(startPos.x, startPos.y, stamp.size, room, vizualizedPositions.length > 0 ? vizualizedPositions : undefined)
-
-        if (pos) {
-            Logger.log(`Build Position: x ${pos.x}, y ${pos.y}`, LogLevel.DEBUG)
-            let visualized = Stamp.build(pos, stamp.type, true)
-            if (visualized) {
-                vizualizedPositions.concat(visualized)
-            }
-        }
-    }
 }
