@@ -34,6 +34,7 @@ const buildOrder: (StampType)[] = [
 export function planRoom(room: Room, visualize: boolean) {
     let blueprint = room.memory.blueprint
     if (blueprint && visualize) {
+
         visualizeFromMemory(room)
         return
     }
@@ -84,15 +85,15 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
         stamps: []
     }
 
-    generateRoomCostMatrix(room)
+    let blueprintAnchor = generateBluePrintAnchor(room)
+    if (!blueprintAnchor) { return }
+    room.memory.blueprint.anchor = Utils.Utility.packPosition(blueprintAnchor)
 
     let roomVisual = isVisualizing ? new RoomVisual(room.name) : undefined
-    let blueprintAnchor = Utils.Utility.unpackPostionToRoom(room.memory.blueprint.anchor, room.name)
     let plannedPositions: RoomPosition[] = []
     let stamps: { type: StampType, stampPos: number, completed: boolean }[] = []
 
     for (let building of buildOrder) {
-        // let stampPos = findPosForStamp(blueprintAnchor, building, plannedPositions)
         let stampPos = floodFillSearch(room, blueprintAnchor, building, plannedPositions)
         if (stampPos) {
             stamps.push({ type: building, stampPos: Utils.Utility.packPosition(stampPos), completed: false })
@@ -105,8 +106,6 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
     let roadPositions: PathStep[] = []
     let sources = room.find(FIND_SOURCES)
     let minerals = room.find(FIND_MINERALS)
-
-    // Get the PathStep[] from blueprintAnchor to the nearest exit on the left.
     let leftExitPos = blueprintAnchor.findClosestByPath(FIND_EXIT_LEFT)
     let rightExitPos = blueprintAnchor.findClosestByPath(FIND_EXIT_RIGHT)
     let topExitPos = blueprintAnchor.findClosestByPath(FIND_EXIT_TOP)
@@ -292,7 +291,7 @@ function spiralSearch(startPosition: RoomPosition, structure: StampType, planned
     return undefined
 }
 
-function floodFillSearch(room: Room, startPosition: RoomPosition, structure: StampType, plannedPositions: RoomPosition[]): RoomPosition | undefined {
+function floodFillSearch(room: Room, startPosition: RoomPosition, structure: StampType, plannedPositions?: RoomPosition[]): RoomPosition | undefined {
     const queue: Set<number> = new Set()
     queue.add(startPosition.x + startPosition.y * 50)
 
@@ -300,7 +299,7 @@ function floodFillSearch(room: Room, startPosition: RoomPosition, structure: Sta
         const x = coord % 50
         const y = (coord - x) / 50
 
-        if (doesStampFitAtPosition(x, y, room, structure, plannedPositions)) {
+        if (doesStampFitAtPosition(x, y, room, structure, plannedPositions ? plannedPositions : [])) {
             return new RoomPosition(x, y, room.name)
         }
 
@@ -313,8 +312,8 @@ function floodFillSearch(room: Room, startPosition: RoomPosition, structure: Sta
 }
 
 function doesStampFitAtPosition(x: number, y: number, room: Room, structure: StampType, plannedPositions: RoomPosition[], roomVisual?: RoomVisual): boolean {
-    if (x < 0 || y < 0) return false
-    if (x > 49 || y > 49) return false
+    if (x < 5 || y < 5) return false
+    if (x > 44 || y > 44) return false
 
     if (structure == StampType.ANCHOR ||
         structure == StampType.LABS ||
@@ -357,6 +356,41 @@ function doesStampFitAtPosition(x: number, y: number, room: Room, structure: Sta
         return true
     }
     return true
+}
+
+function generateBluePrintAnchor(room: Room, positions: RoomPosition[] = []): RoomPosition | undefined {
+    let controller = room.controller
+    if (!controller) return undefined
+    let sources = room.sources()
+
+    positions.push(new RoomPosition(controller.pos.x, controller.pos.y, room.name))
+    for (let source of sources) {
+        positions.push(new RoomPosition(source.pos.x, source.pos.y, room.name))
+    }
+
+    let centeredPositions: PathStep[] = []
+    for (let i = 0; i < positions.length; i++) {
+        for ( let j = 0; j < positions.length; j++) {
+            if (i != j) {
+                let path = room.findPath(positions[i], positions[j], { ignoreCreeps: true })
+                centeredPositions.push(path[Math.floor(path.length - 1 / 2)])
+            }
+        }
+    }
+
+    let x = 0
+    let y = 0
+
+    for (let i = 0; i < centeredPositions.length; ++i) {
+        x += centeredPositions[i].x
+        y += centeredPositions[i].y
+    }
+
+    x /= centeredPositions.length
+    y /= centeredPositions.length
+
+    let returningPosition = floodFillSearch(room, new RoomPosition(x, y, room.name), StampType.FAST_FILLER, positions)
+    return returningPosition
 }
 
 function generateRoomCostMatrix(room: Room) {
