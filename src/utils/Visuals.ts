@@ -71,27 +71,27 @@ var visuals = {
         global.scheduler.addProcess(newProcess)
     },
     roomPlanning: function() {
-        for (const roomName in Memory.rooms) {
-            if (!Memory.rooms[roomName] || !Memory.rooms[roomName].blueprint) continue;
-            let roomPlan = Memory.rooms[roomName].blueprint;
-            let rVis = new RoomVisual(roomName);
-            for (let i = 0; i < roomPlan!.length; i++) {
-                let pos = Utility.unpackPostionToRoom(roomPlan![i].stampPos, roomName)
-                if (Object.values(StampType).includes(roomPlan![i].type as StampType)) {
-                    let stamp = Stamps[roomPlan![i].type as keyof typeof Stamps]
-                    if (!stamp) {
-                        Logger.log(`Room Planning Visual attempted to call nonexistant stamp: ${roomPlan![i].type}.`, LogLevel.ERROR);
-                        continue;
-                    }
-                    for (let i = 0; i < stamp.length; i++) {
-                        rVis.structure(pos.x + stamp[i].xMod, pos.y + stamp[i].yMod, stamp[i].structureType);
-                    }
-                } else {
-                    rVis.structure(pos.x, pos.y, roomPlan![i].type);
-                }
-            }
-            rVis.connectRoads();
-        }
+        // for (const roomName in Memory.rooms) {
+        //     if (!Memory.rooms[roomName] || !Memory.rooms[roomName].blueprint) continue;
+        //     let roomPlan = Memory.rooms[roomName].blueprint;
+        //     let rVis = new RoomVisual(roomName);
+        //     for (let i = 0; i < roomPlan!.length; i++) {
+        //         let pos = Utility.unpackPostionToRoom(roomPlan![i].stampPos, roomName)
+        //         if (Object.values(StampType).includes(roomPlan![i].type as StampType)) {
+        //             let stamp = Stamps[roomPlan![i].type as keyof typeof Stamps]
+        //             if (!stamp) {
+        //                 Logger.log(`Room Planning Visual attempted to call nonexistant stamp: ${roomPlan![i].type}.`, LogLevel.ERROR);
+        //                 continue;
+        //             }
+        //             for (let i = 0; i < stamp.length; i++) {
+        //                 rVis.structure(pos.x + stamp[i].xMod, pos.y + stamp[i].yMod, stamp[i].structureType);
+        //             }
+        //         } else {
+        //             rVis.structure(pos.x, pos.y, roomPlan![i].type);
+        //         }
+        //     }
+        //     rVis.connectRoads();
+        // }
     },
     distanceTransform: function() {
         if (!global.tempForVisuals || !global.tempForVisuals.distanceTransform) return;
