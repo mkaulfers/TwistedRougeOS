@@ -194,7 +194,7 @@ export class Utility {
      * @param options An object containing the following properties: `resource, structures, order`.
      * @returns An array of approved targets or undefined
      */
-     static organizeTargets(targets: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite)[], options?: {
+     static organizeTargets(targets: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite | Ruin)[], options?: {
         hits?: boolean,
         resource?: ResourceConstant,
         rNeed?: boolean,
@@ -238,7 +238,7 @@ export class Utility {
             return t;
 
         })
-        .sortByOrder(function(t: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite)) {
+        .sortByOrder(function(t: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite | Ruin)) {
             if (options?.resource) {
                 if ('store' in t) {
                     return t.store[options.resource];
