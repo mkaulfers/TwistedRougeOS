@@ -3,7 +3,7 @@ import { Utils } from './utils/Index';
 import { OS } from "OS/Index";
 import { Managers } from "Managers/Index";
 import './Prototypes/Index'
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel } from './utils/Enums'
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from './utils/Enums'
 
 declare global {
   interface CreepMemory {
@@ -42,6 +42,7 @@ declare global {
   interface RoomCache {
     towers?: Id<StructureTower>[];
     towerTarget?: Id<AnyCreep>;
+    links?: {[key: Id<StructureLink>]: string};
   }
 
   var Cache: {

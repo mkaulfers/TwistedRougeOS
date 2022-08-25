@@ -70,6 +70,7 @@ Room.prototype.scheduleTasks = function () {
     Managers.TaskManager.scheduleSpawnMonitor(this)
     Managers.UtilityTasks.scheduleMemoryMonitor()
     Managers.TaskManager.scheduleRoomTaskMonitor(this)
+    Managers.LinkManager.schedule(this);
     Managers.TaskManager.scheduleConstructionMonitor(this)
 }
 
