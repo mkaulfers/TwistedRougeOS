@@ -5,6 +5,7 @@ import { Roles } from "Creeps/Index";
 import { Utils } from "utils/Index";
 import { Stamp } from "Models/Stamps";
 import { getCutTiles, Rectangle } from './RampartPlanner';
+import { start } from 'repl';
 
 const buildOrder: (StampType)[] = [
     StampType.FAST_FILLER,
@@ -60,13 +61,20 @@ function visualizeFromMemory(room: Room) {
 
     for (let rampart of blueprint.ramparts) {
         let pos = Utils.Utility.unpackPostionToRoom(rampart, room.name)
-        roomVisual.structure(pos.x, pos.y, STRUCTURE_RAMPART)
+        roomVisual.structure(pos.x, pos.y, STRUCTURE_RAMPART, { opacity: 0.3 })
+    }
+
+    for (let link of blueprint.links) {
+        let pos = Utils.Utility.unpackPostionToRoom(link, room.name)
+        roomVisual.structure(pos.x, pos.y, STRUCTURE_LINK)
     }
 
     roomVisual.connectRoads()
 }
 
 function generateNewPlan(room: Room, isVisualizing: boolean) {
+    if (!room.controller?.my || !room) { return }
+
     room.memory.blueprint = {
         anchor: 0,
         containers: [],
@@ -84,7 +92,8 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
     let stamps: { type: StampType, stampPos: number, completed: boolean }[] = []
 
     for (let building of buildOrder) {
-        let stampPos = findPosForStamp(blueprintAnchor, building, plannedPositions)
+        // let stampPos = findPosForStamp(blueprintAnchor, building, plannedPositions)
+        let stampPos = floodFillSearch(room, blueprintAnchor, building, plannedPositions)
         if (stampPos) {
             stamps.push({ type: building, stampPos: Utils.Utility.packPosition(stampPos), completed: false })
             Stamp.plan(stampPos, building, plannedPositions, roomVisual)
@@ -104,34 +113,38 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
     let bottomExitPos = blueprintAnchor.findClosestByPath(FIND_EXIT_BOTTOM)
 
     if (leftExitPos) {
-        let leftExitPath = blueprintAnchor.findPathTo(leftExitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2  })
+        let leftExitPath = blueprintAnchor.findPathTo(leftExitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         leftExitPath.splice(leftExitPath.length - 1, 1)
         roadPositions = roadPositions.concat(leftExitPath)
     }
 
     if (rightExitPos) {
-        let rightExitPath = blueprintAnchor.findPathTo(rightExitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2  })
+        let rightExitPath = blueprintAnchor.findPathTo(rightExitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         rightExitPath.splice(rightExitPath.length - 1, 1)
         roadPositions = roadPositions.concat(rightExitPath)
     }
 
     if (topExitPos) {
-        let topExitPath = blueprintAnchor.findPathTo(topExitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2  })
+        let topExitPath = blueprintAnchor.findPathTo(topExitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         topExitPath.splice(topExitPath.length - 1, 1)
         roadPositions = roadPositions.concat(topExitPath)
     }
 
     if (bottomExitPos) {
-        let bottomExitPath = blueprintAnchor.findPathTo(bottomExitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2  })
+        let bottomExitPath = blueprintAnchor.findPathTo(bottomExitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         bottomExitPath.splice(bottomExitPath.length - 1, 1)
         roadPositions = roadPositions.concat(bottomExitPath)
     }
 
     for (let source of sources) {
-        let sourcePath = blueprintAnchor.findPathTo(source, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2  })
+        let sourcePath = blueprintAnchor.findPathTo(source, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
 
         let containerPos = sourcePath[sourcePath.length - 2]
         room.memory.blueprint.containers.push(Utils.Utility.packPosition(new RoomPosition(containerPos.x, containerPos.y, room.name)))
+
+        let linkPos = sourcePath[sourcePath.length - 3]
+        room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(linkPos.x, linkPos.y, room.name)))
+
         sourcePath.splice(sourcePath.length - 2, 2)
         roadPositions = roadPositions.concat(sourcePath)
     }
@@ -139,7 +152,7 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
     if (sources.length == 2) {
         let source1 = sources[0]
         let source2 = sources[1]
-        let pathBetweenSources = source1.pos.findPathTo(source2, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2  })
+        let pathBetweenSources = source1.pos.findPathTo(source2, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         pathBetweenSources.splice(pathBetweenSources.length - 1, 1)
         pathBetweenSources.splice(0, 1)
         roadPositions = roadPositions.concat(pathBetweenSources)
@@ -154,6 +167,12 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
         mineralPath.splice(mineralPath.length - 2, 2)
         roadPositions = roadPositions.concat(mineralPath)
     }
+
+    let pathToController = blueprintAnchor.findPathTo(room.controller.pos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+    roadPositions = roadPositions.concat(pathToController)
+
+    let controllerLink = pathToController[pathToController.length - 2]
+    room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(controllerLink.x, controllerLink.y, room.name)))
 
     /**
      * Find paths to remove.
@@ -206,20 +225,31 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
             case StampType.EXTENSION:
                 modifier = 1; break
         }
-        rectsToProtect.push({x1: stampPos.x - modifier, y1: stampPos.y - modifier, x2: stampPos.x + modifier, y2: stampPos.y + modifier})
+        rectsToProtect.push({ x1: stampPos.x - modifier - 2, y1: stampPos.y - modifier - 2, x2: stampPos.x + modifier + 2, y2: stampPos.y + modifier + 2 })
     }
 
-    let rampartPositions: Coord[] =  getCutTiles(room.name, rectsToProtect, false, undefined, false)
+    let rampartPositions: Coord[] = getCutTiles(room.name, rectsToProtect, false, undefined, false)
+
+
+    let controllerRect: Rectangle = { x1: room.controller.pos.x - 1, y1: room.controller?.pos.y - 1, x2: room.controller.pos.x + 1, y2: room.controller.pos.y + 1 }
+    for (let x = controllerRect.x1; x <= controllerRect.x2; x++) {
+        for (let y = controllerRect.y1; y <= controllerRect.y2; y++) {
+            if (!room.lookForAt(LOOK_TERRAIN, x, y).includes('wall')) {
+                rampartPositions.push({ x: x, y: y })
+            }
+        }
+    }
+
+
     for (let rampartPos of rampartPositions) {
         room.memory.blueprint.ramparts = room.memory.blueprint.ramparts.concat(Utils.Utility.packPosition(new RoomPosition(rampartPos.x, rampartPos.y, room.name)))
     }
 }
 
 /**
- * Description:
+* @Deprecated Notice - Use floodFillSearch() instead.
  * DO NOT CHANGE THIS CODE
- * REFERENCE: https://stackoverflow.com/questions/3706219/algorithm-for-iterating-over-an-outward-spiral-on-a-discrete-2d-grid-from-the-or
- *
+ * @Reference https://stackoverflow.com/questions/3706219/algorithm-for-iterating-over-an-outward-spiral-on-a-discrete-2d-grid-from-the-or
  * @param startPosition - Searching starts from this position, going in a spiral, clockwise.
  * @param size - The size of the item to fit into a space.
  *             - If the size is odd, the item will be centered on the startPosition.
@@ -228,7 +258,7 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
  * @param plannedPositions - Required to simulate the next positions for addition to the blueprint.
  * @returns - A position that your stamp will fit into.
  */
-function findPosForStamp(startPosition: RoomPosition, structure: StampType, plannedPositions: RoomPosition[]): RoomPosition | undefined {
+function spiralSearch(startPosition: RoomPosition, structure: StampType, plannedPositions: RoomPosition[]): RoomPosition | undefined {
     let deltaX = 1;
     let deltaY = 0;
 
@@ -260,6 +290,26 @@ function findPosForStamp(startPosition: RoomPosition, structure: StampType, plan
     }
 
     return undefined
+}
+
+function floodFillSearch(room: Room, startPosition: RoomPosition, structure: StampType, plannedPositions: RoomPosition[]): RoomPosition | undefined {
+    const queue: Set<number> = new Set()
+    queue.add(startPosition.x + startPosition.y * 50)
+
+    for (const coord of queue) {
+        const x = coord % 50
+        const y = (coord - x) / 50
+
+        if (doesStampFitAtPosition(x, y, room, structure, plannedPositions)) {
+            return new RoomPosition(x, y, room.name)
+        }
+
+        if (y > 0) queue.add(coord - 50)
+        if (x > 0) queue.add(coord - 1)
+        if (y < 49) queue.add(coord + 50)
+        if (x < 49) queue.add(coord + 1)
+    }
+    return
 }
 
 function doesStampFitAtPosition(x: number, y: number, room: Room, structure: StampType, plannedPositions: RoomPosition[], roomVisual?: RoomVisual): boolean {
@@ -338,23 +388,4 @@ function generateRoomCostMatrix(room: Room) {
 
     room.memory.blueprint.anchor = Utils.Utility.packPosition(roomPosition!)
     room.memory.costMatrix = JSON.stringify(costMatrix.serialize())
-}
-
-function doesLocationExistInPlannedPositions(room: Room, plannedPositions: RoomPosition[], x: number, y: number): boolean {
-    for (let plannedPosition of plannedPositions) {
-        if (plannedPosition.x == x && plannedPosition.y == y) {
-            return true
-        }
-    }
-    return false
-}
-
-function isLocationNearAStructure(room: Room, x: number, y: number): boolean {
-    let structures = room.find(FIND_STRUCTURES)
-    for (let structure of structures) {
-        if (Math.abs(structure.pos.x - x) <= 6 && Math.abs(structure.pos.y - y) <= 6) {
-            return true
-        }
-    }
-    return false
 }

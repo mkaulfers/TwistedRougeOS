@@ -356,8 +356,8 @@ RoomVisual.prototype.structure = function(x,y,type,opts={}){
         break;
       case STRUCTURE_RAMPART:
         this.rect(x - 0.5,y - 0.5, 1, 1,{
-          fill: '#434C43',
-          stroke: '#5D735F',
+          fill: '#43A6C6',
+          stroke: '#75E6DA',
           strokeWidth: 0.07,
           opacity: opts.opacity
         })
