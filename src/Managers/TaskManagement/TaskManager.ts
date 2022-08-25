@@ -76,6 +76,7 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
         let roles = _.keys(Roles) as Array<keyof typeof Roles>; // triage change to make this role-confirming section work.
 
         _.forEach(roles, function(role) {
+            if (room.creeps().length < 1) { return }
             Roles[role].dispatch(room);
         });
     }
