@@ -63,7 +63,7 @@ var ThreatManager = {
                     ThreatManager.safeModer(room);
                     break;
             }
-
+            return ProcessResult.RUNNING;
         }
 
         let newProcess = new Process(roomProcessId, ProcessPriority.LOW, monitorTask)

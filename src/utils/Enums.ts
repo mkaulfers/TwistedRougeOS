@@ -62,3 +62,8 @@ export enum DangerLevel {
     NUKETHIS = 1,               // #ff0000
 }
 
+export enum LinkState {
+    INPUT = 'input',
+    OUTPUT = 'output',
+    BOTH = 'both'
+}
