@@ -2,6 +2,7 @@
  * Code for calculating the minCut in a room, written by Saruss,
  * adapted for Typescript and flexible room subsets by Chobobobo,
  * modified and debugged by Muon.
+ * modified by xTwisteDx & RougeAyrn 
  */
 
  const UNWALKABLE = -10;
@@ -503,78 +504,3 @@
      }
      return validCut;
  }
-
- /**
-  * Example function: demonstrates how to get a min cut with 2 rectangles, which define a "to protect" area
-  * @param roomName - the name of the room to use for the test, must be visible
-  */
-//  export function testMinCut(colonyName: string, preferCloserBarriers = true) {
-//      const colony = Overmind.colonies[colonyName];
-//      if (!colony) {
-//          return `No colony: ${colonyName}`;
-//      }
-//      let cpu = Game.cpu.getUsed();
-//      // Rectangle Array, the Rectangles will be protected by the returned tiles
-//      const rectArray = [];
-//      const padding = 3;
-//      if (colony.hatchery) {
-//          const {x, y} = colony.hatchery.pos;
-//          const [x1, y1] = [Math.max(x - 5 - padding, 0), Math.max(y - 4 - padding, 0)];
-//          const [x2, y2] = [Math.min(x + 5 + padding, 49), Math.min(y + 6 + padding, 49)];
-//          rectArray.push({x1: x1, y1: y1, x2: x2, y2: y2});
-//      }
-//      if (colony.commandCenter) {
-//          const {x, y} = colony.commandCenter.pos;
-//          const [x1, y1] = [Math.max(x - 3 - padding, 0), Math.max(y - 0 - padding, 0)];
-//          const [x2, y2] = [Math.min(x + 0 + padding, 49), Math.min(y + 5 + padding, 49)];
-//          rectArray.push({x1: x1, y1: y1, x2: x2, y2: y2});
-//      }
-//      if (colony.upgradeSite) {
-//          const {x, y} = colony.upgradeSite.pos;
-//          const [x1, y1] = [Math.max(x - 1, 0), Math.max(y - 1, 0)];
-//          const [x2, y2] = [Math.min(x + 1, 49), Math.min(y + 1, 49)];
-//          rectArray.push({x1: x1, y1: y1, x2: x2, y2: y2});
-//      }
-//      // Get Min cut
-//      // Positions is an array where to build walls/ramparts
-//      const positions = getCutTiles(colonyName, rectArray, preferCloserBarriers, 2);
-//      // Test output
-//      // console.log('Positions returned', positions.length);
-//      cpu = Game.cpu.getUsed() - cpu;
-//      // console.log('Needed', cpu, ' cpu time');
-//      log.info(`preferCloserBarriers = ${preferCloserBarriers}; positions returned: ${positions.length};` +
-//               ` CPU time: ${cpu}`);
-//      return 'Finished';
-//  }
-
- /**
-  * Example function: demonstrates how to get a min cut with 2 rectangles, which define a "to protect" area
-  * while considering a subset of the larger room.
-  * @param roomName - the name of the room to use for the test, must be visible
-  */
-//  export function testMinCutSubset(colonyName: string) {
-//      const colony = Overmind.colonies[colonyName];
-//      if (!colony) {
-//          return `No colony: ${colonyName}`;
-//      }
-//      let cpu = Game.cpu.getUsed();
-//      // Rectangle Array, the Rectangles will be protected by the returned tiles
-//      const rectArray = [];
-//      const padding = 3;
-//      if (colony.hatchery) {
-//          const {x, y} = colony.hatchery.pos;
-//          rectArray.push({x1: x - 5 - padding, y1: y - 4 - padding, x2: x + 5 + padding, y2: y + 6 + padding});
-//      }
-//      if (colony.commandCenter) {
-//          const {x, y} = colony.commandCenter.pos;
-//          rectArray.push({x1: x - 3 - padding, y1: y - 0 - padding, x2: x + 0 + padding, y2: y + 5 + padding});
-//      }
-//      // Get Min cut, returns the positions where ramparts/walls need to be
-//      const positions = getCutTiles(colonyName, rectArray, true, Infinity, true,
-//                                    {x1: 5, y1: 5, x2: 44, y2: 44});
-//      // Test output
-//      console.log('Positions returned', positions.length);
-//      cpu = Game.cpu.getUsed() - cpu;
-//      console.log('Needed', cpu, ' cpu time');
-//      return 'Finished';
-//  }

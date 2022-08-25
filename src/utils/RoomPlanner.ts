@@ -7,6 +7,7 @@ import { Stamp } from "Models/Stamps";
 import { getCutTiles, Rectangle } from './RampartPlanner';
 import { start } from 'repl';
 import { all } from 'lodash';
+import { link } from 'fs';
 
 const buildOrder: (StampType)[] = [
     StampType.FAST_FILLER,
@@ -35,11 +36,13 @@ const buildOrder: (StampType)[] = [
 export function planRoom(room: Room, visualize: boolean) {
     let blueprint = room.memory.blueprint
     if (blueprint && visualize) {
-
         visualizeFromMemory(room)
         return
     }
+
+    // if (!blueprint) {
     generateNewPlan(room, visualize)
+    // }
 }
 
 function visualizeFromMemory(room: Room) {
@@ -146,8 +149,9 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
         let containerPos = sourcePath[sourcePath.length - 2]
         room.memory.blueprint.containers.push(Utils.Utility.packPosition(new RoomPosition(containerPos.x, containerPos.y, room.name)))
 
-        let linkPos = sourcePath[sourcePath.length - 3]
-        room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(linkPos.x, linkPos.y, room.name)))
+        let linkPos = sourcePath[sourcePath.length - 2]
+        let adjustedPos = getValidPositionAroundPosition(linkPos, room, roadPositions)
+        room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(adjustedPos.x, adjustedPos.y, room.name)))
 
         sourcePath.splice(sourcePath.length - 2, 2)
         roadPositions = roadPositions.concat(sourcePath)
@@ -175,8 +179,9 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
     let pathToController = blueprintAnchor.findPathTo(room.controller.pos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
     roadPositions = roadPositions.concat(pathToController)
 
-    let controllerLink = pathToController[pathToController.length - 2]
-    room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(controllerLink.x, controllerLink.y, room.name)))
+    let controllerLink = pathToController[pathToController.length - 3]
+    let adjustedPos = getValidPositionAroundPosition(controllerLink, room, roadPositions)
+    room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(adjustedPos.x, adjustedPos.y, room.name)))
 
     /**
      * Find paths to remove.
@@ -234,7 +239,6 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
 
     let rampartPositions: Coord[] = getCutTiles(room.name, rectsToProtect, false, undefined, false)
 
-
     let controllerRect: Rectangle = { x1: room.controller.pos.x - 1, y1: room.controller?.pos.y - 1, x2: room.controller.pos.x + 1, y2: room.controller.pos.y + 1 }
     for (let x = controllerRect.x1; x <= controllerRect.x2; x++) {
         for (let y = controllerRect.y1; y <= controllerRect.y2; y++) {
@@ -245,8 +249,47 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
     }
 
 
+    //remove duplicate rampart positions
+    let uniqueRampartPositions: Coord[] = []
+    for (let rampart of rampartPositions) {
+        if (!uniqueRampartPositions.some(pos => pos.x == rampart.x && pos.y == rampart.y)) {
+            uniqueRampartPositions.push(rampart)
+        }
+    }
+
     for (let rampartPos of rampartPositions) {
         room.memory.blueprint.ramparts = room.memory.blueprint.ramparts.concat(Utils.Utility.packPosition(new RoomPosition(rampartPos.x, rampartPos.y, room.name)))
+    }
+
+    let leftExitsPath = getLeftExits(room)
+    let rightExitsPath = getRightExits(room)
+    let topExitsPath = getTopExits(room)
+    let bottomExitsPath = getBottomExits(room)
+
+    for (let exitPath of [leftExitsPath, rightExitsPath, topExitsPath, bottomExitsPath]) {
+        for (let exitPos of exitPath) {
+            let closest = blueprintAnchor.findClosestByPath(exitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+            if (closest != null) {
+                let path = blueprintAnchor.findPathTo(closest, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+                let pathLastTwoSteps: PathStep[] = []
+                //iterate over every step. If we hit a rampart position go back two steps and add a rampart to each position.
+                for (let step of path) {
+                    pathLastTwoSteps.push(step)
+                    //If the pathlasttwosteps array is longer than 2, remove the first step.
+                    if (pathLastTwoSteps.length > 3) {
+                        pathLastTwoSteps.splice(0, 1)
+                    }
+
+                    for (let rampart of rampartPositions) {
+                        if (rampart.x == step.x && rampart.y == step.y && !new RoomPosition(rampart.x, rampart.y, room.name).inRangeTo(room.controller.pos, 1)) {
+                            for (let i = 0; i < pathLastTwoSteps.length - 1; i++) {
+                                room.memory.blueprint.ramparts = room.memory.blueprint.ramparts.concat(Utils.Utility.packPosition(new RoomPosition(pathLastTwoSteps[i].x, pathLastTwoSteps[i].y, room.name)))
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -296,6 +339,26 @@ function spiralSearch(startPosition: RoomPosition, structure: StampType, planned
     return undefined
 }
 
+function getValidPositionAroundPosition(position: PathStep, room: Room, roadPositions: PathStep[]): RoomPosition {
+    //Get a position around the provided position that is not a wall or a road fromRoadPositions.
+    let validPositions: RoomPosition[] = []
+    for (let x = position.x - 1; x <= position.x + 1; x++) {
+        for (let y = position.y - 1; y <= position.y + 1; y++) {
+            if (room.lookForAt(LOOK_TERRAIN, x, y).includes('wall') || roadPositions.find(p => p.x == x && p.y == y) != undefined) {
+                continue
+            }
+
+            //if the position is near a source continue
+            if (new RoomPosition(x, y, room.name).findInRange(FIND_SOURCES, 1).length > 0) {
+                continue
+            }
+
+            validPositions.push(new RoomPosition(x, y, room.name))
+        }
+    }
+    return validPositions[0]
+}
+
 function floodFillSearch(room: Room, startPosition: RoomPosition, structure: StampType, plannedPositions?: RoomPosition[]): RoomPosition | undefined {
     const queue: Set<number> = new Set()
     queue.add(startPosition.x + startPosition.y * 50)
@@ -316,9 +379,16 @@ function floodFillSearch(room: Room, startPosition: RoomPosition, structure: Sta
     return
 }
 
-function doesStampFitAtPosition(x: number, y: number, room: Room, structure: StampType, plannedPositions: RoomPosition[], roomVisual?: RoomVisual): boolean {
+function doesStampFitAtPosition(x: number, y: number, room: Room, structure: StampType, plannedPositions: RoomPosition[], roomVisual?: RoomVisual, controllerOverride: boolean = false): boolean {
     if (x < 5 || y < 5) return false
     if (x > 44 || y > 44) return false
+    let controller = room.controller
+    if (controller && !controllerOverride) {
+        let controllerPos = controller.pos
+        let roomPos = new RoomPosition(x, y, room.name)
+        if (roomPos.inRangeTo(controllerPos, 4)) return false
+    }
+
 
     if (structure == StampType.ANCHOR ||
         structure == StampType.LABS ||
@@ -458,7 +528,7 @@ function getTopExits(room: Room): RoomPosition[][] {
     return splitSections
 }
 
-    function getBottomExits(room: Room): RoomPosition[][] {
+function getBottomExits(room: Room): RoomPosition[][] {
     let posCache: RoomPosition[] = []
     let splitSections: RoomPosition[][] = []
 
