@@ -71,7 +71,7 @@ Room.prototype.scheduleTasks = function () {
     Managers.UtilityTasks.scheduleMemoryMonitor()
     Managers.TaskManager.scheduleRoomTaskMonitor(this)
     Managers.LinkManager.schedule(this);
-    // Managers.TaskManager.scheduleConstructionMonitor(this)
+    Managers.TaskManager.scheduleConstructionMonitor(this)
 }
 
 Room.prototype.creeps = function (role?: Role): Creep[] {
