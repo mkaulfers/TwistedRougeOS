@@ -131,7 +131,7 @@ Room.prototype.truckersCarryCapacity = function (): number {
 
 let _averageDistanceFromSourcesToStructures: number | undefined = undefined
 Room.prototype.averageDistanceFromSourcesToStructures = function (): number {
-    if (!_averageDistanceFromSourcesToStructures) {
+    if (!_averageDistanceFromSourcesToStructures || Game.time % 1500 == 0) {
         let sources = this.find(FIND_SOURCES)
         let structures = this.find(FIND_STRUCTURES)
         let distance = 0
@@ -140,8 +140,7 @@ Room.prototype.averageDistanceFromSourcesToStructures = function (): number {
                 distance += source.pos.getRangeTo(structure)
             }
         }
-        _averageDistanceFromSourcesToStructures = distance / sources.length
-        return distance / structures.length
+        _averageDistanceFromSourcesToStructures = distance / (sources.length * structures.length)
     }
     return _averageDistanceFromSourcesToStructures
 }
