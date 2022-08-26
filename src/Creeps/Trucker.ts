@@ -265,7 +265,7 @@ var trucker = {
     },
     baseBody: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
     segment: [CARRY, CARRY, MOVE],
-    carryModifier: 2.5
+    carryModifier: 3.
 }
 
 export default trucker;

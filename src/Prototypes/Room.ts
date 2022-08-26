@@ -134,6 +134,7 @@ Room.prototype.averageDistanceFromSourcesToStructures = function (): number {
     if (!_averageDistanceFromSourcesToStructures || Game.time % 1500 == 0) {
         let sources = this.find(FIND_SOURCES)
         let structures = this.find(FIND_STRUCTURES)
+        structures.filter((s) => { return ('store' in s)});
         let distance = 0
         for (let source of sources) {
             for (let structure of structures) {
