@@ -71,12 +71,13 @@ var trucker = {
             } else {
                 // Determines new target
                 if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
-                    let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
+                    let potentialTargets: (AnyStoreStructure | Resource | Tombstone | Ruin)[] = [];
                     // Finds structures, tombstones, and dropped resources
                     potentialTargets = Array.prototype.concat(
                         creep.room.find(FIND_STRUCTURES),
                         creep.room.find(FIND_TOMBSTONES),
-                        creep.room.find(FIND_DROPPED_RESOURCES));
+                        creep.room.find(FIND_DROPPED_RESOURCES),
+                        creep.room.find(FIND_RUINS));
                     // Limits potential targets to only ones with energy, and if a structure, only structures that are containers or links.
                     potentialTargets = Utils.Utility.organizeTargets(potentialTargets, {resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
                     let potTarget = creep.pos.findClosestByRange(potentialTargets);
@@ -168,19 +169,20 @@ var trucker = {
             } else {
                 // Determines new target
                 if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
-                    let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
+                    let potentialTargets: (AnyStoreStructure | Resource | Tombstone | Ruin)[] = [];
                     // Finds structures, tombstones, and dropped resources
                     let nearbyInterests = Array.prototype.concat(
                         creep.room.find(FIND_DROPPED_RESOURCES),
                         creep.room.find(FIND_TOMBSTONES),
-                        creep.room.find(FIND_STRUCTURES));
+                        creep.room.find(FIND_STRUCTURES),
+                        creep.room.find(FIND_RUINS));
                     // Limits potential targets to only ones with energy, and if a structure, only structures that are containers or links.
                     nearbyInterests = Utils.Utility.organizeTargets(nearbyInterests, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
 
                     potentialTargets.push(...nearbyInterests);
                     let priorityTargets = potentialTargets.filter(function(t) {
                         (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
-                    });     // Only used creep! because of creep not existing being caught at the beginning of the process
+                    });
 
                     // Targets the biggest target if it will fill the creep, or the closest target if no targets will completely fill the creep,
                     // or the first target if closest couldn't be determined, or storage, in that order.
