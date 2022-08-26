@@ -1,5 +1,6 @@
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
+import { Logger } from "utils/Logger"
 
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 

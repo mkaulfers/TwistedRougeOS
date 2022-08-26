@@ -1,5 +1,6 @@
 import { Managers } from 'Managers/Index'
 import { Utils } from 'utils/Index'
+import { Logger } from 'utils/Logger'
 import { Utility } from 'utils/Utilities'
 import { Roles } from '../Creeps/Index'
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
@@ -50,7 +51,6 @@ Source.prototype.validPositions = function (): RoomPosition[] {
             validPositions.push(new RoomPosition(position.x, position.y, this.room.name))
         }
     }
-
     return validPositions
 }
 
@@ -71,7 +71,7 @@ Source.prototype.isHarvestingAtMaxEfficiency = function (): boolean {
         harvestablePerTick += harvester.getActiveBodyparts(WORK) * 2
     }
 
-    if (harvestablePerTick >= 10) {
+    if (harvestablePerTick >= 10 || harvestersAssignedHere.length == this.validPositions().length) {
         return true
     } else {
         return false
@@ -82,6 +82,7 @@ Source.prototype.assignablePosition = function (): RoomPosition {
     let validPositions = this.validPositions()
     let assignedPositions = this.room.creeps(Role.HARVESTER).map(x => x.memory.assignedPos)
     let unassignedPositions = validPositions.filter(x => !assignedPositions.includes(Utility.packPosition(x)))
+    // Logger.log(`Source ${this.id} has ${unassignedPositions.length} unassigned positions.`, LogLevel.DEBUG)
     return unassignedPositions[0]
 }
 
