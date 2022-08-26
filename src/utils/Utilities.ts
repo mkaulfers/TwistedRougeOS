@@ -127,28 +127,7 @@ export class Utility {
                         return;
                     }
                 }
-            }
             return t;
-
-        })
-        .sortByOrder(function(t: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite | Ruin)) {
-            if (options?.resource) {
-                if ('store' in t) {
-                    return t.store[options.resource];
-                } else if ('amount' in t) {
-                    return t.amount;
-                } else {
-                    return;
-                }
-            } else if (options?.hits) {
-                if ('hits' in t) {
-                    return t.hitsMax / t.hits;
-                } else if ('remove' in t) {
-                    return t.progressTotal / t.progress;
-
-                } else {
-                    return;
-                }
             }, options.order)
             .value();
 

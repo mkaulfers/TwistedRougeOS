@@ -126,6 +126,8 @@ var engineer = {
                 }
                 let target = Game.getObjectById(creep.memory.target);
 
+                if (!target || target.hits === target.hitsMax) delete creep.memory.target;
+
                 var result = creep.work(target);
                 if (result === OK) {
                     return ProcessResult.RUNNING
@@ -318,20 +320,20 @@ var engineer = {
                     break;
                 case (engineer.memory.task !== Task.ENGINEER_BUILDING &&
                     eRSites.length === 0 &&
-                    stopERepairs === true,
+                    stopERepairs === true &&
                     cSites.length > 0):
                     global.scheduler.swapProcess(engineer, Task.ENGINEER_BUILDING)
                     break;
                 case (engineer.memory.task !== Task.ENGINEER_REPAIRING &&
                     eRSites.length === 0 &&
-                    stopERepairs === true,
+                    stopERepairs === true &&
                     cSites.length === 0 &&
                     rSites.length > 0):
                     global.scheduler.swapProcess(engineer, Task.ENGINEER_REPAIRING)
                     break;
                 case (engineer.memory.task !== Task.ENGINEER_UPGRADING &&
                     eRSites.length === 0 &&
-                    stopERepairs === true,
+                    stopERepairs === true &&
                     cSites.length === 0 &&
                     rSites.length === 0 &&
                     uSites.length > 0):
