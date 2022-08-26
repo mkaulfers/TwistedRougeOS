@@ -42,8 +42,15 @@ var scientist = {
     shouldSpawn: function(room: Room): boolean {
         let sources = room.sources()
         let areAllSourcesRealized = sources.every(source => source.isHarvestingAtMaxEfficiency())
-        let isAllEnergyUsed = room.currentHarvesterWorkPotential() >= room.scientistEnergyConsumption()
-        return areAllSourcesRealized && isAllEnergyUsed
+
+        let totalEnergyConsumption = 0
+        totalEnergyConsumption += room.scientistEnergyConsumption()
+        totalEnergyConsumption += room.engineerEnergyConsumption()
+        Logger.log(`Total energy consumption: ${totalEnergyConsumption}`, LogLevel.DEBUG)
+        Logger.log(`Harvester Work Potential: ${room.currentHarvesterWorkPotential()}`, LogLevel.DEBUG)
+
+        let hasRemainingEnergyToUse = room.currentHarvesterWorkPotential() >= totalEnergyConsumption
+        return areAllSourcesRealized && hasRemainingEnergyToUse
     },
     baseBody: [CARRY, MOVE, WORK, WORK],
     segment: [CARRY, WORK, WORK],

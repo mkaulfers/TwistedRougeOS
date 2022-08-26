@@ -92,7 +92,41 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
 
     const constructionMonitor = () => {
         let room = Game.rooms[roomName]
-        planRoom(room, false)
+        let controller = room.controller
+        if (!controller) { return }
+
+        if (Game.cpu.bucket > 500 && Game.time % 100 === 0) {
+            planRoom(room, false)
+        }
+
+        let blueprint = room.memory.blueprint
+        if (blueprint) {
+            switch (controller.level) {
+                case 8:
+                case 7:
+                case 6:
+                case 5:
+                case 4:
+                case 3:
+                case 2:
+                    let fastFiller = blueprint.stamps.find(s => s.type === StampType.FAST_FILLER)
+                    if (fastFiller) {
+                        Logger.log(`Level ${controller.level}`, LogLevel.DEBUG)
+                        Stamp.build(Utils.Utility.unpackPostionToRoom(fastFiller.stampPos, room.name), fastFiller.type as StampType, [STRUCTURE_CONTAINER, STRUCTURE_ROAD])
+                    }
+
+                    let containers = blueprint.containers
+                    if (containers) {
+                        for (let container of containers) {
+                            let containerPos = Utils.Utility.unpackPostionToRoom(container, room.name)
+                            //If container is adjacent to a source build it.
+                            if (containerPos.findInRange(FIND_SOURCES, 2).length > 0) {
+                                containerPos.createConstructionSite(STRUCTURE_CONTAINER)
+                            }
+                        }
+                    }
+            }
+        }
     }
 
     let process = new Process(`${roomName}_construction_monitor`, ProcessPriority.MEDIUM, constructionMonitor)

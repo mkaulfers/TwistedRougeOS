@@ -34,6 +34,27 @@ export const Stamp = {
             }
         }
     },
+    build(position: RoomPosition, structureType: StampType, omitting?: BuildableStructureConstant[]) {
+        let room = Game.rooms[position.roomName]
+        let stamp = this.getStamp(structureType)
+
+        for (let part of stamp) {
+            if (omitting) {
+                for (let omit of omitting) {
+                    if (part.structureType == omit) {
+                        continue
+                    }
+
+                    let placementPosition = new RoomPosition(position.x + part.xMod, position.y + part.yMod, position.roomName)
+                    placementPosition.createConstructionSite(part.structureType)
+                }
+                break
+            }
+
+            let placementPosition = new RoomPosition(position.x + part.xMod, position.y + part.yMod, position.roomName)
+            placementPosition.createConstructionSite(part.structureType)
+        }
+    },
     getStampSize(type: StampType): number {
         switch (type) {
             case StampType.FAST_FILLER:

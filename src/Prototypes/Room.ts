@@ -35,6 +35,9 @@ declare global {
         // n WORK bodies in the room, x 1 per tick.
         scientistEnergyConsumption(): number
 
+        // n WORK bodies in the room, x 1 per tick.
+        engineerEnergyConsumption(): number
+
         // n CARRY bodies in the room, on truckers, x 50.
         truckersCarryCapacity(): number
 
@@ -246,6 +249,15 @@ Room.prototype.scientistEnergyConsumption = function (): number {
         scientistEnergyConsumption += scientist.getActiveBodyparts(WORK)
     }
     return scientistEnergyConsumption
+}
+
+Room.prototype.engineerEnergyConsumption = function (): number {
+    let engineers = this.creeps(Role.ENGINEER)
+    let engineerEnergyConsumption = 0
+    for (let engineer of engineers) {
+        engineerEnergyConsumption += engineer.getActiveBodyparts(WORK)
+    }
+    return engineerEnergyConsumption * 5
 }
 
 Room.prototype.lowestScientist = function (): Creep | undefined {
