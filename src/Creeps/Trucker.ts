@@ -144,8 +144,10 @@ var trucker = {
                     // Targets closest if scientist will take > 25 energy, or most empty scientist, in that order
                     if (potTarget && potTarget.store.getFreeCapacity() > 25) {
                         creep.memory.target = potTarget.id;
-                    } else  if (potentialTargets.length > 0) {
+                    } else if (potentialTargets.length > 0 && potentialTargets[0].store.getFreeCapacity() > 25) {
                         creep.memory.target = potentialTargets[0].id;
+                    } else if (creep.room.storage) {
+                        creep.memory.target = creep.room.storage.id;
                     } else {
                         return ProcessResult.RUNNING
                     }
