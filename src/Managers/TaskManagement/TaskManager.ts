@@ -74,8 +74,8 @@ export function scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
     const roomTaskMonitor = () => {
         let room = Game.rooms[roomName]
         let roles = _.keys(Roles) as Array<keyof typeof Roles>; // triage change to make this role-confirming section work.
-
-        _.forEach(roles, function(role) {
+        if (!room) { return }
+        _.forEach(roles, function (role) {
             if (room.creeps().length < 1) { return }
             Roles[role].dispatch(room);
         });
@@ -94,7 +94,7 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
         let room = Game.rooms[roomName]
         let controller = room.controller
         if (!controller) { return }
-
+        if (Game.time % 1500 == 0) { return }
         if (Game.cpu.bucket > 500 && Game.time % 100 === 0) {
             planRoom(room, false)
         }
@@ -103,18 +103,40 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
         if (blueprint) {
             switch (controller.level) {
                 case 8:
+                //1 spawn
+                //10 extensions
+                //last links?
+                //last labs
+                //observer
+                //power spawn
+                //Nuker
                 case 7:
+                //1 spawn
+                //10x Extensions
+                //Anchor Link
+                //3 Labs
+                //Factory
                 case 6:
+                //10x Extension
+                //Last Source Link
+                //Extractor
+                //Terminal
+                //3 Labs
                 case 5:
+                //10x Extension
+                //Farthest Source Link
+                //Controller Link
                 case 4:
+                //10x Extension
+                //Storage
+                //Tower
                 case 3:
-                case 2:
-                    let fastFiller = blueprint.stamps.find(s => s.type === StampType.FAST_FILLER)
-                    if (fastFiller) {
-                        Logger.log(`Level ${controller.level}`, LogLevel.DEBUG)
-                        Stamp.build(Utils.Utility.unpackPostionToRoom(fastFiller.stampPos, room.name), fastFiller.type as StampType, [STRUCTURE_CONTAINER, STRUCTURE_ROAD])
+                    let roadPos = blueprint.highways
+                    for (let road of roadPos) {
+                        let constPos = Utils.Utility.unpackPostionToRoom(road, room.name)
+                        constPos.createConstructionSite(STRUCTURE_ROAD)
                     }
-
+                case 2:
                     let containers = blueprint.containers
                     if (containers) {
                         for (let container of containers) {
@@ -124,6 +146,12 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
                                 containerPos.createConstructionSite(STRUCTURE_CONTAINER)
                             }
                         }
+                    }
+
+                    let fastFiller = blueprint.stamps.find(s => s.type === StampType.FAST_FILLER)
+                    if (fastFiller) {
+                        Logger.log(`Level ${controller.level}`, LogLevel.DEBUG)
+                        Stamp.build(Utils.Utility.unpackPostionToRoom(fastFiller.stampPos, room.name), fastFiller.type as StampType, [STRUCTURE_CONTAINER, STRUCTURE_ROAD, STRUCTURE_RAMPART])
                     }
             }
         }
