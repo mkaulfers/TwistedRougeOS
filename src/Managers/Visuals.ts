@@ -1,7 +1,6 @@
 import { Process } from "Models/Process";
-import { Logger } from "./Logger";
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel } from './Enums'
-import { Utility } from "./Utilities";
+import { Utils } from "../utils/Index";
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel } from '../utils/Enums'
 import { Stamps } from 'Models/Stamps'
 
 declare global {

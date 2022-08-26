@@ -1,9 +1,7 @@
 import { Process } from "Models/Process";
-import { Logger } from "utils/Logger";
 import { Roles } from "Creeps/Index";
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from '../../utils/Enums'
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from '../utils/Enums'
 import { Utils } from "utils/Index";
-import { Stamp } from "Models/Stamps";
 import { planRoom } from "utils/RoomPlanner";
 
 
@@ -17,7 +15,7 @@ export function scheduleSpawnMonitor(room: Room) {
         if (availableSpawn) {
             for (let i = 0; i < Object.keys(Role).length; i++) {
                 let role = Object.values(Role)[i]
-                Logger.log(`Room -> scheduleSpawnMonitor() -> role: ${role}`, LogLevel.TRACE)
+                Utils.Logger.log(`Room -> scheduleSpawnMonitor() -> role: ${role}`, LogLevel.TRACE)
                 let result = room.shouldSpawn(role)
                 if (result) {
                     room.spawnCreep(role, availableSpawn)
@@ -32,7 +30,7 @@ export function scheduleSpawnMonitor(room: Room) {
 }
 
 export function scheduleCreepTask(room: Room) {
-    Logger.log("Room -> scheduleCreepTask()", LogLevel.TRACE)
+    Utils.Logger.log("Room -> scheduleCreepTask()", LogLevel.TRACE)
     let creeps = room.creeps(undefined)
     for (let i = 0; i < creeps.length; i++) {
         let creep = creeps[i]

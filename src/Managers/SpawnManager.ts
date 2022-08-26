@@ -1,12 +1,31 @@
 import { Utils } from '../utils/Index'
 import { Roles } from '../Creeps/Index';
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
+import { Process } from 'Models/Process';
 
-/**
-* ------------------------------------------------------------------
-* GENERATE BODY
-* ------------------------------------------------------------------
-*/
+export function scheduleSpawnMonitor(room: Room) {
+    const roomId = room.name
+
+    const spawnMonitorTask = () => {
+        let room = Game.rooms[roomId]
+        let availableSpawn = room.getAvailableSpawn()
+
+        if (availableSpawn) {
+            for (let i = 0; i < Object.keys(Role).length; i++) {
+                let role = Object.values(Role)[i]
+                Utils.Logger.log(`Room -> scheduleSpawnMonitor() -> role: ${role}`, LogLevel.TRACE)
+                let result = room.shouldSpawn(role)
+                if (result) {
+                    room.spawnCreep(role, availableSpawn)
+                    return;
+                }
+            }
+        }
+    }
+
+    let newProcess = new Process(`${room.name}_spawn_monitor`, ProcessPriority.LOW, spawnMonitorTask)
+    global.scheduler.addProcess(newProcess)
+}
 
 export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
     Utils.Logger.log("Spawn -> getBodyFor()", LogLevel.TRACE)
@@ -52,11 +71,6 @@ export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
     return tempBody
 }
 
-/**
- * ------------------------------------------------------------------
- * SPAWN UTILITY FUNCTIONS
- * ------------------------------------------------------------------
- */
 
  export function bodyCost(body: BodyPartConstant[]): number {
     let sum = 0;
@@ -69,9 +83,6 @@ export function generateNameFor(role: Role) {
     return Utils.Utility.truncateString(role) + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false)
 }
 
-/**
- * This will need to generate a task for the creeps memory to hold on to so that it knows what to do after spawning.
- */
  export function generateTaskFor(role: Role, room: Room): Task | undefined {
     Utils.Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
     switch (role) {

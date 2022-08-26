@@ -1,6 +1,6 @@
 import * as SpawnManager from './SpawnManager';
-import * as TaskManager from './TaskManagement/TaskManager';
-import * as UtilityTasks from './TaskManagement/UtilityTasks';
+import * as TaskManager from './TaskManager';
+import * as UtilityTasks from './UtilityTasks';
 import ThreatManager from './ThreatManager';
 import LinkManager from './LinkManager';
 
