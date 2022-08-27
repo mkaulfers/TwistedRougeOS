@@ -1,6 +1,5 @@
-import { LogLevel, StampType } from "utils/Enums";
+import { StampType } from "utils/Enums";
 import { Utils } from "utils/Index";
-import { Logger } from "utils/Logger";
 
 export const Stamp = {
     plan: function (startPos: RoomPosition, stamp: StampType, plannedPositions: RoomPosition[], roomVisual?: RoomVisual) {
@@ -14,6 +13,8 @@ export const Stamp = {
                 site = labs; break
             case StampType.ANCHOR:
                 site = anchor; break
+            case StampType.OBSERVER:
+                site = observer; break
             case StampType.TOWER:
                 site = tower; break
             case StampType.EXTENSION:
@@ -77,6 +78,7 @@ export const Stamp = {
                 return 5
             case StampType.TOWER:
             case StampType.EXTENSION:
+            case StampType.OBSERVER:
                 return 1
         }
     },
@@ -90,6 +92,8 @@ export const Stamp = {
                 return labs
             case StampType.ANCHOR:
                 return anchor
+            case StampType.OBSERVER:
+                return observer
             case StampType.TOWER:
                 return tower
             case StampType.EXTENSION:
@@ -254,6 +258,14 @@ const extension: { xMod: number, yMod: number, structureType: BuildableStructure
     { xMod: 0, yMod: -1, structureType: STRUCTURE_ROAD },
     { xMod: -1, yMod: 0, structureType: STRUCTURE_ROAD },
     { xMod: 0, yMod: 0, structureType: STRUCTURE_EXTENSION },
+    { xMod: 1, yMod: 0, structureType: STRUCTURE_ROAD },
+    { xMod: 0, yMod: 1, structureType: STRUCTURE_ROAD },
+]
+
+const observer: { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] = [
+    { xMod: 0, yMod: -1, structureType: STRUCTURE_ROAD },
+    { xMod: -1, yMod: 0, structureType: STRUCTURE_ROAD },
+    { xMod: 0, yMod: 0, structureType: STRUCTURE_OBSERVER },
     { xMod: 1, yMod: 0, structureType: STRUCTURE_ROAD },
     { xMod: 0, yMod: 1, structureType: STRUCTURE_ROAD },
 ]

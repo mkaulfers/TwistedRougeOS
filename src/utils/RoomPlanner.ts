@@ -1,17 +1,12 @@
-import { LogLevel, StampType } from './Enums'
-import { Process } from "Models/Process";
-import { Logger } from "utils/Logger";
-import { Roles } from "Creeps/Index";
+import { StampType } from './Enums'
 import { Utils } from "utils/Index";
 import { Stamp } from "Models/Stamps";
 import { getCutTiles, Rectangle } from './RampartPlanner';
-import { start } from 'repl';
-import { all } from 'lodash';
-import { link } from 'fs';
 
 const buildOrder: (StampType)[] = [
     StampType.FAST_FILLER,
     StampType.ANCHOR,
+    StampType.OBSERVER,
     StampType.LABS,
     StampType.EXTENSIONS,
     StampType.EXTENSIONS,
@@ -82,7 +77,6 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
 
     room.memory.blueprint = {
         anchor: 0,
-        observer: 0,
         containers: [],
         links: [],
         highways: [],
@@ -103,11 +97,6 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
         if (stampPos) {
             stamps.push({ type: building, stampPos: Utils.Utility.packPosition(stampPos), completed: false })
             Stamp.plan(stampPos, building, plannedPositions, roomVisual)
-
-            if (building == StampType.ANCHOR) {
-                let observerPos = getValidPositionAroundPosition(stampPos, room, plannedPositions)
-                room.memory.blueprint.observer = Utils.Utility.packPosition(observerPos)
-            }
         }
     }
 

@@ -4,7 +4,7 @@ import { bodyCost, getBodyFor } from 'Managers/SpawnManager'
 import { Utils } from 'utils/Index'
 import { Logger } from 'utils/Logger'
 import { Roles } from '../Creeps/Index'
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from '../utils/Enums'
+import { Role, LogLevel } from '../utils/Enums'
 
 declare global {
     interface Room {

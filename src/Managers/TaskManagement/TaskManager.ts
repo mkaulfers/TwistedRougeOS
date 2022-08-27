@@ -102,7 +102,7 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
         if (!room) { return }
         let controller = room.controller
         if (!controller) { return }
-        // if (Game.time % 1500 != 0) { return }
+        if (Game.time % 1500 != 0) { return }
         if (Game.cpu.bucket > 500) {
             planRoom(room, false)
         }
@@ -143,6 +143,12 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
                     for (let ext of danglingExtensions) {
                         let pos = Utils.Utility.unpackPostionToRoom(ext.stampPos, room.name)
                         Stamp.buildStructure(pos, ext.type as StampType)
+                    }
+
+                    let observer = blueprint.stamps.find(stamp => { return stamp.type == StampType.OBSERVER })
+                    if (observer) {
+                        let pos = Utils.Utility.unpackPostionToRoom(observer.stampPos, room.name)
+                        Stamp.buildStructure(pos, observer.type as StampType)
                     }
                 case 7:
                     hubSkipped.splice(hubSkipped.indexOf(STRUCTURE_LINK), 1)

@@ -1,6 +1,6 @@
 import { Utils } from '../utils/Index'
 import { Roles } from '../Creeps/Index';
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
+import { Role, Task, LogLevel } from '../utils/Enums'
 import { Logger } from 'utils/Logger';
 
 /**
