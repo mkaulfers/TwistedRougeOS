@@ -108,13 +108,7 @@ var harvester = {
     shouldSpawn: function(room: Room): boolean {
         Utils.Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
         let sources = room.sources()
-        let allSourcesRealized = true
-        for (let source of sources) {
-            if (!source.isHarvestingAtMaxEfficiency()) {
-                allSourcesRealized = false
-            }
-        }
-        return !allSourcesRealized
+        return room.currentHarvesterWorkPotential() < sources.length * 10
     },
     baseBody: [CARRY, MOVE, WORK, WORK],
     segment: [WORK]

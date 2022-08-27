@@ -82,6 +82,7 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
 
     room.memory.blueprint = {
         anchor: 0,
+        observer: 0,
         containers: [],
         links: [],
         highways: [],
@@ -102,6 +103,11 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
         if (stampPos) {
             stamps.push({ type: building, stampPos: Utils.Utility.packPosition(stampPos), completed: false })
             Stamp.plan(stampPos, building, plannedPositions, roomVisual)
+
+            if (building == StampType.ANCHOR) {
+                let observerPos = getValidPositionAroundPosition(stampPos, room, plannedPositions)
+                room.memory.blueprint.observer = Utils.Utility.packPosition(observerPos)
+            }
         }
     }
 
@@ -340,12 +346,16 @@ function spiralSearch(startPosition: RoomPosition, structure: StampType, planned
     return undefined
 }
 
-function getValidPositionAroundPosition(position: PathStep, room: Room, roadPositions: PathStep[]): RoomPosition {
+function getValidPositionAroundPosition(position: PathStep | RoomPosition, room: Room, roadPositions: PathStep[] | RoomPosition[]): RoomPosition {
     //Get a position around the provided position that is not a wall or a road fromRoadPositions.
+    let range = 2
+    if (position instanceof RoomPosition) {
+        range = 5
+    }
     let validPositions: RoomPosition[] = []
-    for (let x = position.x - 1; x <= position.x + 1; x++) {
-        for (let y = position.y - 1; y <= position.y + 1; y++) {
-            if (room.lookForAt(LOOK_TERRAIN, x, y).includes('wall') || roadPositions.find(p => p.x == x && p.y == y) != undefined) {
+    for (let x = position.x - range; x <= position.x + range; x++) {
+        for (let y = position.y - range; y <= position.y + range; y++) {
+            if (room.lookForAt(LOOK_TERRAIN, x, y).includes('wall') || roadPositions.some(pos => pos.x == x && pos.y == y)) {
                 continue
             }
 

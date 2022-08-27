@@ -15,6 +15,13 @@ export function scheduleSpawnMonitor(room: Room) {
         let availableSpawn = room.getAvailableSpawn()
 
         if (availableSpawn) {
+            // let respawnRole: Creep | undefined = room.shouldPreSpawn(availableSpawn)
+            // if (respawnRole) {
+            //     room.spawnCreep(respawnRole.memory.role as Role, availableSpawn, respawnRole.memory)
+            //     availableSpawn = room.getAvailableSpawn()
+            //     if (!availableSpawn) { return }
+            // }
+
             for (let i = 0; i < Object.keys(Role).length; i++) {
                 let role = Object.values(Role)[i]
                 Logger.log(`Room -> scheduleSpawnMonitor() -> role: ${role}`, LogLevel.TRACE)
@@ -92,9 +99,10 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
 
     const constructionMonitor = () => {
         let room = Game.rooms[roomName]
+        if (!room) { return }
         let controller = room.controller
         if (!controller) { return }
-        if (Game.time % 1500 != 0) { return }
+        // if (Game.time % 1500 != 0) { return }
         if (Game.cpu.bucket > 500) {
             planRoom(room, false)
         }
@@ -121,6 +129,12 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
         if (blueprint) {
             switch (controller.level) {
                 case 8:
+
+                    // let constructionSites = room.constructionSites()
+                    // for (let site of constructionSites) {
+                    //     site.remove()
+                    // }
+
                     //TODO: Move original spawn to the new location.
                     //TODO: Where does the observer need to go?
                     fastFillerStructuresSkipped = []
@@ -149,6 +163,12 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
                             let pos = Utils.Utility.unpackPostionToRoom(lab.stampPos, room.name)
                             Stamp.buildStructure(pos, lab.type as StampType)
                         }
+                    }
+
+                    let minerals = room.minerals()
+                    for (let mineral of minerals) {
+                        let pos = mineral.pos
+                        pos.createConstructionSite(STRUCTURE_EXTRACTOR)
                     }
                 case 5:
                     //Farthest Source Link

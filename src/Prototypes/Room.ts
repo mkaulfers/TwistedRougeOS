@@ -1,6 +1,8 @@
 import trucker from 'Creeps/Trucker'
 import { Managers } from 'Managers/Index'
+import { bodyCost, getBodyFor } from 'Managers/SpawnManager'
 import { Utils } from 'utils/Index'
+import { Logger } from 'utils/Logger'
 import { Roles } from '../Creeps/Index'
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from '../utils/Enums'
 
@@ -10,7 +12,7 @@ declare global {
           * Returns a role that should be pre-spawned. The spawn should be scheduled for when a
           * creep is about to die + distance to location - spawn time = 0.
           */
-        roleToPreSpawn(): Role
+        shouldPreSpawn(spawn: StructureSpawn): Creep | undefined
         /**
          * We should only call this once per creep we are adding to the queue.
          * When it is called, it will add the creep to the scheduler, which will process it
@@ -25,7 +27,7 @@ declare global {
         shouldSpawn(role: Role): boolean
         scheduleTasks(): void
         creeps(role?: Role): Creep[];
-        spawnCreep(role: Role, spawn: StructureSpawn): void
+        spawnCreep(role: Role, spawn: StructureSpawn, memory?: CreepMemory): void
         getAvailableSpawn(): StructureSpawn | undefined
         sourcesEnergyPotential(): number
 
@@ -53,6 +55,7 @@ declare global {
 
         isSpawnDemandMet(): {met: boolean, demand: number}
         isScientistDemandMet(): {met: boolean, demand: number}
+        scientistsWorkCapacity(): number
         /**
          * Returns target goal for rampart HP in the room
         */
@@ -68,10 +71,13 @@ declare global {
         extractor(): StructureExtractor;
         extensions(): StructureExtension[];
         constructionSites(isBuilding?: BuildableStructureConstant): ConstructionSite[];
+        minerals(): Mineral[];
 
         maxExtensionsAvail(): number;
         maxTowersAvail(): number;
         maxLabsAvail(): number;
+
+        nextCreepToDie(): Creep | undefined;
     }
 }
 
@@ -172,11 +178,20 @@ Room.prototype.shouldSpawn = function (role: Role): boolean {
     }
 }
 
-Room.prototype.roleToPreSpawn = function (): Role {
-    return Role.HARVESTER
+Room.prototype.shouldPreSpawn = function (spawn: StructureSpawn): Creep | undefined {
+    let creep = this.nextCreepToDie()
+    let creepToSpawn: Creep | undefined
+    if (creep && creep.ticksToLive) {
+        let distFromSpawnToCreep = spawn.pos.getRangeTo(creep)
+        let totalTickCost = getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
+        if ( creep.ticksToLive * 1.02 <= totalTickCost) {
+            creepToSpawn = creep
+        }
+    }
+    return creepToSpawn
 }
 
-Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
+Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn, memory?: CreepMemory) {
     Utils.Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
     let body = Managers.SpawnManager.getBodyFor(this, role)
     let name = Managers.SpawnManager.generateNameFor(role)
@@ -195,11 +210,11 @@ Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
         body,
         name, {
         memory: {
-            task: task,
-            role: role,
-            working: false,
-            target: undefined,
-            homeRoom: this.name
+            task: memory ? memory.task : task,
+            role: memory? memory.role : role,
+            working: memory? memory.working : false,
+            target: memory ? memory.target : undefined,
+            homeRoom: memory ? memory.homeRoom : this.name
         }
     })
 }
@@ -310,25 +325,30 @@ Room.prototype.lowestScientist = function (): Creep | undefined {
 //     return { met: truckersFulfillingDemand >= totalDemand, demand: totalDemand }
 // }
 
-Room.prototype.rampartHPTarget = function(): number {
-    if (!this.controller) return 0;
-    switch (this.controller.level) {
-        case 1:
-        case 2:
-        case 3:
-            return 100000;
-        case 4:
-            return 500000;
-        case 5:
-            return 1000000;
-        case 6:
-            return 5000000;
-        case 7:
-        case 8:
-            return 10000000;
+Room.prototype.nextCreepToDie = function(): Creep | undefined {
+    let creeps = this.creeps()
+    let nextCreepToDie: Creep | undefined = undefined
+    for (let creep of creeps) {
+        if (!nextCreepToDie) { nextCreepToDie = creep }
+        if (creep.ticksToLive && nextCreepToDie.ticksToLive) {
+            if (creep.ticksToLive < nextCreepToDie.ticksToLive) {
+                nextCreepToDie = creep
+            }
+        }
     }
-    return 0;
+    Logger.log(`Next Creep To Die: ${nextCreepToDie ? nextCreepToDie.name : "None"}`, LogLevel.DEBUG)
+    return nextCreepToDie
 }
+
+Room.prototype.scientistsWorkCapacity = function (): number {
+    let scientists = this.creeps(Role.SCIENTIST)
+    let scientistsWorkCapacity = 0
+    for (let scientist of scientists) {
+        scientistsWorkCapacity += scientist.getActiveBodyparts(WORK)
+    }
+    return scientistsWorkCapacity
+}
+
 
 Room.prototype.updateCostMatrix = function () {
     let costMatrix = Utils.Utility.distanceTransform(this.name)
@@ -381,6 +401,29 @@ Room.prototype.labs = function() {
     return this.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LAB } }) as StructureLab[]
 }
 
+Room.prototype.minerals = function() {
+    return this.find(FIND_MINERALS)
+}
+
+Room.prototype.rampartHPTarget = function(): number {
+    if (!this.controller) return 0;
+    switch (this.controller.level) {
+        case 1:
+        case 2:
+        case 3:
+            return 100000;
+        case 4:
+            return 500000;
+        case 5:
+            return 1000000;
+        case 6:
+            return 5000000;
+        case 7:
+        case 8:
+            return 10000000;
+    }
+    return 0;
+}
 Room.prototype.maxExtensionsAvail = function (): number {
     let controller = this.controller
     if (!controller) return 0

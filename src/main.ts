@@ -26,6 +26,7 @@ declare global {
     costMatrix: string
     blueprint: {
       anchor: number,
+      observer: number,
       containers: number[],
       links: number[],
       highways: number[],
