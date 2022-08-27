@@ -61,7 +61,17 @@ declare global {
         /**
          * A room's towers, as found within the last 100 ticks || last time one died.
          */
-        towers(): StructureTower[] | undefined;
+        towers(): StructureTower[];
+        labs(): StructureLab[];
+        links(): StructureLink[];
+        nuker(): StructureNuker;
+        extractor(): StructureExtractor;
+        extensions(): StructureExtension[];
+        constructionSites(isBuilding?: BuildableStructureConstant): ConstructionSite[];
+
+        maxExtensionsAvail(): number;
+        maxTowersAvail(): number;
+        maxLabsAvail(): number;
     }
 }
 
@@ -325,13 +335,24 @@ Room.prototype.updateCostMatrix = function () {
     this.memory.costMatrix = JSON.stringify(costMatrix.serialize())
 }
 
+Room.prototype.constructionSites = function (ofType?: BuildableStructureConstant): ConstructionSite[]{
+    if (ofType) {
+        return this.find(FIND_MY_CONSTRUCTION_SITES).filter(x => x.structureType == ofType)
+    }
+    return this.find(FIND_MY_CONSTRUCTION_SITES)
+}
+
+Room.prototype.extensions = function (): StructureExtension[] {
+    return this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_EXTENSION) as StructureExtension[]
+}
+
 Room.prototype.towers = function() {
     if (!global.Cache) global.Cache = {};
     if (!global.Cache.rooms) global.Cache.rooms = {};
     if (!global.Cache.rooms[this.name]) global.Cache.rooms[this.name] = {};
     if (!global.Cache.rooms[this.name].towers || Game.time % 100 == 0) {
         let towers: StructureTower[] = this.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
-        if (towers.length == 0) return undefined;
+        if (towers.length == 0) return [];
         let towerIds: Id<StructureTower>[] = [];
         towers.forEach((t) => towerIds.push(t.id as Id<StructureTower>));
 
@@ -351,7 +372,77 @@ Room.prototype.towers = function() {
         }
 
         if (recalc == true) delete global.Cache.rooms[this.name].towers;
-        if (towers.length == 0) return undefined;
+        if (towers.length == 0) return [];
         return towers;
     }
 }
+
+Room.prototype.labs = function() {
+    return this.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LAB } }) as StructureLab[]
+}
+
+Room.prototype.maxExtensionsAvail = function (): number {
+    let controller = this.controller
+    if (!controller) return 0
+    switch (controller.level) {
+        case 1:
+            return 0;
+        case 2:
+            return 5;
+        case 3:
+            return 10;
+        case 4:
+            return 20;
+        case 5:
+            return 30;
+        case 6:
+            return 40;
+        case 7:
+            return 50;
+        case 8:
+            return 60;
+    }
+    return 0
+}
+
+    Room.prototype.maxTowersAvail = function (): number {
+    let controller = this.controller
+    if (!controller) return 0
+    switch (controller.level) {
+        case 1:
+        case 2:
+            return 0;
+        case 3:
+        case 4:
+            return 1;
+        case 5:
+        case 6:
+            return 2;
+        case 7:
+            return 3;
+        case 8:
+            return 6;
+    }
+    return 0
+}
+
+Room.prototype.maxLabsAvail = function (): number {
+    let controller = this.controller
+    if (!controller) return 0
+    switch (controller.level) {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            return 0;
+        case 6:
+            return 3;
+        case 7:
+            return 6;
+        case 8:
+            return 10;
+    }
+    return 0
+}
+

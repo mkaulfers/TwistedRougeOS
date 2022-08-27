@@ -1,4 +1,5 @@
 import { LogLevel, StampType } from "utils/Enums";
+import { Utils } from "utils/Index";
 import { Logger } from "utils/Logger";
 
 export const Stamp = {
@@ -34,13 +35,31 @@ export const Stamp = {
             }
         }
     },
-    build(position: RoomPosition, structureType: StampType, omitting?: BuildableStructureConstant[]) {
+    buildStructure(position: RoomPosition, structureType: StampType, omitting?: BuildableStructureConstant[]) {
         let room = Game.rooms[position.roomName]
-        let stamp = this.getStamp(structureType)
+        let stamp = this.getStampParts(structureType)
         for (let part of stamp) {
+            let placementPosition = new RoomPosition(position.x + part.xMod, position.y + part.yMod, position.roomName)
             if (omitting) {
                 if (omitting.indexOf(part.structureType) == -1) {
-                    let placementPosition = new RoomPosition(position.x + part.xMod, position.y + part.yMod, position.roomName)
+                    placementPosition.createConstructionSite(part.structureType)
+                }
+            } else {
+                let placementPosition = new RoomPosition(position.x + part.xMod, position.y + part.yMod, position.roomName)
+                placementPosition.createConstructionSite(part.structureType)
+            }
+        }
+    },
+    buildStructureRoads(room: Room) {
+        let blueprint = room.memory.blueprint
+        for (let stamp of blueprint.stamps) {
+            let pos = Utils.Utility.unpackPostionToRoom(stamp.stampPos, room.name)
+            let stampType = stamp.type as StampType
+            let stampParts = this.getStampParts(stampType)
+
+            for (let part of stampParts) {
+                if (part.structureType == STRUCTURE_ROAD) {
+                    let placementPosition = new RoomPosition(pos.x + part.xMod, pos.y + part.yMod, pos.roomName)
                     placementPosition.createConstructionSite(part.structureType)
                 }
             }
@@ -61,7 +80,7 @@ export const Stamp = {
                 return 1
         }
     },
-    getStamp(type: StampType): { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] {
+    getStampParts(type: StampType): { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] {
         switch (type) {
             case StampType.FAST_FILLER:
                 return fastFiller
@@ -78,7 +97,7 @@ export const Stamp = {
         }
     },
     containsPos(type: StampType, stampX: number, stampY: number, targetX: number, targetY: number): boolean {
-        let stamp = Stamp.getStamp(type)
+        let stamp = Stamp.getStampParts(type)
         for (let part of stamp) {
             if (stampX + part.xMod == targetX && stampY + part.yMod == targetY) {
                 return true

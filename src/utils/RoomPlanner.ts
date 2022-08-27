@@ -177,6 +177,7 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
     }
 
     let pathToController = blueprintAnchor.findPathTo(room.controller.pos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+    pathToController.splice(pathToController.length - 1, 1)
     roadPositions = roadPositions.concat(pathToController)
 
     let controllerLink = pathToController[pathToController.length - 3]
@@ -396,7 +397,7 @@ function doesStampFitAtPosition(x: number, y: number, room: Room, structure: Sta
         structure == StampType.FAST_FILLER ||
         structure == StampType.TOWER ||
         structure == StampType.EXTENSION) {
-        let rawStamp = Stamp.getStamp(structure)
+        let rawStamp = Stamp.getStampParts(structure)
         let stampPositions: { x: number, y: number }[] = []
         for (let part of rawStamp) {
             stampPositions.push({ x: x + part.xMod, y: y + part.yMod })
