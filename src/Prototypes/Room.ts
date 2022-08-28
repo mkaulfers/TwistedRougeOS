@@ -1,4 +1,3 @@
-import trucker from 'Creeps/Trucker'
 import { Managers } from 'Managers/Index'
 import { bodyCost, getBodyFor } from 'Managers/SpawnManager'
 import { Utils } from 'utils/Index'

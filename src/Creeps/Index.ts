@@ -1,11 +1,11 @@
-import engineer from './Engineer';
-import harvester from './Harvester';
-import scientist from './Scientist';
-import trucker from './Trucker';
+import { Engineer } from './Engineer';
+import { Harvester } from './Harvester';
+import { Scientist } from './Scientist';
+import { Trucker } from './Trucker';
 
 export var Roles = {
-    Engineer: engineer,
-    Harvester: harvester,
-    Scientist: scientist,
-    Trucker: trucker,
+    Engineer: Engineer,
+    Harvester: Harvester,
+    Scientist: Scientist,
+    Trucker: Trucker,
 }

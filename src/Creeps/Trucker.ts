@@ -3,8 +3,8 @@ import { Utils } from "utils/Index"
 import { Logger } from "utils/Logger";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
-var trucker = {
-    truckerStorage: function(creep: Creep) {
+export class Trucker extends Creep {
+    static truckerStorage(creep: Creep) {
         let creepId = creep.id
 
         const truckerHarvesterTask = () => {
@@ -115,8 +115,9 @@ var trucker = {
         creep.memory.task = Task.TRUCKER_STORAGE
         let newProcess = new Process(creep.name, ProcessPriority.LOW, truckerHarvesterTask)
         global.scheduler.addProcess(newProcess)
-    },
-    truckerScientist: function(creep: Creep) {
+    }
+
+    static truckerScientist(creep: Creep) {
         let creepId = creep.id;
 
         const truckerScientistTask = () => {
@@ -227,8 +228,9 @@ var trucker = {
         creep.memory.task = Task.TRUCKER_SCIENTIST
         let newProcess = new Process(creep.name, ProcessPriority.LOW, truckerScientistTask)
         global.scheduler.addProcess(newProcess)
-    },
-    dispatch: function(room: Room) {
+    }
+
+    static dispatch(room: Room) {
         let turrets = room.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER }});
         turrets = turrets.filter((t) => { return ( 'store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)})
         if (room.energyAvailable < room.energyCapacityAvailable || turrets.length > 0) {
@@ -256,17 +258,17 @@ var trucker = {
                     truckers[0].memory.task = undefined
             }
         }
-    },
-    shouldSpawn(room: Room): boolean {
+    }
+
+    static shouldSpawn(room: Room): boolean {
         if (room.creeps().filter(x => x.memory.role == Role.HARVESTER).length < 1) { return false }
         Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.DEBUG)
         Logger.log(`Demand to Meet: ${room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.DEBUG)
         if (room.truckersCarryCapacity() > room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)) { return false }
         return true
-    },
-    baseBody: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
-    segment: [CARRY, CARRY, MOVE],
-    carryModifier: 3.
-}
+    }
 
-export default trucker;
+    static baseBody = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
+    static segment = [CARRY, CARRY, MOVE]
+    static carryModifier = 3.0
+}
