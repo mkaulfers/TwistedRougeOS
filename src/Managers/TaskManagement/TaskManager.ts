@@ -5,6 +5,7 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from 
 import { Utils } from "utils/Index";
 import { Stamp } from "Models/Stamps";
 import { planRoom } from "utils/RoomPlanner";
+import { Harvester } from "Creeps/Harvester";
 
 
 export function scheduleSpawnMonitor(room: Room) {

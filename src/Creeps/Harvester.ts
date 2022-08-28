@@ -3,8 +3,8 @@ import { Utils } from "utils/Index"
 
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
-var harvester = {
-    harvesterEarlyTask: function(creep: Creep) {
+export class Harvester extends Creep {
+    static harvesterEarlyTask(creep: Creep) {
         let creepId = creep.id
 
         const earlyTask = () => {
@@ -42,8 +42,10 @@ var harvester = {
         creep.memory.task = Task.HARVESTER_EARLY
         let newProcess = new Process(creep.name, ProcessPriority.LOW, earlyTask)
         global.scheduler.addProcess(newProcess)
-    },
-    harvesterSource: function(creep: Creep) {
+    }
+
+
+    static harvesterSource(creep: Creep) {
         let creepId = creep.id
 
         const sourceTask = () => {
@@ -71,7 +73,7 @@ var harvester = {
                     let dumps = creep.pos.findInRange(FIND_STRUCTURES, 1);
                     if (dumps.length > 0) {
                         let accepted: StructureConstant[] = [STRUCTURE_CONTAINER, STRUCTURE_LINK];
-                        dumps = _.filter(dumps, function(d) { return (accepted.indexOf(d.structureType) >= 0)});
+                        dumps = _.filter(dumps, function (d) { return (accepted.indexOf(d.structureType) >= 0) });
                         let dump: any = dumps[0];
                         creep.give(dump, RESOURCE_ENERGY);
                     }
@@ -86,8 +88,9 @@ var harvester = {
         creep.memory.task = Task.HARVESTER_SOURCE
         let newProcess = new Process(creep.name, ProcessPriority.LOW, sourceTask)
         global.scheduler.addProcess(newProcess)
-    },
-    dispatch: function(room: Room) {
+    }
+
+    static dispatch(room: Room) {
         let harvesters = room.creeps(Role.HARVESTER)
         let truckers = room.creeps(Role.TRUCKER)
         if (truckers.length < 1) {
@@ -103,14 +106,14 @@ var harvester = {
                 }
             }
         }
-    },
-    shouldSpawn: function(room: Room): boolean {
+    }
+
+    static shouldSpawn(room: Room): boolean {
         Utils.Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
         let sources = room.sources()
         return room.currentHarvesterWorkPotential() < sources.length * 10
-    },
-    baseBody: [CARRY, MOVE, WORK, WORK],
-    segment: [WORK]
-}
+    }
 
-export default harvester;
+    static baseBody = [CARRY, MOVE, WORK, WORK]
+    static segment = [WORK]
+}
