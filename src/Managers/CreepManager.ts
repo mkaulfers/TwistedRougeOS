@@ -1,27 +1,9 @@
-import { Utils } from "utils/Index";
-import { Roles } from "Creeps/Index";
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from '../utils/Enums';
-import { Process } from "Models/Process";
+import { Roles } from "Creeps/Index"
+import { Process } from "Models/Process"
+import { Utils } from "utils/Index"
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from '../utils/Enums'
 
-class CreepManager {
-    static scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
-        const roomName = room.name
-        if (global.scheduler.processQueue.has(`${roomName}_task_monitor`)) { return }
-
-        const roomTaskMonitor = () => {
-            let room = Game.rooms[roomName]
-            let roles = _.keys(Roles) as Array<keyof typeof Roles>; // triage change to make this role-confirming section work.
-
-            _.forEach(roles, function(role) {
-                if (room.creeps().length < 1) { return }
-                Roles[role].dispatch(room);
-            });
-        }
-
-        let process = new Process(`${roomName}_task_monitor`, ProcessPriority.CRITICAL, roomTaskMonitor)
-        global.scheduler.addProcess(process)
-    }
-
+export default class CreepManager {
     static scheduleCreepTask(room: Room) {
         Utils.Logger.log("Room -> scheduleCreepTask()", LogLevel.TRACE)
         let creeps = room.creeps(undefined)
@@ -58,5 +40,21 @@ class CreepManager {
         }
     }
 
+    static scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
+        const roomName = room.name
+        if (global.scheduler.processQueue.has(`${roomName}_task_monitor`)) { return }
 
+        const roomTaskMonitor = () => {
+            let room = Game.rooms[roomName]
+            let roles = _.keys(Roles) as Array<keyof typeof Roles>; // triage change to make this role-confirming section work.
+            if (!room) { return }
+            _.forEach(roles, function (role) {
+                if (room.creeps().length < 1) { return }
+                Roles[role].dispatch(room);
+            });
+        }
+
+        let process = new Process(`${roomName}_task_monitor`, ProcessPriority.CRITICAL, roomTaskMonitor)
+        global.scheduler.addProcess(process)
+    }
 }

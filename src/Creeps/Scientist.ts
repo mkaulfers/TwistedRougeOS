@@ -2,8 +2,8 @@ import { Process } from "Models/Process";
 import { Logger } from "utils/Logger"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
-var scientist = {
-    scientistUpgrading: function(creep: Creep) {
+export class Scientist extends Creep {
+    static scientistUpgrading(creep: Creep) {
         let creepId = creep.id
 
         const upgradingTask = () => {
@@ -12,7 +12,7 @@ var scientist = {
             let creep = Game.getObjectById(creepId);
             if (!creep) {
                 Logger.log(creepId, LogLevel.FATAL);
-                return ProcessResult.FAILED ;
+                return ProcessResult.FAILED;
             }
 
             if (!Game.rooms[creep.memory.homeRoom]) return ProcessResult.FAILED;
@@ -30,21 +30,23 @@ var scientist = {
         creep.memory.task = Task.SCIENTIST_UPGRADING
         let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
         global.scheduler.addProcess(newProcess)
-    },
-    dispatch: function(room: Room) {
+    }
+
+    static dispatch(room: Room) {
         let scientists = room.creeps(Role.SCIENTIST)
         for (let scientist of scientists) {
             if (!scientist.memory.task) {
                 global.scheduler.swapProcess(scientist, Task.SCIENTIST_UPGRADING)
             }
         }
-    },
-    shouldSpawn: function(room: Room): boolean {
+    }
+
+    static shouldSpawn(room: Room): boolean {
         let scientists = room.creeps(Role.SCIENTIST)
         let controller = room.controller
         if (!controller) return false
 
-        if (room.scientistsWorkCapacity() >= 15 && controller.level == 8) { return false}
+        if (room.scientistsWorkCapacity() >= 15 && controller.level == 8) { return false }
 
         let sources = room.sources()
         let areAllSourcesRealized = sources.every(source => source.isHarvestingAtMaxEfficiency())
@@ -55,9 +57,8 @@ var scientist = {
 
         let hasRemainingEnergyToUse = room.currentHarvesterWorkPotential() >= totalEnergyConsumption
         return areAllSourcesRealized && hasRemainingEnergyToUse || scientists.length < controller.level && room.creeps(Role.HARVESTER).length > 0
-    },
-    baseBody: [CARRY, MOVE, WORK, WORK],
-    segment: [CARRY, WORK, WORK],
-}
+    }
 
-export default scientist;
+    static baseBody = [CARRY, MOVE, WORK, WORK]
+    static segment = [CARRY, WORK, WORK]
+}

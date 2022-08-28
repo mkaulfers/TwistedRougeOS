@@ -1,10 +1,9 @@
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
-import { Logger } from "utils/Logger"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel } from '../utils/Enums'
 
-var ThreatManager = {
-    scheduleThreatMonitor: function(room: Room) {
+export default class ThreatManager {
+    static scheduleThreatMonitor(room: Room) {
         let roomName = room.name;
         let roomProcessId = roomName + "_threat_monitor";
         if (global.scheduler.processQueue.has(roomProcessId)) return;
@@ -31,10 +30,10 @@ var ThreatManager = {
             switch (true) {
                 case (playerAttackers.length == 0 && invaderAttackers.length == 0):
 
-                    if (Game.time % 50 == 0) ThreatManager.towerHeal(room);
+                    if (Game.time % 50 == 0) this.towerHeal(room);
                     break;
                 case (playerAttackers.length == 0 && invaderAttackers.length > 0):
-                    ThreatManager.towerAttack(invaderAttackers[0]);
+                    this.towerAttack(invaderAttackers[0]);
                     break;
                 case (playerAttackers.length > 0 && invaderAttackers.length == 0): case (playerAttackers.length > 0 && invaderAttackers.length > 0):
 
@@ -49,7 +48,7 @@ var ThreatManager = {
                         let potential: AnyCreep;
                         let currentRelBodyLength: number = 0;
                         for (let enemy of playerAttackers) {
-                            if (!ThreatManager.canKill(enemy)) continue;
+                            if (!this.canKill(enemy)) continue;
                             let eRelBodyLength = enemy.body.filter((p) => { return (p.type === WORK || p.type === ATTACK || p.type === RANGED_ATTACK)}).length;
                             if (currentRelBodyLength && currentRelBodyLength < eRelBodyLength) {
                                 potential = enemy;
@@ -64,13 +63,13 @@ var ThreatManager = {
                     let targetId = global.Cache.rooms[room.name].towerTarget;
                     if (targetId && Game.getObjectById(targetId) !== null) {
                         target = Game.getObjectById(targetId) as AnyCreep;
-                        ThreatManager.towerAttack(target);
+                        this.towerAttack(target);
                     } else if (invaderAttackers.length > 0) {
-                        ThreatManager.towerAttack(invaderAttackers[0]);
+                        this.towerAttack(invaderAttackers[0]);
                     }
 
                     // Safemode Handling
-                    ThreatManager.safeModer(room);
+                    this.safeModer(room);
                     break;
             }
             return ProcessResult.RUNNING;
@@ -78,8 +77,9 @@ var ThreatManager = {
 
         let newProcess = new Process(roomProcessId, ProcessPriority.LOW, monitorTask)
         global.scheduler.addProcess(newProcess)
-    },
-    safeModer: function(room: Room) {
+    }
+
+    static safeModer(room: Room) {
         Utils.Logger.log(`ThreatManager -> safeModer`, LogLevel.TRACE)
 
         let controller = room.controller
@@ -144,8 +144,9 @@ var ThreatManager = {
             controller.activateSafeMode();
         }
 
-    },
-    canKill: function(creep: AnyCreep): boolean {
+    }
+
+    static canKill(creep: AnyCreep): boolean {
         Utils.Logger.log(`ThreatManager -> canKill`, LogLevel.TRACE)
 
         // TODO: Flesh out power creep handling
@@ -184,8 +185,9 @@ var ThreatManager = {
         } else {
             return false;
         }
-    },
-    towerAttack: function(target: AnyCreep) {
+    }
+
+    static towerAttack(target: AnyCreep) {
         Utils.Logger.log(`ThreatManager -> towerAttack`, LogLevel.TRACE)
 
         let room = target.room as Room;
@@ -196,8 +198,9 @@ var ThreatManager = {
         for (let tower of towers) {
             tower.attack(target);
         }
-    },
-    towerHeal: function(room: Room) {
+    }
+
+    static towerHeal(room: Room) {
         Utils.Logger.log(`ThreatManager -> towerHeal`, LogLevel.TRACE)
 
         let towers = room.towers();
@@ -214,5 +217,3 @@ var ThreatManager = {
         }
     }
 }
-
-export default ThreatManager;

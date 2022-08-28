@@ -2,9 +2,8 @@ import { Utils } from "utils/Index"
 import { Process } from "../Models/Process"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
-
-var engineer = {
-    engineerBuilding: function(creep: Creep) {
+export class Engineer extends Creep {
+    static engineerBuilding(creep: Creep) {
         let creepId = creep.id
 
         const buildingTask = () => {
@@ -89,8 +88,9 @@ var engineer = {
         creep.memory.task = Task.ENGINEER_BUILDING
         let newProcess = new Process(creep.name, ProcessPriority.LOW, buildingTask)
         global.scheduler.addProcess(newProcess)
-    },
-    engineerRepairing: function(creep: Creep) {
+    }
+
+    static engineerRepairing(creep: Creep) {
         let creepId = creep.id
 
         const repairingTask = () => {
@@ -185,8 +185,9 @@ var engineer = {
         creep.memory.task = Task.ENGINEER_REPAIRING
         let newProcess = new Process(creep.name, ProcessPriority.LOW, repairingTask)
         global.scheduler.addProcess(newProcess)
-    },
-    engineerUpgrading: function(creep: Creep) {
+    }
+
+    static engineerUpgrading(creep: Creep) {
         let creepId = creep.id
 
         const upgradingTask = () => {
@@ -270,8 +271,9 @@ var engineer = {
         creep.memory.task = Task.ENGINEER_UPGRADING
         let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
         global.scheduler.addProcess(newProcess)
-    },
-    dispatch: function(room: Room) {
+    }
+
+    static dispatch(room: Room) {
         Utils.Logger.log("CreepDispatch -> engineer.dispatch()", LogLevel.TRACE)
 
         let engineers = room.creeps(Role.ENGINEER)
@@ -342,15 +344,15 @@ var engineer = {
             }
         }
 
-    },
-    shouldSpawn: function(room: Room): boolean {
+    }
+
+    static shouldSpawn(room: Room): boolean {
         if (!(room.controller && room.controller.my && room.controller.level >= 2)) { return false }
         if (room.constructionSites.length > 0 && room.creeps(Role.ENGINEER).length > 1) { return false }
         if (room.creeps(Role.ENGINEER).length >= room.controller.level) { return false }
         return true
-    },
-    baseBody: [CARRY, MOVE, WORK, WORK],
-    segment: [CARRY, MOVE, WORK, WORK],
-}
+    }
 
-export default engineer;
+    static baseBody = [CARRY, MOVE, WORK, WORK]
+    static segment = [CARRY, MOVE, WORK, WORK]
+}

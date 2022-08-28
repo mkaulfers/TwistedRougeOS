@@ -37,39 +37,40 @@ declare global {
       }
 }
 
-var visuals = {
-    visualsHandler: function() {
+export default class Visuals {
+    static visualsHandler() {
 
         const visualsHandler = () => {
             if (global.visualToggles && global.visualToggles.roomPlanning == true) {
-                visuals.roomPlanning();
+                this.roomPlanning();
             }
 
             if (global.visualToggles && global.visualToggles.distanceTransform == true) {
-                visuals.distanceTransform();
+                this.distanceTransform();
             }
 
             if (global.visualToggles && global.visualToggles.pathfinding == true) {
-                visuals.pathfinding();
+                this.pathfinding();
             }
 
             if (global.visualToggles && global.visualToggles.worldRoomScoring == true) {
-                visuals.worldRoomScoring();
+                this.worldRoomScoring();
             }
 
             if (global.visualToggles && global.visualToggles.worldRemotes == true) {
-                visuals.worldRemotes();
+                this.worldRemotes();
             }
 
             if (global.visualToggles && global.visualToggles.worldPathfinding == true) {
-                visuals.worldPathfinding();
+                this.worldPathfinding();
             }
         }
 
         let newProcess = new Process('visualsHandler', ProcessPriority.LOW, visualsHandler)
         global.scheduler.addProcess(newProcess)
-    },
-    roomPlanning: function() {
+    }
+
+    static roomPlanning() {
         // for (const roomName in Memory.rooms) {
         //     if (!Memory.rooms[roomName] || !Memory.rooms[roomName].blueprint) continue;
         //     let roomPlan = Memory.rooms[roomName].blueprint;
@@ -91,22 +92,25 @@ var visuals = {
         //     }
         //     rVis.connectRoads();
         // }
-    },
-    distanceTransform: function() {
+    }
+
+    static distanceTransform() {
         if (!global.tempForVisuals || !global.tempForVisuals.distanceTransform) return;
         for (const roomName in global.tempForVisuals.distanceTransform) {
             let costMatrix = PathFinder.CostMatrix.deserialize(global.tempForVisuals.distanceTransform[roomName])
             new RoomVisual(roomName).costMatrix(costMatrix);
         }
-    },
-    pathfinding: function() {
+    }
+
+    static pathfinding() {
         if (!global.tempForVisuals || !global.tempForVisuals.pathfinding) return;
         for (const roomName in global.tempForVisuals.pathfinding) {
             let costMatrix = PathFinder.CostMatrix.deserialize(global.tempForVisuals.pathfinding[roomName])
             new RoomVisual(roomName).costMatrix(costMatrix);
         }
-    },
-    worldRoomScoring: function() {
+    }
+
+    static worldRoomScoring() {
         if (!global.tempForVisuals || !global.tempForVisuals.worldRoomScoring) return;
         for (const roomName in global.tempForVisuals.worldRoomScoring) {
             let scoreData = global.tempForVisuals.worldRoomScoring[roomName];
@@ -114,8 +118,9 @@ var visuals = {
             Game.map.visual.text(`${scoreData.openSpace}`, new RoomPosition(15,37,roomName), {fontSize: 8});
             Game.map.visual.text(`${scoreData.plainSpace}`, new RoomPosition(34,37,roomName), {fontSize: 8});
         }
-    },
-    worldRemotes: function() {
+    }
+
+    static worldRemotes() {
         for (let roomName in Game.rooms) {
             if (!Memory.rooms[roomName] || !Memory.rooms[roomName].remotes || Memory.rooms[roomName].remotes!.length == 0) continue;
             let home = new RoomPosition(25,25,roomName);
@@ -125,9 +130,9 @@ var visuals = {
                 Game.map.visual.line(rPos, home, {color: '#ffffff', width: 2.0});
             }
         }
+    }
 
-    },
-    worldPathfinding: function() {
+    static worldPathfinding() {
         if (!global.tempForVisuals || !global.tempForVisuals.worldPathfinding) return;
         for (const roomName in global.tempForVisuals.worldPathfinding) {
             let pathData = global.tempForVisuals.worldPathfinding[roomName];
@@ -167,8 +172,5 @@ var visuals = {
                 }
             }
         }
-    },
-
+    }
 }
-
-export default visuals;

@@ -1,11 +1,10 @@
 import { link } from "fs"
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
-import { Logger } from "utils/Logger"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from '../utils/Enums'
 
-var LinkManager = {
-    schedule: function(room: Room) {
+export default class LinkManager {
+    static schedule(room: Room) {
         let roomName = room.name;
         let roomProcessId = roomName + "_link_monitor";
         if (global.scheduler.processQueue.has(roomProcessId)) return;
@@ -49,7 +48,7 @@ var LinkManager = {
             }
 
             // Build links to work with
-            let links = LinkManager.links(room);
+            let links = this.links(room);
             if (!links) return ProcessResult.RUNNING;
 
             let linkStates = global.Cache.rooms[room.name].links;
@@ -71,8 +70,9 @@ var LinkManager = {
 
         let newProcess = new Process(roomProcessId, ProcessPriority.LOW, task)
         global.scheduler.addProcess(newProcess)
-    },
-    links: function(room: Room) {
+    }
+
+    static links(room: Room) {
         if (!global.Cache.rooms) return;
         let links: StructureLink[] = [];
 
@@ -88,5 +88,3 @@ var LinkManager = {
             return;
     }
 }
-
-export default LinkManager;
