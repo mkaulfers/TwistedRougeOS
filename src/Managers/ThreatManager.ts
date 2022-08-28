@@ -154,7 +154,7 @@ var ThreatManager = {
         let owner = creep.owner.username;
 
         let towers = creep.room.towers();
-        if (!towers || towers.length === 0) return false;
+        if (towers.length === 0) return false;
 
         // TODO: Modify to add boost calculations
         let itsHeal = creep.body.filter((p) => p.type === HEAL);
@@ -191,7 +191,7 @@ var ThreatManager = {
         let room = target.room as Room;
         let towers = room.towers();
 
-        if (!towers) return;
+        if (towers.length == 0) return;
 
         for (let tower of towers) {
             tower.attack(target);
@@ -201,7 +201,7 @@ var ThreatManager = {
         Utils.Logger.log(`ThreatManager -> towerHeal`, LogLevel.TRACE)
 
         let towers = room.towers();
-        if (!towers) return;
+        if (towers.length === 0) return;
 
         for (let tower of towers) {
             // Find in range 5 to be maximally energy efficient
