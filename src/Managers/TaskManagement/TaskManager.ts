@@ -102,7 +102,26 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
         if (!room) { return }
         let controller = room.controller
         if (!controller) { return }
-        if (Game.time % 1500 != 0) { return }
+
+        if (global.recentlyAttacked) {
+            let constructionSites = room.constructionSites()
+            for (let site of constructionSites) {
+                if (site.structureType != STRUCTURE_RAMPART) {
+                    site.remove()
+                }
+
+                let packedRamparts = room.memory.blueprint.ramparts
+                for (let rampart of packedRamparts) {
+                    let pos = Utils.Utility.unpackPostionToRoom(rampart, room.name)
+                    pos.createConstructionSite(STRUCTURE_RAMPART)
+                }
+            }
+        }
+
+        if (!(global.recentlyAttacked && Game.time - global.attackedTime < 10)) {
+            if (Game.time % 1500 != 0) { return }
+        }
+
         if (Game.cpu.bucket > 500) {
             planRoom(room, false)
         }
@@ -129,14 +148,6 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
         if (blueprint) {
             switch (controller.level) {
                 case 8:
-
-                    // let constructionSites = room.constructionSites()
-                    // for (let site of constructionSites) {
-                    //     site.remove()
-                    // }
-
-                    //TODO: Move original spawn to the new location.
-                    //TODO: Where does the observer need to go?
                     fastFillerStructuresSkipped = []
                     hubSkipped = []
                     let danglingExtensions = blueprint.stamps.filter(stamp => { return stamp.type == StampType.EXTENSION })
@@ -177,6 +188,12 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
                         pos.createConstructionSite(STRUCTURE_EXTRACTOR)
                     }
                 case 5:
+                    let packedRamparts = blueprint.ramparts
+                    for (let rampart of packedRamparts) {
+                        let pos = Utils.Utility.unpackPostionToRoom(rampart, room.name)
+                        pos.createConstructionSite(STRUCTURE_RAMPART)
+                    }
+
                     //Farthest Source Link
                     let links = blueprint.links
                     let sources = room.sources()
@@ -218,7 +235,6 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
                         }
                     }
 
-
                     let hub = blueprint.stamps.filter(x => x.type == StampType.ANCHOR)[0]
                     let hubPos = Utils.Utility.unpackPostionToRoom(hub.stampPos, room.name)
                     Stamp.buildStructure(hubPos, StampType.ANCHOR, hubSkipped)
@@ -246,6 +262,10 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
                         let containerPos = Utils.Utility.unpackPostionToRoom(container, room.name)
                         //If container is adjacent to a source build it.
                         if (containerPos.findInRange(FIND_SOURCES, 2).length > 0) {
+                            containerPos.createConstructionSite(STRUCTURE_CONTAINER)
+                        }
+
+                        if (containerPos.findInRange(FIND_MINERALS, 2).length > 0) {
                             containerPos.createConstructionSite(STRUCTURE_CONTAINER)
                         }
                     }
