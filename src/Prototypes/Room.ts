@@ -1,8 +1,10 @@
 import trucker from 'Creeps/Trucker'
 import { Managers } from 'Managers/Index'
+import { bodyCost, getBodyFor } from 'Managers/SpawnManager'
 import { Utils } from 'utils/Index'
+import { Logger } from 'utils/Logger'
 import { Roles } from '../Creeps/Index'
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from '../utils/Enums'
+import { Role, LogLevel } from '../utils/Enums'
 
 declare global {
     interface Room {
@@ -10,7 +12,7 @@ declare global {
           * Returns a role that should be pre-spawned. The spawn should be scheduled for when a
           * creep is about to die + distance to location - spawn time = 0.
           */
-        roleToPreSpawn(): Role
+        shouldPreSpawn(spawn: StructureSpawn): Creep | undefined
         /**
          * We should only call this once per creep we are adding to the queue.
          * When it is called, it will add the creep to the scheduler, which will process it
@@ -25,7 +27,7 @@ declare global {
         shouldSpawn(role: Role): boolean
         scheduleTasks(): void
         creeps(role?: Role): Creep[];
-        spawnCreep(role: Role, spawn: StructureSpawn): void
+        spawnCreep(role: Role, spawn: StructureSpawn, memory?: CreepMemory): void
         getAvailableSpawn(): StructureSpawn | undefined
         sourcesEnergyPotential(): number
 
@@ -34,6 +36,9 @@ declare global {
 
         // n WORK bodies in the room, x 1 per tick.
         scientistEnergyConsumption(): number
+
+        // n WORK bodies in the room, x 1 per tick.
+        engineerEnergyConsumption(): number
 
         // n CARRY bodies in the room, on truckers, x 50.
         truckersCarryCapacity(): number
@@ -50,6 +55,7 @@ declare global {
 
         isSpawnDemandMet(): {met: boolean, demand: number}
         isScientistDemandMet(): {met: boolean, demand: number}
+        scientistsWorkCapacity(): number
         /**
          * Returns target goal for rampart HP in the room
         */
@@ -58,7 +64,20 @@ declare global {
         /**
          * A room's towers, as found within the last 100 ticks || last time one died.
          */
-        towers(): StructureTower[] | undefined;
+        towers(): StructureTower[];
+        labs(): StructureLab[];
+        links(): StructureLink[];
+        nuker(): StructureNuker;
+        extractor(): StructureExtractor;
+        extensions(): StructureExtension[];
+        constructionSites(isBuilding?: BuildableStructureConstant): ConstructionSite[];
+        minerals(): Mineral[];
+
+        maxExtensionsAvail(): number;
+        maxTowersAvail(): number;
+        maxLabsAvail(): number;
+
+        nextCreepToDie(): Creep | undefined;
     }
 }
 
@@ -159,11 +178,20 @@ Room.prototype.shouldSpawn = function (role: Role): boolean {
     }
 }
 
-Room.prototype.roleToPreSpawn = function (): Role {
-    return Role.HARVESTER
+Room.prototype.shouldPreSpawn = function (spawn: StructureSpawn): Creep | undefined {
+    let creep = this.nextCreepToDie()
+    let creepToSpawn: Creep | undefined
+    if (creep && creep.ticksToLive) {
+        let distFromSpawnToCreep = spawn.pos.getRangeTo(creep)
+        let totalTickCost = getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
+        if ( creep.ticksToLive * 1.02 <= totalTickCost) {
+            creepToSpawn = creep
+        }
+    }
+    return creepToSpawn
 }
 
-Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
+Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn, memory?: CreepMemory) {
     Utils.Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
     let body = Managers.SpawnManager.getBodyFor(this, role)
     let name = Managers.SpawnManager.generateNameFor(role)
@@ -182,11 +210,11 @@ Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn) {
         body,
         name, {
         memory: {
-            task: task,
-            role: role,
-            working: false,
-            target: undefined,
-            homeRoom: this.name
+            task: memory ? memory.task : task,
+            role: memory? memory.role : role,
+            working: memory? memory.working : false,
+            target: memory ? memory.target : undefined,
+            homeRoom: memory ? memory.homeRoom : this.name
         }
     })
 }
@@ -248,6 +276,15 @@ Room.prototype.scientistEnergyConsumption = function (): number {
     return scientistEnergyConsumption
 }
 
+Room.prototype.engineerEnergyConsumption = function (): number {
+    let engineers = this.creeps(Role.ENGINEER)
+    let engineerEnergyConsumption = 0
+    for (let engineer of engineers) {
+        engineerEnergyConsumption += engineer.getActiveBodyparts(WORK)
+    }
+    return engineerEnergyConsumption * 5
+}
+
 Room.prototype.lowestScientist = function (): Creep | undefined {
     let scientists = this.creeps(Role.SCIENTIST)
     let lowestScientist = undefined
@@ -260,32 +297,112 @@ Room.prototype.lowestScientist = function (): Creep | undefined {
     return lowestScientist
 }
 
-Room.prototype.isSpawnDemandMet = function (): {met: boolean, demand: number} {
-    let spawns = this.find(FIND_MY_SPAWNS)
-    let truckers = this.creeps(Role.TRUCKER).filter(x => x.memory.task == Task.TRUCKER_STORAGE)
-    let totalDemand = spawns.length * 300
+// Room.prototype.isSpawnDemandMet = function (): {met: boolean, demand: number} {
+//     let spawns = this.find(FIND_MY_SPAWNS)
+//     let truckers = this.creeps(Role.TRUCKER).filter(x => x.memory.task == Task.TRUCKER_STORAGE)
+//     let totalDemand = spawns.length * 300
 
-    let truckersFulfillingDemand = 0
-    for (let _trucker of truckers) {
-        truckersFulfillingDemand += _trucker.getActiveBodyparts(CARRY) * (this.averageDistanceFromSourcesToStructures() * trucker.carryModifier)
+//     let truckersFulfillingDemand = 0
+//     for (let _trucker of truckers) {
+//         truckersFulfillingDemand += _trucker.getActiveBodyparts(CARRY) * (this.averageDistanceFromSourcesToStructures() * trucker.carryModifier)
+//     }
+//     return {met: truckersFulfillingDemand >= totalDemand, demand: totalDemand}
+// }
+
+// Room.prototype.isScientistDemandMet = function (): {met: boolean, demand: number} {
+//     let scientists = this.creeps(Role.SCIENTIST)
+//     let truckers = this.creeps(Role.TRUCKER).filter(x => x.memory.task == Task.TRUCKER_SCIENTIST)
+
+//     let totalDemand = 0
+//     for (let scientist of scientists) {
+//         totalDemand += scientist.upgradeEnergyConsumptionPerTick()
+//     }
+
+//     let truckersFulfillingDemand = 0
+//     for (let _trucker of truckers) {
+//         truckersFulfillingDemand += _trucker.getActiveBodyparts(CARRY) * (this.averageDistanceFromSourcesToStructures() * trucker.carryModifier)
+//     }
+//     return { met: truckersFulfillingDemand >= totalDemand, demand: totalDemand }
+// }
+
+Room.prototype.nextCreepToDie = function(): Creep | undefined {
+    let creeps = this.creeps()
+    let nextCreepToDie: Creep | undefined = undefined
+    for (let creep of creeps) {
+        if (!nextCreepToDie) { nextCreepToDie = creep }
+        if (creep.ticksToLive && nextCreepToDie.ticksToLive) {
+            if (creep.ticksToLive < nextCreepToDie.ticksToLive) {
+                nextCreepToDie = creep
+            }
+        }
     }
-    return {met: truckersFulfillingDemand >= totalDemand, demand: totalDemand}
+    Logger.log(`Next Creep To Die: ${nextCreepToDie ? nextCreepToDie.name : "None"}`, LogLevel.DEBUG)
+    return nextCreepToDie
 }
 
-Room.prototype.isScientistDemandMet = function (): {met: boolean, demand: number} {
+Room.prototype.scientistsWorkCapacity = function (): number {
     let scientists = this.creeps(Role.SCIENTIST)
-    let truckers = this.creeps(Role.TRUCKER).filter(x => x.memory.task == Task.TRUCKER_SCIENTIST)
-
-    let totalDemand = 0
+    let scientistsWorkCapacity = 0
     for (let scientist of scientists) {
-        totalDemand += scientist.upgradeEnergyConsumptionPerTick()
+        scientistsWorkCapacity += scientist.getActiveBodyparts(WORK)
     }
+    return scientistsWorkCapacity
+}
 
-    let truckersFulfillingDemand = 0
-    for (let _trucker of truckers) {
-        truckersFulfillingDemand += _trucker.getActiveBodyparts(CARRY) * (this.averageDistanceFromSourcesToStructures() * trucker.carryModifier)
+
+Room.prototype.updateCostMatrix = function () {
+    let costMatrix = Utils.Utility.distanceTransform(this.name)
+    this.memory.costMatrix = JSON.stringify(costMatrix.serialize())
+}
+
+Room.prototype.constructionSites = function (ofType?: BuildableStructureConstant): ConstructionSite[]{
+    if (ofType) {
+        return this.find(FIND_MY_CONSTRUCTION_SITES).filter(x => x.structureType == ofType)
     }
-    return { met: truckersFulfillingDemand >= totalDemand, demand: totalDemand }
+    return this.find(FIND_MY_CONSTRUCTION_SITES)
+}
+
+Room.prototype.extensions = function (): StructureExtension[] {
+    return this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_EXTENSION) as StructureExtension[]
+}
+
+Room.prototype.towers = function() {
+    if (!global.Cache) global.Cache = {};
+    if (!global.Cache.rooms) global.Cache.rooms = {};
+    if (!global.Cache.rooms[this.name]) global.Cache.rooms[this.name] = {};
+    if (!global.Cache.rooms[this.name].towers || Game.time % 100 == 0) {
+        let towers: StructureTower[] = this.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
+        if (towers.length == 0) return [];
+        let towerIds: Id<StructureTower>[] = [];
+        towers.forEach((t) => towerIds.push(t.id as Id<StructureTower>));
+
+        global.Cache.rooms[this.name].towers = towerIds;
+        return towers;
+    } else {
+        let towers: StructureTower[] = [];
+        let recalc = false;
+
+        for (let tid of global.Cache.rooms[this.name].towers!) {
+            let tower = Game.getObjectById(tid);
+            if (tower == null) {
+                recalc = true;
+                continue;
+            }
+            towers.push(tower);
+        }
+
+        if (recalc == true) delete global.Cache.rooms[this.name].towers;
+        if (towers.length == 0) return [];
+        return towers;
+    }
+}
+
+Room.prototype.labs = function() {
+    return this.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LAB } }) as StructureLab[]
+}
+
+Room.prototype.minerals = function() {
+    return this.find(FIND_MINERALS)
 }
 
 Room.prototype.rampartHPTarget = function(): number {
@@ -307,39 +424,68 @@ Room.prototype.rampartHPTarget = function(): number {
     }
     return 0;
 }
-
-Room.prototype.updateCostMatrix = function () {
-    let costMatrix = Utils.Utility.distanceTransform(this.name)
-    this.memory.costMatrix = JSON.stringify(costMatrix.serialize())
-}
-
-Room.prototype.towers = function() {
-    if (!global.Cache) global.Cache = {};
-    if (!global.Cache.rooms) global.Cache.rooms = {};
-    if (!global.Cache.rooms[this.name]) global.Cache.rooms[this.name] = {};
-    if (!global.Cache.rooms[this.name].towers || Game.time % 100 == 0) {
-        let towers: StructureTower[] = this.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
-        if (towers.length == 0) return undefined;
-        let towerIds: Id<StructureTower>[] = [];
-        towers.forEach((t) => towerIds.push(t.id as Id<StructureTower>));
-
-        global.Cache.rooms[this.name].towers = towerIds;
-        return towers;
-    } else {
-        let towers: StructureTower[] = [];
-        let recalc = false;
-
-        for (let tid of global.Cache.rooms[this.name].towers!) {
-            let tower = Game.getObjectById(tid);
-            if (tower == null) {
-                recalc = true;
-                continue;
-            }
-            towers.push(tower);
-        }
-
-        if (recalc == true) delete global.Cache.rooms[this.name].towers;
-        if (towers.length == 0) return undefined;
-        return towers;
+Room.prototype.maxExtensionsAvail = function (): number {
+    let controller = this.controller
+    if (!controller) return 0
+    switch (controller.level) {
+        case 1:
+            return 0;
+        case 2:
+            return 5;
+        case 3:
+            return 10;
+        case 4:
+            return 20;
+        case 5:
+            return 30;
+        case 6:
+            return 40;
+        case 7:
+            return 50;
+        case 8:
+            return 60;
     }
+    return 0
 }
+
+    Room.prototype.maxTowersAvail = function (): number {
+    let controller = this.controller
+    if (!controller) return 0
+    switch (controller.level) {
+        case 1:
+        case 2:
+            return 0;
+        case 3:
+        case 4:
+            return 1;
+        case 5:
+        case 6:
+            return 2;
+        case 7:
+            return 3;
+        case 8:
+            return 6;
+    }
+    return 0
+}
+
+Room.prototype.maxLabsAvail = function (): number {
+    let controller = this.controller
+    if (!controller) return 0
+    switch (controller.level) {
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+            return 0;
+        case 6:
+            return 3;
+        case 7:
+            return 6;
+        case 8:
+            return 10;
+    }
+    return 0
+}
+

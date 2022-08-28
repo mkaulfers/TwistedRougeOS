@@ -13,6 +13,16 @@ var ThreatManager = {
             Utils.Logger.log(`ThreatManager -> ${roomProcessId}`, LogLevel.TRACE)
             let room = Game.rooms[roomName]
 
+            if (global.recentlyAttacked == undefined) {
+                global.recentlyAttacked = false
+                global.attackedTime = -1
+            }
+
+            if (global.recentlyAttacked == true && Game.time - global.attackedTime  <= 19999) {
+                global.recentlyAttacked = false
+                global.attackedTime = -1
+            }
+
             // Handle Turrets
             const enemyAttackers = room.find(FIND_HOSTILE_CREEPS)
             const playerAttackers = enemyAttackers.filter(enemyAttacker => enemyAttacker.owner.username !== 'Invader');
@@ -72,7 +82,6 @@ var ThreatManager = {
     safeModer: function(room: Room) {
         Utils.Logger.log(`ThreatManager -> safeModer`, LogLevel.TRACE)
 
-        // TODO: There is a bug here. When you respawn, the controller is undefined. It's possible the room is not being set properly or that the scheduler isn't removing the dead process from memory.
         let controller = room.controller
         if (!controller) return
         if (room.controller?.my)
@@ -102,19 +111,31 @@ var ThreatManager = {
                 case EVENT_OBJECT_DESTROYED:
                     if (eventItem.data.type == 'creep' || !structuresToSafeFor.includes(eventItem.data.type)) continue;
                     shouldSafeMode = true;
+                    global.recentlyAttacked = true;
+                    global.attackedTime = Game.time;
                     break;
                 case EVENT_ATTACK:
                     let target = Game.getObjectById(eventItem.data.targetId as Id<AnyCreep | AnyStructure>);
                     if (target && 'structureType' in target && structuresToSafeFor.includes(target.structureType)) {
                         if (target.structureType !== STRUCTURE_RAMPART && target.structureType !== STRUCTURE_WALL) {
-                            if (target.hits <= (target.hitsMax * 0.25)) shouldSafeMode = true;
+                            if (target.hits <= (target.hitsMax * 0.25)) {
+                                shouldSafeMode = true;
+                                global.recentlyAttacked = true;
+                                global.attackedTime = Game.time;
+                            }
                         } else {
-                            if (target.hits <= (room.rampartHPTarget() * 0.25)) shouldSafeMode = true;
+                            if (target.hits <= (room.rampartHPTarget() * 0.25)) {
+                                shouldSafeMode = true;
+                                global.recentlyAttacked = true;
+                                global.attackedTime = Game.time;
+                            }
                         }
                     }
                     break;
                 case EVENT_ATTACK_CONTROLLER:
                     shouldSafeMode = true
+                    global.recentlyAttacked = true;
+                    global.attackedTime = Game.time;
                     break;
             }
         }
@@ -133,7 +154,7 @@ var ThreatManager = {
         let owner = creep.owner.username;
 
         let towers = creep.room.towers();
-        if (!towers || towers.length === 0) return false;
+        if (towers.length === 0) return false;
 
         // TODO: Modify to add boost calculations
         let itsHeal = creep.body.filter((p) => p.type === HEAL);
@@ -170,7 +191,7 @@ var ThreatManager = {
         let room = target.room as Room;
         let towers = room.towers();
 
-        if (!towers) return;
+        if (towers.length == 0) return;
 
         for (let tower of towers) {
             tower.attack(target);
@@ -180,7 +201,7 @@ var ThreatManager = {
         Utils.Logger.log(`ThreatManager -> towerHeal`, LogLevel.TRACE)
 
         let towers = room.towers();
-        if (!towers) return;
+        if (towers.length === 0) return;
 
         for (let tower of towers) {
             // Find in range 5 to be maximally energy efficient
