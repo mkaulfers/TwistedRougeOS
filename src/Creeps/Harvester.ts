@@ -1,6 +1,5 @@
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
-import { Logger } from "utils/Logger"
 
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
@@ -108,13 +107,7 @@ var harvester = {
     shouldSpawn: function(room: Room): boolean {
         Utils.Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
         let sources = room.sources()
-        let allSourcesRealized = true
-        for (let source of sources) {
-            if (!source.isHarvestingAtMaxEfficiency()) {
-                allSourcesRealized = false
-            }
-        }
-        return !allSourcesRealized
+        return room.currentHarvesterWorkPotential() < sources.length * 10
     },
     baseBody: [CARRY, MOVE, WORK, WORK],
     segment: [WORK]

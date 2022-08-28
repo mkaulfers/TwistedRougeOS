@@ -1,9 +1,8 @@
 import { ErrorMapper } from "utils/ErrorMapper";
 import { Utils } from './utils/Index';
 import { OS } from "OS/Index";
-import { Managers } from "Managers/Index";
 import './Prototypes/Index'
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from './utils/Enums'
+import { Task, LogLevel } from './utils/Enums'
 
 declare global {
   interface Coord {

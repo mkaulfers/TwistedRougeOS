@@ -40,10 +40,21 @@ var scientist = {
         }
     },
     shouldSpawn: function(room: Room): boolean {
+        let scientists = room.creeps(Role.SCIENTIST)
+        let controller = room.controller
+        if (!controller) return false
+
+        if (room.scientistsWorkCapacity() >= 15 && controller.level == 8) { return false}
+
         let sources = room.sources()
         let areAllSourcesRealized = sources.every(source => source.isHarvestingAtMaxEfficiency())
-        let isAllEnergyUsed = room.currentHarvesterWorkPotential() >= room.scientistEnergyConsumption()
-        return areAllSourcesRealized && isAllEnergyUsed
+
+        let totalEnergyConsumption = 0
+        totalEnergyConsumption += room.scientistEnergyConsumption()
+        totalEnergyConsumption += room.engineerEnergyConsumption()
+
+        let hasRemainingEnergyToUse = room.currentHarvesterWorkPotential() >= totalEnergyConsumption
+        return areAllSourcesRealized && hasRemainingEnergyToUse || scientists.length < controller.level && room.creeps(Role.HARVESTER).length > 0
     },
     baseBody: [CARRY, MOVE, WORK, WORK],
     segment: [CARRY, WORK, WORK],

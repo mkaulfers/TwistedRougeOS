@@ -4,8 +4,10 @@ import Scheduler from './Scheduler';
 declare global {
     namespace NodeJS {
         interface Global {
-        kernel: Kernel,
-        scheduler: Scheduler,
+            kernel: Kernel,
+            scheduler: Scheduler,
+            recentlyAttacked: boolean,
+            attackedTime: number,
         }
     }
 }

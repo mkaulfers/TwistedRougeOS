@@ -1,6 +1,7 @@
 import { Utils } from '../utils/Index'
 import { Roles } from '../Creeps/Index';
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
+import { Role, Task, LogLevel } from '../utils/Enums'
+import { Logger } from 'utils/Logger';
 
 /**
 * ------------------------------------------------------------------
@@ -44,11 +45,16 @@ export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
                     if (tempBody.filter(x => x == WORK).length >= 5) { return tempBody }
                     tempBody = tempBody.concat(tempSegment)
                     break
+                //TODO: Add more role restrictions, for example at RCL 8 there is a max amount for upgrading.
+                //TODO: Sort the body parts before returning.
+                //TODO: Perhaps set a wait timer to bigger bodies are spawned instead of a bunch of small ones.
                 default:
+                    if (tempBody.length + tempSegment.length > 50) { return tempBody }
                     tempBody = tempBody.concat(tempSegment)
             }
         }
     }
+    Logger.log(`Temp Body Length: ${tempBody.length}`, LogLevel.DEBUG)
     return tempBody
 }
 

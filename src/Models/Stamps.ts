@@ -1,5 +1,5 @@
-import { LogLevel, StampType } from "utils/Enums";
-import { Logger } from "utils/Logger";
+import { StampType } from "utils/Enums";
+import { Utils } from "utils/Index";
 
 export const Stamp = {
     plan: function (startPos: RoomPosition, stamp: StampType, plannedPositions: RoomPosition[], roomVisual?: RoomVisual) {
@@ -13,6 +13,8 @@ export const Stamp = {
                 site = labs; break
             case StampType.ANCHOR:
                 site = anchor; break
+            case StampType.OBSERVER:
+                site = observer; break
             case StampType.TOWER:
                 site = tower; break
             case StampType.EXTENSION:
@@ -34,6 +36,36 @@ export const Stamp = {
             }
         }
     },
+    buildStructure(position: RoomPosition, structureType: StampType, omitting?: BuildableStructureConstant[]) {
+        let room = Game.rooms[position.roomName]
+        let stamp = this.getStampParts(structureType)
+        for (let part of stamp) {
+            let placementPosition = new RoomPosition(position.x + part.xMod, position.y + part.yMod, position.roomName)
+            if (omitting) {
+                if (omitting.indexOf(part.structureType) == -1) {
+                    placementPosition.createConstructionSite(part.structureType)
+                }
+            } else {
+                let placementPosition = new RoomPosition(position.x + part.xMod, position.y + part.yMod, position.roomName)
+                placementPosition.createConstructionSite(part.structureType)
+            }
+        }
+    },
+    buildStructureRoads(room: Room) {
+        let blueprint = room.memory.blueprint
+        for (let stamp of blueprint.stamps) {
+            let pos = Utils.Utility.unpackPostionToRoom(stamp.stampPos, room.name)
+            let stampType = stamp.type as StampType
+            let stampParts = this.getStampParts(stampType)
+
+            for (let part of stampParts) {
+                if (part.structureType == STRUCTURE_ROAD) {
+                    let placementPosition = new RoomPosition(pos.x + part.xMod, pos.y + part.yMod, pos.roomName)
+                    placementPosition.createConstructionSite(part.structureType)
+                }
+            }
+        }
+    },
     getStampSize(type: StampType): number {
         switch (type) {
             case StampType.FAST_FILLER:
@@ -46,10 +78,11 @@ export const Stamp = {
                 return 5
             case StampType.TOWER:
             case StampType.EXTENSION:
+            case StampType.OBSERVER:
                 return 1
         }
     },
-    getStamp(type: StampType): { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] {
+    getStampParts(type: StampType): { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] {
         switch (type) {
             case StampType.FAST_FILLER:
                 return fastFiller
@@ -59,6 +92,8 @@ export const Stamp = {
                 return labs
             case StampType.ANCHOR:
                 return anchor
+            case StampType.OBSERVER:
+                return observer
             case StampType.TOWER:
                 return tower
             case StampType.EXTENSION:
@@ -66,7 +101,7 @@ export const Stamp = {
         }
     },
     containsPos(type: StampType, stampX: number, stampY: number, targetX: number, targetY: number): boolean {
-        let stamp = Stamp.getStamp(type)
+        let stamp = Stamp.getStampParts(type)
         for (let part of stamp) {
             if (stampX + part.xMod == targetX && stampY + part.yMod == targetY) {
                 return true
@@ -223,6 +258,14 @@ const extension: { xMod: number, yMod: number, structureType: BuildableStructure
     { xMod: 0, yMod: -1, structureType: STRUCTURE_ROAD },
     { xMod: -1, yMod: 0, structureType: STRUCTURE_ROAD },
     { xMod: 0, yMod: 0, structureType: STRUCTURE_EXTENSION },
+    { xMod: 1, yMod: 0, structureType: STRUCTURE_ROAD },
+    { xMod: 0, yMod: 1, structureType: STRUCTURE_ROAD },
+]
+
+const observer: { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] = [
+    { xMod: 0, yMod: -1, structureType: STRUCTURE_ROAD },
+    { xMod: -1, yMod: 0, structureType: STRUCTURE_ROAD },
+    { xMod: 0, yMod: 0, structureType: STRUCTURE_OBSERVER },
     { xMod: 1, yMod: 0, structureType: STRUCTURE_ROAD },
     { xMod: 0, yMod: 1, structureType: STRUCTURE_ROAD },
 ]

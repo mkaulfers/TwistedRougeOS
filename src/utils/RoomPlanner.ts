@@ -1,17 +1,12 @@
-import { LogLevel, StampType } from './Enums'
-import { Process } from "Models/Process";
-import { Logger } from "utils/Logger";
-import { Roles } from "Creeps/Index";
+import { StampType } from './Enums'
 import { Utils } from "utils/Index";
 import { Stamp } from "Models/Stamps";
 import { getCutTiles, Rectangle } from './RampartPlanner';
-import { start } from 'repl';
-import { all } from 'lodash';
-import { link } from 'fs';
 
 const buildOrder: (StampType)[] = [
     StampType.FAST_FILLER,
     StampType.ANCHOR,
+    StampType.OBSERVER,
     StampType.LABS,
     StampType.EXTENSIONS,
     StampType.EXTENSIONS,
@@ -177,6 +172,7 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
     }
 
     let pathToController = blueprintAnchor.findPathTo(room.controller.pos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+    pathToController.splice(pathToController.length - 1, 1)
     roadPositions = roadPositions.concat(pathToController)
 
     let controllerLink = pathToController[pathToController.length - 3]
@@ -339,12 +335,16 @@ function spiralSearch(startPosition: RoomPosition, structure: StampType, planned
     return undefined
 }
 
-function getValidPositionAroundPosition(position: PathStep, room: Room, roadPositions: PathStep[]): RoomPosition {
+function getValidPositionAroundPosition(position: PathStep | RoomPosition, room: Room, roadPositions: PathStep[] | RoomPosition[]): RoomPosition {
     //Get a position around the provided position that is not a wall or a road fromRoadPositions.
+    let range = 2
+    if (position instanceof RoomPosition) {
+        range = 5
+    }
     let validPositions: RoomPosition[] = []
-    for (let x = position.x - 1; x <= position.x + 1; x++) {
-        for (let y = position.y - 1; y <= position.y + 1; y++) {
-            if (room.lookForAt(LOOK_TERRAIN, x, y).includes('wall') || roadPositions.find(p => p.x == x && p.y == y) != undefined) {
+    for (let x = position.x - range; x <= position.x + range; x++) {
+        for (let y = position.y - range; y <= position.y + range; y++) {
+            if (room.lookForAt(LOOK_TERRAIN, x, y).includes('wall') || roadPositions.some(pos => pos.x == x && pos.y == y)) {
                 continue
             }
 
@@ -396,7 +396,7 @@ function doesStampFitAtPosition(x: number, y: number, room: Room, structure: Sta
         structure == StampType.FAST_FILLER ||
         structure == StampType.TOWER ||
         structure == StampType.EXTENSION) {
-        let rawStamp = Stamp.getStamp(structure)
+        let rawStamp = Stamp.getStampParts(structure)
         let stampPositions: { x: number, y: number }[] = []
         for (let part of rawStamp) {
             stampPositions.push({ x: x + part.xMod, y: y + part.yMod })

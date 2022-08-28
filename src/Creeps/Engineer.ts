@@ -345,8 +345,9 @@ var engineer = {
     },
     shouldSpawn: function(room: Room): boolean {
         if (!(room.controller && room.controller.my && room.controller.level >= 2)) { return false }
-        if (room.creeps(Role.ENGINEER).length < room.controller.level) { return true }
-        return false
+        if (room.constructionSites.length > 0 && room.creeps(Role.ENGINEER).length > 1) { return false }
+        if (room.creeps(Role.ENGINEER).length >= room.controller.level) { return false }
+        return true
     },
     baseBody: [CARRY, MOVE, WORK, WORK],
     segment: [CARRY, MOVE, WORK, WORK],

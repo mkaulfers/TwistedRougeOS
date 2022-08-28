@@ -52,6 +52,7 @@ export enum StampType {
     EXTENSIONS = 'extensions',
     LABS = 'labs',
     ANCHOR = 'anchor',
+    OBSERVER = 'observer',
     TOWER = 'tower_single',
     EXTENSION = 'ext_single'
 }
