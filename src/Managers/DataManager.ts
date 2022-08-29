@@ -37,20 +37,14 @@ declare global {
         scheduler: string
     }
 
-    namespace NodeJS {
-        interface Global {
-            log: any
-        }
-    }
-
     interface RoomCache {
-        towers?: Id<StructureTower>[];
+        towers: Id<StructureTower>[];
         towerTarget?: Id<AnyCreep>;
-        links?: {[key: Id<StructureLink>]: string};
+        links: {[key: Id<StructureLink>]: string};
     }
 
     var Cache: {
-        rooms?: {[key: string]: RoomCache},
+        rooms: {[key: string]: RoomCache},
     }
 }
 
@@ -80,6 +74,25 @@ export default class DataManager {
         global.scheduler.addProcess(process)
     }
 
+    static scheduleCacheMonitor() {
 
+        const cacheTask = () => {
+            if (!Cache) Cache = {
+                rooms: {},
+            };
+            for (let roomName in Game.rooms) {
+                if (!Cache.rooms[roomName]) {
+                    Cache.rooms[roomName] = {
+                        towers: [],
+                        links: {},
+                    };
+                }
+            }
+            return ProcessResult.RUNNING;
+        }
+
+        let process = new Process('cache_monitor', ProcessPriority.CRITICAL, cacheTask);
+        global.scheduler.addProcess(process);
+    }
 }
 
