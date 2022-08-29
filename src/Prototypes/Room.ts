@@ -174,6 +174,13 @@ Room.prototype.shouldSpawn = function (role: Role): boolean {
             return Roles.Scientist.shouldSpawn(this)
         case Role.TRUCKER:
             return Roles.Trucker.shouldSpawn(this)
+        case Role.FILLER:
+            return Roles.Filler.shouldSpawn(this)
+        case Role.NETWORK_ENGINEER:
+        case Role.NETWORK_HARVESTER:
+        case Role.NETWORK_ENGINEER:
+        default:
+            return false
     }
 }
 

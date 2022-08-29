@@ -4,6 +4,33 @@ import { Utils } from "utils/Index"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export class Harvester extends Creep {
+    static baseBody = [CARRY, MOVE, WORK, WORK]
+    static segment = [WORK]
+
+    static shouldSpawn(room: Room): boolean {
+        Utils.Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
+        let sources = room.sources()
+        return room.currentHarvesterWorkPotential() < sources.length * 10
+    }
+
+    static dispatch(room: Room) {
+        let harvesters = room.creeps(Role.HARVESTER)
+        let truckers = room.creeps(Role.TRUCKER)
+        if (truckers.length < 1) {
+            for (let harvester of harvesters) {
+                if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_SOURCE) {
+                    global.scheduler.swapProcess(harvester, Task.HARVESTER_EARLY)
+                }
+            }
+        } else {
+            for (let harvester of harvesters) {
+                if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_EARLY) {
+                    global.scheduler.swapProcess(harvester, Task.HARVESTER_SOURCE)
+                }
+            }
+        }
+    }
+
     static harvesterEarlyTask(creep: Creep) {
         let creepId = creep.id
 
@@ -89,31 +116,4 @@ export class Harvester extends Creep {
         let newProcess = new Process(creep.name, ProcessPriority.LOW, sourceTask)
         global.scheduler.addProcess(newProcess)
     }
-
-    static dispatch(room: Room) {
-        let harvesters = room.creeps(Role.HARVESTER)
-        let truckers = room.creeps(Role.TRUCKER)
-        if (truckers.length < 1) {
-            for (let harvester of harvesters) {
-                if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_SOURCE) {
-                    global.scheduler.swapProcess(harvester, Task.HARVESTER_EARLY)
-                }
-            }
-        } else {
-            for (let harvester of harvesters) {
-                if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_EARLY) {
-                    global.scheduler.swapProcess(harvester, Task.HARVESTER_SOURCE)
-                }
-            }
-        }
-    }
-
-    static shouldSpawn(room: Room): boolean {
-        Utils.Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
-        let sources = room.sources()
-        return room.currentHarvesterWorkPotential() < sources.length * 10
-    }
-
-    static baseBody = [CARRY, MOVE, WORK, WORK]
-    static segment = [WORK]
 }

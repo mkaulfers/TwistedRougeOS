@@ -31,6 +31,9 @@ export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
             tempBody = Roles.Trucker.baseBody
             tempSegment = Roles.Trucker.segment
             break
+        case Role.FILLER:
+            tempBody = Roles.Filler.baseBody
+            tempSegment = Roles.Filler.segment
     }
 
     let baseCost = bodyCost(tempBody)
@@ -45,6 +48,9 @@ export function getBodyFor(room: Room, role: Role): BodyPartConstant[] {
                     if (tempBody.filter(x => x == WORK).length >= 5) { return tempBody }
                     tempBody = tempBody.concat(tempSegment)
                     break
+                case Role.FILLER:
+                    if (tempBody.filter(x => x == CARRY).length >= 22) { return tempBody }
+                    tempBody = tempBody.concat(tempSegment)
                 //TODO: Add more role restrictions, for example at RCL 8 there is a max amount for upgrading.
                 //TODO: Sort the body parts before returning.
                 //TODO: Perhaps set a wait timer to bigger bodies are spawned instead of a bunch of small ones.

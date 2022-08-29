@@ -3,6 +3,9 @@ import { Process } from "../Models/Process"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export class Engineer extends Creep {
+    static baseBody = [CARRY, MOVE, WORK, WORK]
+    static segment = [CARRY, MOVE, WORK, WORK]
+
     static engineerBuilding(creep: Creep) {
         let creepId = creep.id
 
@@ -352,7 +355,4 @@ export class Engineer extends Creep {
         if (room.creeps(Role.ENGINEER).length >= room.controller.level) { return false }
         return true
     }
-
-    static baseBody = [CARRY, MOVE, WORK, WORK]
-    static segment = [CARRY, MOVE, WORK, WORK]
 }
