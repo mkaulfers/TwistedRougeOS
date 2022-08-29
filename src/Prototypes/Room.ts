@@ -85,7 +85,6 @@ Room.prototype.scheduleTasks = function () {
     Managers.ThreatManager.scheduleThreatMonitor(this)
     Managers.CreepManager.scheduleCreepTask(this)
     Managers.SpawnManager.scheduleSpawnMonitor(this)
-    Managers.DataManager.scheduleMemoryMonitor()
     Managers.CreepManager.scheduleRoomTaskMonitor(this)
     Managers.LinkManager.schedule(this);
     Managers.ConstructionManager.scheduleConstructionMonitor(this)
@@ -365,9 +364,6 @@ Room.prototype.extensions = function (): StructureExtension[] {
 }
 
 Room.prototype.towers = function() {
-    if (!global.Cache) global.Cache = {};
-    if (!global.Cache.rooms) global.Cache.rooms = {};
-    if (!global.Cache.rooms[this.name]) global.Cache.rooms[this.name] = {};
     if (!global.Cache.rooms[this.name].towers || Game.time % 100 == 0) {
         let towers: StructureTower[] = this.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
         if (towers.length == 0) return [];
@@ -380,7 +376,7 @@ Room.prototype.towers = function() {
         let towers: StructureTower[] = [];
         let recalc = false;
 
-        for (let tid of global.Cache.rooms[this.name].towers!) {
+        for (let tid of global.Cache.rooms[this.name].towers) {
             let tower = Game.getObjectById(tid);
             if (tower == null) {
                 recalc = true;
@@ -389,7 +385,7 @@ Room.prototype.towers = function() {
             towers.push(tower);
         }
 
-        if (recalc == true) delete global.Cache.rooms[this.name].towers;
+        if (recalc == true) global.Cache.rooms[this.name].towers = [];
         if (towers.length == 0) return [];
         return towers;
     }
