@@ -1,7 +1,7 @@
 import { StampType } from './Enums'
 import { Utils } from "utils/Index";
 import { Stamps } from "Models/Stamps";
-import { getCutTiles, Rectangle } from './RampartPlanner';
+import { getCutTiles, Rectangle, Coord } from './RampartPlanner';
 
 const buildOrder: (StampType)[] = [
     StampType.FAST_FILLER,
