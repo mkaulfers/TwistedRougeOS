@@ -71,27 +71,38 @@ export default class Visuals {
     }
 
     static roomPlanning() {
-        // for (const roomName in Memory.rooms) {
-        //     if (!Memory.rooms[roomName] || !Memory.rooms[roomName].blueprint) continue;
-        //     let roomPlan = Memory.rooms[roomName].blueprint;
-        //     let rVis = new RoomVisual(roomName);
-        //     for (let i = 0; i < roomPlan!.length; i++) {
-        //         let pos = Utility.unpackPostionToRoom(roomPlan![i].stampPos, roomName)
-        //         if (Object.values(StampType).includes(roomPlan![i].type as StampType)) {
-        //             let stamp = Stamps[roomPlan![i].type as keyof typeof Stamps]
-        //             if (!stamp) {
-        //                 Logger.log(`Room Planning Visual attempted to call nonexistant stamp: ${roomPlan![i].type}.`, LogLevel.ERROR);
-        //                 continue;
-        //             }
-        //             for (let i = 0; i < stamp.length; i++) {
-        //                 rVis.structure(pos.x + stamp[i].xMod, pos.y + stamp[i].yMod, stamp[i].structureType);
-        //             }
-        //         } else {
-        //             rVis.structure(pos.x, pos.y, roomPlan![i].type);
-        //         }
-        //     }
-        //     rVis.connectRoads();
-        // }
+        for (const roomName in Memory.rooms) {
+            if (!Memory.rooms[roomName] || !Memory.rooms[roomName].blueprint) continue;
+            let blueprint = Memory.rooms[roomName].blueprint;
+            let rVis = new RoomVisual(roomName);
+
+            for (let stamp of blueprint.stamps) {
+                let pos = Utils.Utility.unpackPostionToRoom(stamp.stampPos, roomName)
+                Stamps.plan(pos, stamp.type as StampType, [], rVis)
+            }
+
+            for (let step of blueprint.highways) {
+                let pos = Utils.Utility.unpackPostionToRoom(step, roomName)
+                rVis.structure(pos.x, pos.y, STRUCTURE_ROAD)
+            }
+
+            for (let container of blueprint.containers) {
+                let pos = Utils.Utility.unpackPostionToRoom(container, roomName)
+                rVis.structure(pos.x, pos.y, STRUCTURE_CONTAINER)
+            }
+
+            for (let rampart of blueprint.ramparts) {
+                let pos = Utils.Utility.unpackPostionToRoom(rampart, roomName)
+                rVis.structure(pos.x, pos.y, STRUCTURE_RAMPART, { opacity: 0.3 })
+            }
+
+            for (let link of blueprint.links) {
+                let pos = Utils.Utility.unpackPostionToRoom(link, roomName)
+                rVis.structure(pos.x, pos.y, STRUCTURE_LINK)
+            }
+
+            rVis.connectRoads()
+        }
     }
 
     static distanceTransform() {
