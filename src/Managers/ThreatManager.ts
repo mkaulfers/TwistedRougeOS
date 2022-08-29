@@ -38,9 +38,6 @@ export default class ThreatManager {
                 case (playerAttackers.length > 0 && invaderAttackers.length == 0): case (playerAttackers.length > 0 && invaderAttackers.length > 0):
 
                     // Handle Targeting
-                    if (!global.Cache) global.Cache = {};
-                    if (!global.Cache.rooms) global.Cache.rooms = {};
-                    if (!global.Cache.rooms[room.name]) global.Cache.rooms[room.name] = {};
                     if (global.Cache.rooms[room.name].towerTarget && Game.getObjectById(global.Cache.rooms[room.name].towerTarget!) == null) delete global.Cache.rooms[room.name].towerTarget;
 
                     let target;

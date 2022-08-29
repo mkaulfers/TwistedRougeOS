@@ -14,9 +14,6 @@ export default class LinkManager {
             let room = Game.rooms[roomName];
 
             // Identify links
-            if (!global.Cache) global.Cache = {};
-            if (!global.Cache.rooms) global.Cache.rooms = {};
-            if (!global.Cache.rooms[room.name]) global.Cache.rooms[room.name] = {};
             if (!global.Cache.rooms[room.name].links ||
                 (Game.time % 250 == 0 &&
                 room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_LINK } }).length !== Object.keys(global.Cache.rooms[room.name].links!).length)) {
@@ -81,7 +78,7 @@ export default class LinkManager {
                 if (link) {
                     links.push(link);
                 } else {
-                    delete global.Cache.rooms[room.name].links;
+                    global.Cache.rooms[room.name].links = {};
                 }
             }
             if (links.length > 0) return links;
