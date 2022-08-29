@@ -3,6 +3,9 @@ import { Logger } from "utils/Logger"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export class Scientist extends Creep {
+    static baseBody = [CARRY, MOVE, WORK, WORK]
+    static segment = [CARRY, WORK, WORK]
+
     static scientistUpgrading(creep: Creep) {
         let creepId = creep.id
 
@@ -58,7 +61,4 @@ export class Scientist extends Creep {
         let hasRemainingEnergyToUse = room.currentHarvesterWorkPotential() >= totalEnergyConsumption
         return areAllSourcesRealized && hasRemainingEnergyToUse || scientists.length < controller.level && room.creeps(Role.HARVESTER).length > 0
     }
-
-    static baseBody = [CARRY, MOVE, WORK, WORK]
-    static segment = [CARRY, WORK, WORK]
 }

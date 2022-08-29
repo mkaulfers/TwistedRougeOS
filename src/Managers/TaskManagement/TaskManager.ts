@@ -71,6 +71,9 @@ export function scheduleCreepTask(room: Room) {
             case Task.ENGINEER_UPGRADING:
                 Roles.Engineer.engineerUpgrading(creep)
                 break
+            case Task.FILLER:
+                Roles.Filler.fillerWorking(creep)
+                break
         }
     }
 }
