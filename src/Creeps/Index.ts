@@ -9,5 +9,5 @@ export var Roles = {
     Harvester: Harvester,
     Scientist: Scientist,
     Trucker: Trucker,
-    Filler: Filler
+    Filler: Filler,
 }

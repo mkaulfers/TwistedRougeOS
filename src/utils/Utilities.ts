@@ -1,5 +1,4 @@
-import { start } from "repl";
-import { Logger } from "../utils/Logger";
+import { Utils } from "./Index";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './Enums';
 
 export class Utility {

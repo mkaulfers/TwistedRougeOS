@@ -1,7 +1,7 @@
 import { StampType } from './Enums'
 import { Utils } from "utils/Index";
-import { Stamp } from "Models/Stamps";
-import { getCutTiles, Rectangle } from './RampartPlanner';
+import { Stamps } from "Models/Stamps";
+import { getCutTiles, Rectangle, Coord } from './RampartPlanner';
 
 const buildOrder: (StampType)[] = [
     StampType.FAST_FILLER,
@@ -46,7 +46,7 @@ function visualizeFromMemory(room: Room) {
 
     for (let stamp of blueprint.stamps) {
         let pos = Utils.Utility.unpackPostionToRoom(stamp.stampPos, room.name)
-        Stamp.plan(pos, stamp.type as StampType, [], roomVisual)
+        Stamps.plan(pos, stamp.type as StampType, [], roomVisual)
     }
 
     for (let step of blueprint.highways) {
@@ -96,7 +96,7 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
         let stampPos = floodFillSearch(room, blueprintAnchor, building, plannedPositions)
         if (stampPos) {
             stamps.push({ type: building, stampPos: Utils.Utility.packPosition(stampPos), completed: false })
-            Stamp.plan(stampPos, building, plannedPositions, roomVisual)
+            Stamps.plan(stampPos, building, plannedPositions, roomVisual)
         }
     }
 
@@ -188,7 +188,7 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
         let stampY = Utils.Utility.unpackPostionToRoom(stamp.stampPos, room.name).y
 
         for (let roadPos of roadPositions) {
-            if (Stamp.containsPos(stamp.type, stampX, stampY, roadPos.x, roadPos.y)) {
+            if (Stamps.containsPos(stamp.type, stampX, stampY, roadPos.x, roadPos.y)) {
                 pathsToRemove.push(roadPos)
             }
         }
@@ -396,7 +396,8 @@ function doesStampFitAtPosition(x: number, y: number, room: Room, structure: Sta
         structure == StampType.FAST_FILLER ||
         structure == StampType.TOWER ||
         structure == StampType.EXTENSION) {
-        let rawStamp = Stamp.getStampParts(structure)
+        let rawStamp = Stamps.getStampParts(structure)
+
         let stampPositions: { x: number, y: number }[] = []
         for (let part of rawStamp) {
             stampPositions.push({ x: x + part.xMod, y: y + part.yMod })

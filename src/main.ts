@@ -5,59 +5,11 @@ import './Prototypes/Index'
 import { Task, LogLevel } from './utils/Enums'
 
 declare global {
-  interface Coord {
-    x: number
-    y: number
-  }
-
-  interface CreepMemory {
-    assignedPos?: number
-    task?: Task
-    role: string
-    working: boolean
-    target?: Id<any>
-    homeRoom: string
-  }
-
-  interface RoomMemory {
-    claim?: string
-    remotes?: string[]
-    costMatrix: string
-    blueprint: {
-      anchor: number,
-      containers: number[],
-      links: number[],
-      highways: number[],
-      ramparts: number[],
-      stamps: {
-        type: string,
-        stampPos: number,
-        completed: boolean
-      }[]
-    }
-  }
-
-  interface Memory {
-    uuid: number;
-    log: any;
-    kernel: string
-    scheduler: string
-  }
 
   namespace NodeJS {
     interface Global {
-      log: any
+      //example: any
     }
-  }
-
-  interface RoomCache {
-    towers?: Id<StructureTower>[];
-    towerTarget?: Id<AnyCreep>;
-    links?: {[key: Id<StructureLink>]: string};
-  }
-
-  var Cache: {
-    rooms?: {[key: string]: RoomCache},
   }
 }
 

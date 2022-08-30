@@ -4,6 +4,7 @@ import { Logger } from "utils/Logger";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export class Trucker extends Creep {
+
     static baseBody = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
     static segment = [CARRY, CARRY, MOVE]
     static carryModifier = 3.0

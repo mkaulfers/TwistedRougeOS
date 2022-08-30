@@ -1,5 +1,4 @@
 import { Managers } from 'Managers/Index'
-import { bodyCost, getBodyFor } from 'Managers/SpawnManager'
 import { Utils } from 'utils/Index'
 import { Logger } from 'utils/Logger'
 import { Roles } from '../Creeps/Index'
@@ -82,14 +81,13 @@ declare global {
 
 Room.prototype.scheduleTasks = function () {
     Utils.Logger.log("Room -> setupTasks()", LogLevel.TRACE)
-    Managers.UtilityTasks.schedulePixelSale()
+    Managers.UtilityManager.schedulePixelSale()
     Managers.ThreatManager.scheduleThreatMonitor(this)
-    Managers.TaskManager.scheduleCreepTask(this)
-    Managers.TaskManager.scheduleSpawnMonitor(this)
-    Managers.UtilityTasks.scheduleMemoryMonitor()
-    Managers.TaskManager.scheduleRoomTaskMonitor(this)
+    Managers.CreepManager.scheduleCreepTask(this)
+    Managers.SpawnManager.scheduleSpawnMonitor(this)
+    Managers.CreepManager.scheduleRoomTaskMonitor(this)
     Managers.LinkManager.schedule(this);
-    Managers.TaskManager.scheduleConstructionMonitor(this)
+    Managers.ConstructionManager.scheduleConstructionMonitor(this)
 }
 
 Room.prototype.creeps = function (role?: Role): Creep[] {
@@ -189,7 +187,7 @@ Room.prototype.shouldPreSpawn = function (spawn: StructureSpawn): Creep | undefi
     let creepToSpawn: Creep | undefined
     if (creep && creep.ticksToLive) {
         let distFromSpawnToCreep = spawn.pos.getRangeTo(creep)
-        let totalTickCost = getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
+        let totalTickCost = Managers.SpawnManager.getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
         if ( creep.ticksToLive * 1.02 <= totalTickCost) {
             creepToSpawn = creep
         }
@@ -373,9 +371,6 @@ Room.prototype.extensions = function (): StructureExtension[] {
 }
 
 Room.prototype.towers = function() {
-    if (!global.Cache) global.Cache = {};
-    if (!global.Cache.rooms) global.Cache.rooms = {};
-    if (!global.Cache.rooms[this.name]) global.Cache.rooms[this.name] = {};
     if (!global.Cache.rooms[this.name].towers || Game.time % 100 == 0) {
         let towers: StructureTower[] = this.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
         if (towers.length == 0) return [];
@@ -388,7 +383,7 @@ Room.prototype.towers = function() {
         let towers: StructureTower[] = [];
         let recalc = false;
 
-        for (let tid of global.Cache.rooms[this.name].towers!) {
+        for (let tid of global.Cache.rooms[this.name].towers) {
             let tower = Game.getObjectById(tid);
             if (tower == null) {
                 recalc = true;
@@ -397,7 +392,7 @@ Room.prototype.towers = function() {
             towers.push(tower);
         }
 
-        if (recalc == true) delete global.Cache.rooms[this.name].towers;
+        if (recalc == true) global.Cache.rooms[this.name].towers = [];
         if (towers.length == 0) return [];
         return towers;
     }
