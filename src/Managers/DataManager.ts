@@ -43,8 +43,13 @@ declare global {
         links: {[key: Id<StructureLink>]: string};
     }
 
+    interface CreepCache {
+        harvesterDump?: Id<StructureLink | StructureContainer>;
+    }
+
     var Cache: {
         rooms: {[key: string]: RoomCache},
+        creeps: {[key: string]: CreepCache},
     }
 }
 
@@ -77,15 +82,29 @@ export default class DataManager {
     static scheduleCacheMonitor() {
 
         const cacheTask = () => {
+            // Build cache if deleted
             if (!global.Cache) global.Cache = {
                 rooms: {},
+                creeps: {},
             };
-            for (let roomName in Game.rooms) {
+            for (const roomName in Game.rooms) {
                 if (!global.Cache.rooms[roomName]) {
                     global.Cache.rooms[roomName] = {
                         towers: [],
                         links: {},
                     };
+                }
+            }
+            for (const name in Game.creeps) {
+                if (!global.Cache.creeps[name]) {
+                    global.Cache.creeps[name] = {};
+                }
+            }
+
+            // Cleanup Dead Creeps from Cache
+            for (const name in global.Cache.creeps) {
+                if (!Game.creeps[name]) {
+                    delete global.Cache.creeps[name];
                 }
             }
             return ProcessResult.RUNNING;
