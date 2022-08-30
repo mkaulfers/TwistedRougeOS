@@ -41,6 +41,7 @@ export default class Visuals {
     static visualsHandler() {
 
         const visualsHandler = () => {
+            Utils.Logger.log(`Visuals -> visualsHandler()`, LogLevel.DEBUG);
             if (global.visualToggles && global.visualToggles.roomPlanning == true) {
                 this.roomPlanning();
             }
@@ -71,6 +72,7 @@ export default class Visuals {
     }
 
     static roomPlanning() {
+        Utils.Logger.log(`Visuals -> roomPlanning()`, LogLevel.DEBUG);
         for (const roomName in Memory.rooms) {
             if (!Memory.rooms[roomName] || !Memory.rooms[roomName].blueprint) continue;
             let blueprint = Memory.rooms[roomName].blueprint;
@@ -106,6 +108,7 @@ export default class Visuals {
     }
 
     static distanceTransform() {
+        Utils.Logger.log(`Visuals -> distanceTransform()`, LogLevel.DEBUG);
         if (!global.tempForVisuals || !global.tempForVisuals.distanceTransform) return;
         for (const roomName in global.tempForVisuals.distanceTransform) {
             let costMatrix = PathFinder.CostMatrix.deserialize(global.tempForVisuals.distanceTransform[roomName])
@@ -114,6 +117,7 @@ export default class Visuals {
     }
 
     static pathfinding() {
+        Utils.Logger.log(`Visuals -> pathfinding()`, LogLevel.DEBUG);
         if (!global.tempForVisuals || !global.tempForVisuals.pathfinding) return;
         for (const roomName in global.tempForVisuals.pathfinding) {
             let costMatrix = PathFinder.CostMatrix.deserialize(global.tempForVisuals.pathfinding[roomName])
@@ -122,6 +126,7 @@ export default class Visuals {
     }
 
     static worldRoomScoring() {
+        Utils.Logger.log(`Visuals -> worldRoomScoring()`, LogLevel.DEBUG);
         if (!global.tempForVisuals || !global.tempForVisuals.worldRoomScoring) return;
         for (const roomName in global.tempForVisuals.worldRoomScoring) {
             let scoreData = global.tempForVisuals.worldRoomScoring[roomName];
@@ -132,6 +137,7 @@ export default class Visuals {
     }
 
     static worldRemotes() {
+        Utils.Logger.log(`Visuals -> worldRemotes()`, LogLevel.DEBUG);
         for (let roomName in Game.rooms) {
             if (!Memory.rooms[roomName] || !Memory.rooms[roomName].remotes || Memory.rooms[roomName].remotes!.length == 0) continue;
             let home = new RoomPosition(25,25,roomName);
@@ -144,6 +150,7 @@ export default class Visuals {
     }
 
     static worldPathfinding() {
+        Utils.Logger.log(`Visuals -> worldPathfinding()`, LogLevel.DEBUG);
         if (!global.tempForVisuals || !global.tempForVisuals.worldPathfinding) return;
         for (const roomName in global.tempForVisuals.worldPathfinding) {
             let pathData = global.tempForVisuals.worldPathfinding[roomName];

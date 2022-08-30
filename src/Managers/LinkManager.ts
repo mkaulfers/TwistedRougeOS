@@ -5,13 +5,15 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, Danger
 
 export default class LinkManager {
 
+    static linksTriggerAt: 0.1 // Percent full links send energy at
+
     static schedule(room: Room) {
         let roomName = room.name;
         let roomProcessId = roomName + "_link_monitor";
         if (global.scheduler.processQueue.has(roomProcessId)) return;
 
         const task = () => {
-            Utils.Logger.log(`LinkManager -> ${roomProcessId}`, LogLevel.DEBUG);
+            Utils.Logger.log(`LinkManager -> ${roomProcessId}`, LogLevel.TRACE);
             let room = Game.rooms[roomName];
 
             // Identify links
@@ -57,7 +59,7 @@ export default class LinkManager {
             targetLinks = _.sortByOrder(targetLinks, (t: StructureLink) => t.store.energy, 'asc');
 
             for (let link of links) {
-                if ((linkStates[link.id] == LinkState.INPUT || linkStates[link.id] == LinkState.BOTH) && link.store.energy > (link.store.getCapacity(RESOURCE_ENERGY) * 0.5)) {
+                if ((linkStates[link.id] == LinkState.INPUT || linkStates[link.id] == LinkState.BOTH) && link.store.energy > (link.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt)) {
                     let target = targetLinks.shift();
                     if (!target) return ProcessResult.RUNNING;
                     link.transferEnergy(target);

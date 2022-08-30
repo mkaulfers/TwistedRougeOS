@@ -77,12 +77,12 @@ export default class DataManager {
     static scheduleCacheMonitor() {
 
         const cacheTask = () => {
-            if (!Cache) Cache = {
+            if (!global.Cache) global.Cache = {
                 rooms: {},
             };
             for (let roomName in Game.rooms) {
-                if (!Cache.rooms[roomName]) {
-                    Cache.rooms[roomName] = {
+                if (!global.Cache.rooms[roomName]) {
+                    global.Cache.rooms[roomName] = {
                         towers: [],
                         links: {},
                     };
