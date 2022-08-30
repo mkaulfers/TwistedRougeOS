@@ -3,6 +3,7 @@ import { Roles } from "Creeps/Index";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from '../utils/Enums'
 import { Utils } from "utils/Index";
 import { planRoom } from "utils/RoomPlanner";
+import { Stamps } from "Models/Stamps";
 
 
 export function scheduleSpawnMonitor(room: Room) {
@@ -121,7 +122,7 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
         }
 
         if (Game.cpu.bucket > 500) {
-            planRoom(room, false)
+            planRoom(room)
         }
 
         let hubSkipped = [
@@ -151,13 +152,13 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
                     let danglingExtensions = blueprint.stamps.filter(stamp => { return stamp.type == StampType.EXTENSION })
                     for (let ext of danglingExtensions) {
                         let pos = Utils.Utility.unpackPostionToRoom(ext.stampPos, room.name)
-                        Stamp.buildStructure(pos, ext.type as StampType)
+                        Stamps.buildStructure(pos, ext.type as StampType)
                     }
 
                     let observer = blueprint.stamps.find(stamp => { return stamp.type == StampType.OBSERVER })
                     if (observer) {
                         let pos = Utils.Utility.unpackPostionToRoom(observer.stampPos, room.name)
-                        Stamp.buildStructure(pos, observer.type as StampType)
+                        Stamps.buildStructure(pos, observer.type as StampType)
                     }
                 case 7:
                     hubSkipped.splice(hubSkipped.indexOf(STRUCTURE_LINK), 1)
@@ -176,7 +177,7 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
                     for (let lab of labs) {
                         if (labsCount + labsConstCount < room.maxLabsAvail()) {
                             let pos = Utils.Utility.unpackPostionToRoom(lab.stampPos, room.name)
-                            Stamp.buildStructure(pos, lab.type as StampType)
+                            Stamps.buildStructure(pos, lab.type as StampType)
                         }
                     }
 
@@ -229,13 +230,13 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
                         let roomExtConstSites = room.constructionSites(STRUCTURE_EXTENSION)
                         let extensions = room.extensions()
                         if (roomExtConstSites.length + extensions.length < room.maxExtensionsAvail()) {
-                            Stamp.buildStructure(Utils.Utility.unpackPostionToRoom(extension.stampPos, room.name), StampType.EXTENSIONS)
+                            Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(extension.stampPos, room.name), StampType.EXTENSIONS)
                         }
                     }
 
                     let hub = blueprint.stamps.filter(x => x.type == StampType.ANCHOR)[0]
                     let hubPos = Utils.Utility.unpackPostionToRoom(hub.stampPos, room.name)
-                    Stamp.buildStructure(hubPos, StampType.ANCHOR, hubSkipped)
+                    Stamps.buildStructure(hubPos, StampType.ANCHOR, hubSkipped)
 
                 case 3:
                     let towers = room.towers()
@@ -243,11 +244,11 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
                     let towerStamps = blueprint.stamps.filter(x => x.type == StampType.TOWER)
                     for (let stamp of towerStamps) {
                         if (towerConstructionSites.length + towers.length < room.maxTowersAvail()) {
-                            Stamp.buildStructure(Utils.Utility.unpackPostionToRoom(stamp.stampPos, room.name), StampType.TOWER, [STRUCTURE_RAMPART])
+                            Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(stamp.stampPos, room.name), StampType.TOWER, [STRUCTURE_RAMPART])
                         }
                     }
 
-                    Stamp.buildStructureRoads(room)
+                    Stamps.buildStructureRoads(room)
 
                     let roadPos = blueprint.highways
                     for (let road of roadPos) {
@@ -270,8 +271,8 @@ export function scheduleConstructionMonitor(room: Room): void | ProcessResult {
 
                     let fastFiller = blueprint.stamps.find(s => s.type === StampType.FAST_FILLER)
                     if (fastFiller) {
-                        Logger.log(`Level ${controller.level}`, LogLevel.DEBUG)
-                        Stamp.buildStructure(Utils.Utility.unpackPostionToRoom(fastFiller.stampPos, room.name), fastFiller.type as StampType, fastFillerStructuresSkipped)
+                        Utils.Logger.log(`Level ${controller.level}`, LogLevel.DEBUG)
+                        Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(fastFiller.stampPos, room.name), fastFiller.type as StampType, fastFillerStructuresSkipped)
                     }
             }
         }

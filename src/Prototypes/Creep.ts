@@ -3,6 +3,10 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/E
 
 declare global {
     interface Creep {
+        /**
+         * A shorthand to global.cache.creeps[creep.name]. You can use it for quick access the creep’s specific cache data object.
+         */
+        cache: CreepCache
         travel(pos: RoomPosition): number
         getOffExit(): number
         moveToDefault(pos: RoomPosition): number
@@ -22,6 +26,15 @@ declare global {
 
     }
 }
+
+Object.defineProperty(Creep.prototype, 'cache', {
+    get: function() {
+        return global.Cache.creeps[this.name] = global.Cache.creeps[this.name] || {};
+    },
+    set: function(value) {
+        global.Cache.creeps[this.name] = value;
+    }
+});
 
 Creep.prototype.travel = function (pos) {
     Logger.log("Creep -> travel()", LogLevel.TRACE)

@@ -42,27 +42,28 @@ export default class Visuals {
 
         const visualsHandler = () => {
             Utils.Logger.log(`Visuals -> visualsHandler()`, LogLevel.DEBUG);
-            if (global.visualToggles && global.visualToggles.roomPlanning == true) {
+            let visualToggles = global.Cache.visualToggles;
+            if (visualToggles && visualToggles.roomPlanning == true) {
                 this.roomPlanning();
             }
 
-            if (global.visualToggles && global.visualToggles.distanceTransform == true) {
+            if (visualToggles && visualToggles.distanceTransform == true) {
                 this.distanceTransform();
             }
 
-            if (global.visualToggles && global.visualToggles.pathfinding == true) {
+            if (visualToggles && visualToggles.pathfinding == true) {
                 this.pathfinding();
             }
 
-            if (global.visualToggles && global.visualToggles.worldRoomScoring == true) {
+            if (visualToggles && visualToggles.worldRoomScoring == true) {
                 this.worldRoomScoring();
             }
 
-            if (global.visualToggles && global.visualToggles.worldRemotes == true) {
+            if (visualToggles && visualToggles.worldRemotes == true) {
                 this.worldRemotes();
             }
 
-            if (global.visualToggles && global.visualToggles.worldPathfinding == true) {
+            if (visualToggles && visualToggles.worldPathfinding == true) {
                 this.worldPathfinding();
             }
         }

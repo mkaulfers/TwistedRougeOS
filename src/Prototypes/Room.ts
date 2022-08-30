@@ -7,6 +7,10 @@ import { Role, LogLevel } from '../utils/Enums'
 declare global {
     interface Room {
         /**
+         * A shorthand to global.cache.rooms[room.name]. You can use it for quick access the room's specific cache data object.
+         */
+         cache: RoomCache
+        /**
           * Returns a role that should be pre-spawned. The spawn should be scheduled for when a
           * creep is about to die + distance to location - spawn time = 0.
           */
@@ -79,6 +83,15 @@ declare global {
         nextCreepToDie(): Creep | undefined;
     }
 }
+
+Object.defineProperty(Room.prototype, 'cache', {
+    get: function() {
+        return global.Cache.rooms[this.name] = global.Cache.rooms[this.name] || {};
+    },
+    set: function(value) {
+        global.Cache.rooms[this.name] = value;
+    }
+});
 
 Room.prototype.scheduleTasks = function () {
     Utils.Logger.log("Room -> setupTasks()", LogLevel.TRACE)
@@ -359,19 +372,19 @@ Room.prototype.extensions = function (): StructureExtension[] {
 }
 
 Room.prototype.towers = function() {
-    if (!global.Cache.rooms[this.name].towers || Game.time % 100 == 0) {
+    if (!this.cache.towers || Game.time % 100 == 0) {
         let towers: StructureTower[] = this.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
         if (towers.length == 0) return [];
         let towerIds: Id<StructureTower>[] = [];
         towers.forEach((t) => towerIds.push(t.id as Id<StructureTower>));
 
-        global.Cache.rooms[this.name].towers = towerIds;
+        this.cache.towers = towerIds;
         return towers;
     } else {
         let towers: StructureTower[] = [];
         let recalc = false;
 
-        for (let tid of global.Cache.rooms[this.name].towers) {
+        for (let tid of this.cache.towers) {
             let tower = Game.getObjectById(tid);
             if (tower == null) {
                 recalc = true;
@@ -380,7 +393,7 @@ Room.prototype.towers = function() {
             towers.push(tower);
         }
 
-        if (recalc == true) global.Cache.rooms[this.name].towers = [];
+        if (recalc == true) this.cache.towers = [];
         if (towers.length == 0) return [];
         return towers;
     }

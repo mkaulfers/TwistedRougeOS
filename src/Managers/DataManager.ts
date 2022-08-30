@@ -2,6 +2,7 @@ import { Process } from 'Models/Process';
 import { LogLevel, ProcessPriority, ProcessResult, Task } from 'utils/Enums';
 import { Utils } from '../utils/Index';
 
+// Add new Memory or Cache properties in this file.
 declare global {
     interface CreepMemory {
         assignedPos?: number
@@ -37,19 +38,24 @@ declare global {
         scheduler: string
     }
 
+    // Add properties you wish to have stored in a room's cache in the interface below.
+    // Refer to `const cacheTask` below if you make it a required property.
     interface RoomCache {
         towers: Id<StructureTower>[];
         towerTarget?: Id<AnyCreep>;
         links: {[key: Id<StructureLink>]: string};
     }
 
+    // Add properties you wish to have stored in a creep's cache in the interface below.
     interface CreepCache {
         harvesterDump?: Id<StructureLink | StructureContainer>;
     }
 
+    // The global Cache object. Consider it like `Memory`, it just gets rebuilt on a global reset.
     var Cache: {
         rooms: {[key: string]: RoomCache},
         creeps: {[key: string]: CreepCache},
+        visualToggles: {[key: string]: boolean},
     }
 }
 
@@ -81,15 +87,26 @@ export default class DataManager {
 
     static scheduleCacheMonitor() {
 
+        // If you added a required property in one of the Cache interfaces or var above, please add it to the appropriate section below.
         const cacheTask = () => {
             // Build cache if deleted
             if (!global.Cache) global.Cache = {
+                // Add required properties of Cache here
                 rooms: {},
                 creeps: {},
+                visualToggles: {
+                    roomPlanning: false,
+                    distanceTransform: false,
+                    pathfinding: false,
+                    worldRoomScoring: false,
+                    worldRemotes: false,
+                    worldPathfinding: false
+                },
             };
             for (const roomName in Game.rooms) {
                 if (!global.Cache.rooms[roomName]) {
                     global.Cache.rooms[roomName] = {
+                        // Add required properties of the room's cache here
                         towers: [],
                         links: {},
                     };
@@ -97,7 +114,10 @@ export default class DataManager {
             }
             for (const name in Game.creeps) {
                 if (!global.Cache.creeps[name]) {
-                    global.Cache.creeps[name] = {};
+                    global.Cache.creeps[name] = {
+                        // Add required properties of the creep's cache here
+
+                    };
                 }
             }
 
