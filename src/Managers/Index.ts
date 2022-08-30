@@ -1,14 +1,19 @@
-import * as SpawnManager from './SpawnManager';
-import * as TaskManager from './TaskManagement/TaskManager';
-import * as UtilityTasks from './TaskManagement/UtilityTasks';
-import { ThreatManager } from './ThreatManager';
-import { LinkManager } from './LinkManager';
-
+import ConstructionManager from "./ConstructionManager";
+import CreepManager from "./CreepManager";
+import DataManager from "./DataManager";
+import LinkManager from "./LinkManager";
+import SpawnManager from "./SpawnManager";
+import ThreatManager from "./ThreatManager";
+import UtilityManager from "./UtilityManager";
+import Visuals from "./Visuals";
 
 export var Managers = {
-    SpawnManager: SpawnManager,
-    TaskManager: TaskManager,
-    UtilityTasks: UtilityTasks,
-    ThreatManager: ThreatManager,
+    ConstructionManager: ConstructionManager,
+    CreepManager: CreepManager,
+    DataManager: DataManager,
     LinkManager: LinkManager,
+    SpawnManager: SpawnManager,
+    ThreatManager: ThreatManager,
+    UtilityManager: UtilityManager,
+    Visuals: Visuals,
 }

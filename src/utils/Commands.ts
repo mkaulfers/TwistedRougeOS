@@ -16,15 +16,16 @@ declare global {
 }
 
 global.help = function(cmd) {
+    let response = '';
     switch (cmd) {
         case 'toggleVisual' || 'togglevisual' || 'visual' || 'visuals':
         case 'toggle' || 'toggles':
-            let response = `toggleVisual(visual: string) is used to toggle visual booleans so that you may see the visuals. \n
+            response = `toggleVisual(visual: string) is used to toggle visual booleans so that you may see the visuals. \n
                 The accepted values are: \n'roomPlanning'\n'distanceTransform'\n'pathfinding'\n'worldRoomScoring'\n'worldRemotes'\n'worldPathfinding'`
             console.log(response);
             return response;
         default:
-            response = `${cmd} lacks a written description at the moment. Maybe you can add one if the function actually exists!`
+            response = `${cmd} either has no help text or isn't a function. \n Accepted values are 'toggleVisual'.`
             console.log(response);
             return response;
     }
@@ -45,7 +46,8 @@ global.toggleVisual = function(visual) {
         console.log(`${visual} toggled to ${global.visualToggles[visual]}.`);
         return OK;
     } else {
-        console.log(`ERR_INVALID_ARGS. ${visual} is not a correct visual toggle.`);
+        console.log(`ERR_INVALID_ARGS. ${visual} is not a correct visual toggle.
+            The accepted values are: \n'roomPlanning'\n'distanceTransform'\n'pathfinding'\n'worldRoomScoring'\n'worldRemotes'\n'worldPathfinding'`);
         return ERR_INVALID_ARGS;
     }
 }

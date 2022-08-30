@@ -2,8 +2,13 @@
  * Code for calculating the minCut in a room, written by Saruss,
  * adapted for Typescript and flexible room subsets by Chobobobo,
  * modified and debugged by Muon.
- * modified by xTwisteDx & RougeAyrn 
+ * modified by xTwisteDx & RougeAyrn
  */
+
+ export interface Coord {
+    x: number
+    y: number
+  }
 
  const UNWALKABLE = -10;
  const RANGE_MODIFIER = 1; // this parameter sets the scaling of weights to prefer walls closer protection bounds

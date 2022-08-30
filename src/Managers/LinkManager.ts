@@ -1,23 +1,22 @@
 import { link } from "fs"
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
-import { Logger } from "utils/Logger"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from '../utils/Enums'
 
-export class LinkManager {
+export default class LinkManager {
+
+    static linksTriggerAt: 0.1 // Percent full links send energy at
+
     static schedule(room: Room) {
         let roomName = room.name;
         let roomProcessId = roomName + "_link_monitor";
         if (global.scheduler.processQueue.has(roomProcessId)) return;
 
         const task = () => {
-            Utils.Logger.log(`LinkManager -> ${roomProcessId}`, LogLevel.DEBUG);
+            Utils.Logger.log(`LinkManager -> ${roomProcessId}`, LogLevel.TRACE);
             let room = Game.rooms[roomName];
 
             // Identify links
-            if (!global.Cache) global.Cache = {};
-            if (!global.Cache.rooms) global.Cache.rooms = {};
-            if (!global.Cache.rooms[room.name]) global.Cache.rooms[room.name] = {};
             if (!global.Cache.rooms[room.name].links ||
                 (Game.time % 250 == 0 &&
                 room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_LINK } }).length !== Object.keys(global.Cache.rooms[room.name].links!).length)) {
@@ -60,7 +59,7 @@ export class LinkManager {
             targetLinks = _.sortByOrder(targetLinks, (t: StructureLink) => t.store.energy, 'asc');
 
             for (let link of links) {
-                if ((linkStates[link.id] == LinkState.INPUT || linkStates[link.id] == LinkState.BOTH) && link.store.energy > (link.store.getCapacity(RESOURCE_ENERGY) * 0.5)) {
+                if ((linkStates[link.id] == LinkState.INPUT || linkStates[link.id] == LinkState.BOTH) && link.store.energy > (link.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt)) {
                     let target = targetLinks.shift();
                     if (!target) return ProcessResult.RUNNING;
                     link.transferEnergy(target);
@@ -82,7 +81,7 @@ export class LinkManager {
                 if (link) {
                     links.push(link);
                 } else {
-                    delete global.Cache.rooms[room.name].links;
+                    global.Cache.rooms[room.name].links = {};
                 }
             }
             if (links.length > 0) return links;

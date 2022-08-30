@@ -1,7 +1,7 @@
 import { Logger } from "utils/Logger"
 import { Process } from "../Models/Process"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
-import visuals from '../utils/Visuals'
+import { Managers } from "Managers/Index"
 
 export default class Kernel {
     executeProcesses() {
@@ -49,7 +49,10 @@ export default class Kernel {
             }
         }
 
-        visuals.visualsHandler();
+        Managers.DataManager.scheduleMemoryMonitor();
+        Managers.DataManager.scheduleCacheMonitor();
+        Managers.Visuals.visualsHandler();
+
 
     }
 
