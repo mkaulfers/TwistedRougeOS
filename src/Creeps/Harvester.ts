@@ -73,13 +73,24 @@ export class Harvester extends Creep {
 
             if (closestSource) {
                 // TODO: Modify to cache or put in memory the container / Link
-                if (creep.store.getFreeCapacity() < 10) {
-                    let dumps = creep.pos.findInRange(FIND_STRUCTURES, 1);
-                    if (dumps.length > 0) {
-                        let accepted: StructureConstant[] = [STRUCTURE_CONTAINER, STRUCTURE_LINK];
-                        dumps = _.filter(dumps, function (d) { return (accepted.indexOf(d.structureType) >= 0) });
-                        let dump: any = dumps[0];
-                        creep.give(dump, RESOURCE_ENERGY);
+                if (creep.store.getFreeCapacity() <= 10) {
+                    if (!global.Cache.creeps[creep.name].harvesterDump) {
+                        let dumps = creep.pos.findInRange(FIND_STRUCTURES, 1);
+                        let link = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_LINK && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureLink;
+                        let container = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_CONTAINER && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureContainer;
+
+                        if (link) {
+                            global.Cache.creeps[creep.name].harvesterDump = link.id;
+                        } else if (container) {
+                            global.Cache.creeps[creep.name].harvesterDump = container.id;
+                        }
+                    } else if (global.Cache.creeps[creep.name].harvesterDump){
+                        let dump = Game.getObjectById(global.Cache.creeps[creep.name].harvesterDump!);
+                        if (dump && dump.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                            creep.give(dump, RESOURCE_ENERGY);
+                        } else {
+                            delete global.Cache.creeps[creep.name].harvesterDump
+                        }
                     }
                 }
 
