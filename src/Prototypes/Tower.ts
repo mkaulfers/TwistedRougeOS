@@ -10,21 +10,25 @@ declare global {
     }
 }
 
-StructureTower.prototype.damage = function (posOrX, y?) {
-    Logger.log("Tower -> damage()", LogLevel.TRACE);
-    let pos: RoomPosition;
-    if (typeof posOrX === 'number') {
-        if (!y) return ERR_INVALID_ARGS;
-        let x = posOrX;
-        pos = new RoomPosition(x,y, this.room.name);
-    } else {
-        pos = posOrX;
+export default class Tower_Extended extends StructureTower {
+    damage(posOrX: RoomPosition | number, y?: number): number {
+        Logger.log("Tower -> damage()", LogLevel.TRACE);
+        let pos: RoomPosition;
+        if (typeof posOrX === 'number') {
+            if (!y) return ERR_INVALID_ARGS;
+            let x = posOrX;
+            pos = new RoomPosition(x,y, this.room.name);
+        } else {
+            pos = posOrX;
+        }
+        if (this.room.name !== pos.roomName) return ERR_NOT_IN_RANGE;
+
+        let dist = this.pos.getRangeTo(pos.x,pos.y)
+        if (dist < 5) dist = 5;
+        if (dist > 20) dist = 20;
+
+        return ((-30*dist)+750)
     }
-    if (this.room.name !== pos.roomName) return ERR_NOT_IN_RANGE;
-
-    let dist = this.pos.getRangeTo(pos.x,pos.y)
-    if (dist < 5) dist = 5;
-    if (dist > 20) dist = 20;
-
-    return ((-30*dist)+750)
 }
+
+

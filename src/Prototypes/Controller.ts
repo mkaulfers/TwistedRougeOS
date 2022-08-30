@@ -7,11 +7,13 @@ declare global {
     }
 }
 
-StructureController.prototype.isSigned = function () {
-    Logger.log("Controller -> isSigned()", LogLevel.TRACE)
+export default class Controller_Extended extends StructureController {
+    isSigned(): boolean {
+        Logger.log("Controller -> isSigned()", LogLevel.TRACE)
 
-    let sign = this.sign;
-    let spawn = Game.spawns[_.keys(Game.spawns)[0]]
-    if (!sign || sign.username !== spawn.owner.username) return false;
-    return true;
+        let sign = this.sign;
+        let spawn = Game.spawns[_.keys(Game.spawns)[0]]
+        if (!sign || sign.username !== spawn.owner.username) return false;
+        return true;
+    }
 }
