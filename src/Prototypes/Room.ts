@@ -317,34 +317,6 @@ Room.prototype.lowestScientist = function (): Creep | undefined {
     return lowestScientist
 }
 
-// Room.prototype.isSpawnDemandMet = function (): {met: boolean, demand: number} {
-//     let spawns = this.find(FIND_MY_SPAWNS)
-//     let truckers = this.creeps(Role.TRUCKER).filter(x => x.memory.task == Task.TRUCKER_STORAGE)
-//     let totalDemand = spawns.length * 300
-
-//     let truckersFulfillingDemand = 0
-//     for (let _trucker of truckers) {
-//         truckersFulfillingDemand += _trucker.getActiveBodyparts(CARRY) * (this.averageDistanceFromSourcesToStructures() * trucker.carryModifier)
-//     }
-//     return {met: truckersFulfillingDemand >= totalDemand, demand: totalDemand}
-// }
-
-// Room.prototype.isScientistDemandMet = function (): {met: boolean, demand: number} {
-//     let scientists = this.creeps(Role.SCIENTIST)
-//     let truckers = this.creeps(Role.TRUCKER).filter(x => x.memory.task == Task.TRUCKER_SCIENTIST)
-
-//     let totalDemand = 0
-//     for (let scientist of scientists) {
-//         totalDemand += scientist.upgradeEnergyConsumptionPerTick()
-//     }
-
-//     let truckersFulfillingDemand = 0
-//     for (let _trucker of truckers) {
-//         truckersFulfillingDemand += _trucker.getActiveBodyparts(CARRY) * (this.averageDistanceFromSourcesToStructures() * trucker.carryModifier)
-//     }
-//     return { met: truckersFulfillingDemand >= totalDemand, demand: totalDemand }
-// }
-
 Room.prototype.nextCreepToDie = function(): Creep | undefined {
     let creeps = this.creeps()
     let nextCreepToDie: Creep | undefined = undefined
