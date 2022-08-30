@@ -272,6 +272,6 @@ export class Stamps {
         { xMod: -1, yMod: 0, structureType: STRUCTURE_ROAD },
         { xMod: 0, yMod: 0, structureType: STRUCTURE_OBSERVER },
         { xMod: 1, yMod: 0, structureType: STRUCTURE_ROAD },
-        { xMod: 0, yMod: 1, structureType: STRUCTURE_ROAD },
+        { xMod: 0, yMod: 1, structureType: STRUCTURE_ROAD }
     ]
 }

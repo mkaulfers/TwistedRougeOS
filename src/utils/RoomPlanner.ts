@@ -6,7 +6,6 @@ import { getCutTiles, Rectangle, Coord } from './RampartPlanner';
 const buildOrder: (StampType)[] = [
     StampType.FAST_FILLER,
     StampType.ANCHOR,
-    StampType.OBSERVER,
     StampType.LABS,
     StampType.EXTENSIONS,
     StampType.EXTENSIONS,
@@ -14,6 +13,7 @@ const buildOrder: (StampType)[] = [
     StampType.EXTENSIONS,
     StampType.EXTENSIONS,
     StampType.EXTENSIONS,
+    StampType.OBSERVER,
     StampType.EXTENSIONS,
     StampType.EXTENSIONS,
     StampType.TOWER,
@@ -228,6 +228,7 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
             case StampType.EXTENSIONS:
             case StampType.TOWER:
             case StampType.EXTENSION:
+            case StampType.OBSERVER:
                 modifier = 1; break
         }
         rectsToProtect.push({ x1: stampPos.x - modifier - 2, y1: stampPos.y - modifier - 2, x2: stampPos.x + modifier + 2, y2: stampPos.y + modifier + 2 })
@@ -395,7 +396,8 @@ function doesStampFitAtPosition(x: number, y: number, room: Room, structure: Sta
         structure == StampType.EXTENSIONS ||
         structure == StampType.FAST_FILLER ||
         structure == StampType.TOWER ||
-        structure == StampType.EXTENSION) {
+        structure == StampType.EXTENSION ||
+        structure == StampType.OBSERVER) {
         let rawStamp = Stamps.getStampParts(structure)
 
         let stampPositions: { x: number, y: number }[] = []
