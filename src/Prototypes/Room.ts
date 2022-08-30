@@ -25,6 +25,7 @@ declare global {
         shouldSpawn(role: Role): boolean
         scheduleTasks(): void
         creeps(role?: Role): Creep[];
+        isSpawning(role: Role): boolean
         spawnCreep(role: Role, spawn: StructureSpawn, memory?: CreepMemory): void
         getAvailableSpawn(): StructureSpawn | undefined
         sourcesEnergyPotential(): number
@@ -164,6 +165,10 @@ Room.prototype.averageDistanceFromSourcesToStructures = function (): number {
 
 Room.prototype.shouldSpawn = function (role: Role): boolean {
     switch (role) {
+        default:
+            if (this.isSpawning(role)) {
+                return false
+            }
         case Role.ENGINEER:
             return Roles.Engineer.shouldSpawn(this)
         case Role.HARVESTER:
@@ -177,7 +182,6 @@ Room.prototype.shouldSpawn = function (role: Role): boolean {
         case Role.NETWORK_ENGINEER:
         case Role.NETWORK_HARVESTER:
         case Role.NETWORK_ENGINEER:
-        default:
             return false
     }
 }
@@ -193,6 +197,18 @@ Room.prototype.shouldPreSpawn = function (spawn: StructureSpawn): Creep | undefi
         }
     }
     return creepToSpawn
+}
+
+Room.prototype.isSpawning = function (role: Role): boolean {
+    let subString = role.substring(0, 3)
+    let spawns = this.find(FIND_MY_SPAWNS)
+    for (let spawn of spawns) {
+        let spawningName = spawn.name.substring(0,3)
+        if (spawningName == subString) {
+            return true
+        }
+    }
+    return false
 }
 
 Room.prototype.spawnCreep = function (role: Role, spawn: StructureSpawn, memory?: CreepMemory) {
