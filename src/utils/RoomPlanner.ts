@@ -28,51 +28,15 @@ const buildOrder: (StampType)[] = [
     StampType.TOWER,
 ]
 
-export function planRoom(room: Room, visualize: boolean) {
+export function planRoom(room: Room) {
     let blueprint = room.memory.blueprint
-    if (blueprint && visualize) {
-        visualizeFromMemory(room)
-        return
-    }
 
-    if (!blueprint) {
-        generateNewPlan(room, visualize)
+    if (!blueprint || blueprint.anchor == 0) {
+        generateNewPlan(room)
     }
 }
 
-function visualizeFromMemory(room: Room) {
-    let roomVisual = new RoomVisual(room.name)
-    let blueprint = room.memory.blueprint
-
-    for (let stamp of blueprint.stamps) {
-        let pos = Utils.Utility.unpackPostionToRoom(stamp.stampPos, room.name)
-        Stamps.plan(pos, stamp.type as StampType, [], roomVisual)
-    }
-
-    for (let step of blueprint.highways) {
-        let pos = Utils.Utility.unpackPostionToRoom(step, room.name)
-        roomVisual.structure(pos.x, pos.y, STRUCTURE_ROAD)
-    }
-
-    for (let container of blueprint.containers) {
-        let pos = Utils.Utility.unpackPostionToRoom(container, room.name)
-        roomVisual.structure(pos.x, pos.y, STRUCTURE_CONTAINER)
-    }
-
-    for (let rampart of blueprint.ramparts) {
-        let pos = Utils.Utility.unpackPostionToRoom(rampart, room.name)
-        roomVisual.structure(pos.x, pos.y, STRUCTURE_RAMPART, { opacity: 0.3 })
-    }
-
-    for (let link of blueprint.links) {
-        let pos = Utils.Utility.unpackPostionToRoom(link, room.name)
-        roomVisual.structure(pos.x, pos.y, STRUCTURE_LINK)
-    }
-
-    roomVisual.connectRoads()
-}
-
-function generateNewPlan(room: Room, isVisualizing: boolean) {
+function generateNewPlan(room: Room) {
     if (!room.controller?.my || !room) { return }
 
     room.memory.blueprint = {
@@ -88,7 +52,6 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
     if (!blueprintAnchor) { return }
     room.memory.blueprint.anchor = Utils.Utility.packPosition(blueprintAnchor)
 
-    let roomVisual = isVisualizing ? new RoomVisual(room.name) : undefined
     let plannedPositions: RoomPosition[] = []
     let stamps: { type: StampType, stampPos: number, completed: boolean }[] = []
 
@@ -96,7 +59,7 @@ function generateNewPlan(room: Room, isVisualizing: boolean) {
         let stampPos = floodFillSearch(room, blueprintAnchor, building, plannedPositions)
         if (stampPos) {
             stamps.push({ type: building, stampPos: Utils.Utility.packPosition(stampPos), completed: false })
-            Stamps.plan(stampPos, building, plannedPositions, roomVisual)
+            Stamps.plan(stampPos, building, plannedPositions)
         }
     }
 
