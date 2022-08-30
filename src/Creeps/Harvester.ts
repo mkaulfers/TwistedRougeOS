@@ -75,7 +75,6 @@ export class Harvester extends Creep {
             if (closestSource) {
                 if (creep.store.getFreeCapacity() <= 10) {
                     if (!creep.cache.harvesterDump) {
-                        creep.memory
                         let dumps = creep.pos.findInRange(FIND_STRUCTURES, 1);
                         let link = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_LINK && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureLink;
                         let container = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_CONTAINER && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureContainer;
