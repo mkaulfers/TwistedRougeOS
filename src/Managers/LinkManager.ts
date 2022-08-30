@@ -4,6 +4,7 @@ import { Utils } from "utils/Index"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from '../utils/Enums'
 
 export default class LinkManager {
+
     static schedule(room: Room) {
         let roomName = room.name;
         let roomProcessId = roomName + "_link_monitor";

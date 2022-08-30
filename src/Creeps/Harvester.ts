@@ -4,6 +4,10 @@ import { Utils } from "utils/Index"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export class Harvester extends Creep {
+
+    static baseBody = [CARRY, MOVE, WORK, WORK]
+    static segment = [WORK]
+
     static harvesterEarlyTask(creep: Creep) {
         let creepId = creep.id
 
@@ -114,6 +118,4 @@ export class Harvester extends Creep {
         return room.currentHarvesterWorkPotential() < sources.length * 10
     }
 
-    static baseBody = [CARRY, MOVE, WORK, WORK]
-    static segment = [WORK]
 }

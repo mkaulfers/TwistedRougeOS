@@ -4,6 +4,11 @@ import { Logger } from "utils/Logger";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export class Trucker extends Creep {
+
+    static baseBody = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
+    static segment = [CARRY, CARRY, MOVE]
+    static carryModifier = 3.0
+
     static truckerStorage(creep: Creep) {
         let creepId = creep.id
 
@@ -267,8 +272,4 @@ export class Trucker extends Creep {
         if (room.truckersCarryCapacity() > room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)) { return false }
         return true
     }
-
-    static baseBody = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
-    static segment = [CARRY, CARRY, MOVE]
-    static carryModifier = 3.0
 }

@@ -2,6 +2,7 @@ import { StampType } from "utils/Enums";
 import { Utils } from "utils/Index";
 
 export class Stamps {
+
     static plan(startPos: RoomPosition, stamp: StampType, plannedPositions: RoomPosition[], roomVisual?: RoomVisual) {
         let site: { xMod: number, yMod: number, structureType: BuildableStructureConstant }[]
         switch (stamp) {

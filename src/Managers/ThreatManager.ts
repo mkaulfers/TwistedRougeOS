@@ -3,6 +3,7 @@ import { Utils } from "utils/Index"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel } from '../utils/Enums'
 
 export default class ThreatManager {
+
     static scheduleThreatMonitor(room: Room) {
         let roomName = room.name;
         let roomProcessId = roomName + "_threat_monitor";

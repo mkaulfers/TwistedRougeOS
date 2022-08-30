@@ -2,7 +2,11 @@ export enum Role {
     SCIENTIST = 'scientist',
     TRUCKER = 'trucker',
     HARVESTER = 'harvester',
-    ENGINEER = 'engineer'
+    ENGINEER = 'engineer',
+    FILLER = 'filler',
+    NETWORK_HARVESTER = 'network_harvester',
+    NETWORK_HAULER = 'network_hauler',
+    NETWORK_ENGINEER = 'network_engineer'
 }
 
 export enum Task {
@@ -16,7 +20,9 @@ export enum Task {
 
     ENGINEER_BUILDING = 'engineer_building',
     ENGINEER_REPAIRING = 'engineer_repairing',
-    ENGINEER_UPGRADING = 'engineer_upgrading'
+    ENGINEER_UPGRADING = 'engineer_upgrading',
+
+    FILLER = 'filler_working',
 }
 
 export enum ProcessPriority {
