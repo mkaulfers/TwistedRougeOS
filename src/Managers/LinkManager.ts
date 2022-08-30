@@ -60,7 +60,7 @@ export class LinkManager {
             targetLinks = _.sortByOrder(targetLinks, (t: StructureLink) => t.store.energy, 'asc');
 
             for (let link of links) {
-                if ((linkStates[link.id] == LinkState.INPUT || linkStates[link.id] == LinkState.BOTH) && link.store.energy > (link.store.getCapacity(RESOURCE_ENERGY) * 0.5)) {
+                if ((linkStates[link.id] == LinkState.INPUT || linkStates[link.id] == LinkState.BOTH) && link.store.energy > (link.store.getCapacity(RESOURCE_ENERGY) * 0.1)) {
                     let target = targetLinks.shift();
                     if (!target) return ProcessResult.RUNNING;
                     link.transferEnergy(target);
