@@ -4,8 +4,8 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/E
 
 export class Engineer extends Creep {
 
-    static baseBody = [CARRY, MOVE, WORK, WORK]
-    static segment = [CARRY, MOVE, WORK, WORK]
+    static baseBody = [CARRY, MOVE, MOVE, WORK]
+    static segment = [CARRY, MOVE, MOVE, WORK]
 
     static engineerBuilding(creep: Creep) {
         let creepId = creep.id

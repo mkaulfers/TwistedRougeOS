@@ -17,11 +17,11 @@ export default class LinkManager {
             let room = Game.rooms[roomName];
 
             // Identify links
-            if (!global.Cache.rooms[room.name].links ||
+            if (!room.cache.links ||
                 (Game.time % 250 == 0 &&
-                room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_LINK } }).length !== Object.keys(global.Cache.rooms[room.name].links!).length)) {
+                room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_LINK } }).length !== Object.keys(room.cache.links).length)) {
 
-                global.Cache.rooms[room.name].links = {};
+                room.cache.links = {};
                 let links = room.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LINK } });
 
                 // Define Link States
@@ -29,20 +29,20 @@ export default class LinkManager {
                     link = link as StructureLink;
 
                     if (link.pos.findInRange(FIND_SOURCES, 2).length > 0 || link.pos.findInRange(FIND_EXIT, 2).length > 0) {
-                        global.Cache.rooms[room.name].links![link.id] = LinkState.INPUT;
+                        room.cache.links[link.id] = LinkState.INPUT;
                     }
                     if (room.controller && link.pos.getRangeTo(room.controller.pos.x, room.controller.pos.y) <= 3) {
-                        if (global.Cache.rooms[room.name].links![link.id] == LinkState.INPUT) {
-                            global.Cache.rooms[room.name].links![link.id] = LinkState.BOTH;
+                        if (room.cache.links[link.id] == LinkState.INPUT) {
+                            room.cache.links[link.id] = LinkState.BOTH;
                         } else {
-                            global.Cache.rooms[room.name].links![link.id] = LinkState.OUTPUT;
+                            room.cache.links[link.id] = LinkState.OUTPUT;
                         }
                     }
                     if (room.storage && link.pos.getRangeTo(room.storage.pos.x, room.storage.pos.y) < 2) {
-                        global.Cache.rooms[room.name].links![link.id] = LinkState.BOTH;
+                        room.cache.links![link.id] = LinkState.BOTH;
                     }
-                    if (!global.Cache.rooms[room.name].links![link.id]) {
-                        global.Cache.rooms[room.name].links![link.id] = LinkState.OUTPUT;
+                    if (!room.cache.links![link.id]) {
+                        room.cache.links![link.id] = LinkState.OUTPUT;
                     }
                 }
             }
@@ -51,7 +51,7 @@ export default class LinkManager {
             let links = this.links(room);
             if (!links) return ProcessResult.RUNNING;
 
-            let linkStates = global.Cache.rooms[room.name].links;
+            let linkStates = room.cache.links;
             if (!linkStates) return;
 
             let targetLinks = links.filter((l) => { return ([LinkState.OUTPUT, LinkState.BOTH].indexOf(linkStates![l.id] as LinkState) >= 0 &&
@@ -73,15 +73,14 @@ export default class LinkManager {
     }
 
     static links(room: Room) {
-        if (!global.Cache.rooms) return;
         let links: StructureLink[] = [];
 
-            for (let linkId in global.Cache.rooms[room.name].links) {
+            for (let linkId in room.cache.links) {
                 let link = Game.getObjectById(linkId as Id<StructureLink>)
                 if (link) {
                     links.push(link);
                 } else {
-                    global.Cache.rooms[room.name].links = {};
+                    room.cache.links = {};
                 }
             }
             if (links.length > 0) return links;

@@ -1,8 +1,9 @@
 import { ErrorMapper } from "utils/ErrorMapper";
 import { Utils } from './utils/Index';
 import { OS } from "OS/Index";
-import './Prototypes/Index'
+import './Extensions/Index'
 import { Task, LogLevel } from './utils/Enums'
+import { colors } from "Models/Process";
 
 declare global {
 
@@ -50,11 +51,17 @@ function end() {
 }
 
 function displaySimpleStats() {
+  // let cpuStats = `<div style='width: 50vw; text-align: left; align-items: left; justify-content: left; display: inline-block; background: ${colors.lightGrey};'><div style='padding: 2px; font-size: 18px; font-weight: 600; color: ${colors.black};'>============== CPU STATS ==============` +
+  // `<div style='height:20px;width:${global.kernel.estimatedQueueCpuCost() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>Avg: ${global.kernel.estimatedQueueCpuCost().toString().substring(0, 4)}</div>` +
+  // `<div style='height:20px;width:${Game.cpu.getUsed() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'> Current: ${Game.cpu.getUsed().toString().substring(0, 4)}</div>`
+
+  let cpuStats =
+    `<div style='width: 50vw; text-align: left; align-items: left; justify-content: center; display: inline-block; background: ${colors.lightGrey};'><div style='background: ${colors.lightGrey}; padding: 2px; font-size: 18px; font-weight: 600; color: ${colors.darkBlue};'>============== CPU STATS ==============</div>` +
+    `<div style='height:20px;width:${global.kernel.estimatedQueueCpuCost() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>Average: ${global.kernel.estimatedQueueCpuCost().toString().substring(0, 4)}</div>` +
+    `<div style='height:20px;width:${Game.cpu.getUsed() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>Current: ${Game.cpu.getUsed().toString().substring(0, 4)}</div>`
+
   console.log()
-  console.log("============== CPU STATS ==============")
-  console.log("Used: " + Game.cpu.getUsed())
-  console.log("Bucket: " + Game.cpu.bucket)
-  console.log()
+  console.log(cpuStats)
 }
 
 function loggingProcess() {
@@ -62,9 +69,6 @@ function loggingProcess() {
   if (Utils.Logger.devLogLevel == LogLevel.DEBUG ||
     Utils.Logger.devLogLevel == LogLevel.ALL ||
     Utils.Logger.devLogLevel == LogLevel.INFO) {
-    console.log("============== PROCESSES ==============")
-    console.log("Avg Queue Cpu Cost: " + global.kernel.estimatedQueueCpuCost())
-    console.log()
     for (let [, value] of global.scheduler.processQueue) {
       console.log(value.toString())
     }

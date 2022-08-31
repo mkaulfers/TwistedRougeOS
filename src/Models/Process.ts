@@ -54,8 +54,20 @@ export class Process {
     }
 
     toString() {
-        return `Process ID:       | ${this.id}\n` +
-               `Current Priority: | ${this.currentPriority}\n` +
-               `CPU Used:         | ${this.getAvgCpuUsed()}\n`
+        return `<body><div style='width: 50vw; text-align: left; align-items: left; justify-content: left; display: inline-block; background: ${colors.lightGrey};'><div style='padding: 2px; font-size: 18px; font-weight: 600; color: ${colors.black};'>${this.id}<br>` +
+               `<div style='width: 50vw; text-align: left; align-items: left; justify-content: left; display: inline-block; background: ${colors.white};'><div style='padding: 2px; font-size: 14px; font-weight: 500; color: ${colors.brown};'>${this.currentPriority}<br>` +
+               `<div style='height:20px;width:${this.getAvgCpuUsed() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>${this.getAvgCpuUsed().toString().substring(0, 4)}</div></div></body>`
     }
 }
+
+export const colors = {
+    white: '#ffffff',
+    lightGrey: '#eaeaea',
+    lightBlue: '#0f66fc',
+    darkBlue: '#02007d',
+    black: '#000000',
+    yellow: '#d8f100',
+    red: '#d10000',
+    green: '#00d137',
+    brown: '#aa7253',
+  }

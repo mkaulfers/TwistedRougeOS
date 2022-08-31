@@ -1,6 +1,10 @@
 import { Utils } from "./Index";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './Enums';
 
+interface IPrototype {
+    prototype?: any
+}
+
 export class Utility {
     static packPosition(pos: RoomPosition): number {
         return pos.x * 50 + pos.y
@@ -131,5 +135,16 @@ export class Utility {
             .value();
 
         return targets;
+    }
+
+    /**
+     * A function that converts class properties to prototypes.
+     * @param base The class you wish to add prototypes to
+     * @param extra The class containing the prototypes
+     */
+    static extendClass(base: IPrototype, extra: IPrototype) {
+        let descs = Object.getOwnPropertyDescriptors(extra.prototype)
+        delete descs.prototype
+        Object.defineProperties(base.prototype, descs)
     }
 }
