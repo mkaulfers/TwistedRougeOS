@@ -39,10 +39,10 @@ export default class ThreatManager {
                 case (playerAttackers.length > 0 && invaderAttackers.length == 0): case (playerAttackers.length > 0 && invaderAttackers.length > 0):
 
                     // Handle Targeting
-                    if (global.Cache.rooms[room.name].towerTarget && Game.getObjectById(global.Cache.rooms[room.name].towerTarget!) == null) delete global.Cache.rooms[room.name].towerTarget;
+                    if (room.cache.towerTarget && Game.getObjectById(room.cache.towerTarget!) == null) delete room.cache.towerTarget;
 
                     let target;
-                    if (!global.Cache.rooms[room.name].towerTarget) {
+                    if (!room.cache.towerTarget) {
                         let potential: AnyCreep;
                         let currentRelBodyLength: number = 0;
                         for (let enemy of playerAttackers) {
@@ -55,10 +55,10 @@ export default class ThreatManager {
                         }
 
                         if (potential!) {
-                            global.Cache.rooms[room.name].towerTarget = potential.id;
+                            room.cache.towerTarget = potential.id;
                         }
                     }
-                    let targetId = global.Cache.rooms[room.name].towerTarget;
+                    let targetId = room.cache.towerTarget;
                     if (targetId && Game.getObjectById(targetId) !== null) {
                         target = Game.getObjectById(targetId) as AnyCreep;
                         this.towerAttack(target);

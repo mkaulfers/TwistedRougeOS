@@ -73,24 +73,24 @@ export class Harvester extends Creep {
             }
 
             if (closestSource) {
-                // TODO: Modify to cache or put in memory the container / Link
                 if (creep.store.getFreeCapacity() <= 10) {
-                    if (!global.Cache.creeps[creep.name].harvesterDump) {
+                    if (!creep.cache.harvesterDump) {
                         let dumps = creep.pos.findInRange(FIND_STRUCTURES, 1);
                         let link = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_LINK && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureLink;
                         let container = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_CONTAINER && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureContainer;
 
                         if (link) {
-                            global.Cache.creeps[creep.name].harvesterDump = link.id;
+                            creep.cache.harvesterDump = link.id;
                         } else if (container) {
-                            global.Cache.creeps[creep.name].harvesterDump = container.id;
+                            creep.cache.harvesterDump = container.id;
                         }
-                    } else if (global.Cache.creeps[creep.name].harvesterDump){
-                        let dump = Game.getObjectById(global.Cache.creeps[creep.name].harvesterDump!);
+                    }
+                    if (creep.cache.harvesterDump) {
+                        let dump = Game.getObjectById(creep.cache.harvesterDump!);
                         if (dump && dump.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                             creep.give(dump, RESOURCE_ENERGY);
                         } else {
-                            delete global.Cache.creeps[creep.name].harvesterDump
+                            delete creep.cache.harvesterDump
                         }
                     }
                 }

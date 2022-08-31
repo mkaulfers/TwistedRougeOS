@@ -12,7 +12,6 @@ declare global {
             /**
              * A heap-saved variable for housing the visual toggles.
              */
-            var visualToggles: {[key: string]: boolean};
 }
 
 global.help = function(cmd) {
@@ -32,18 +31,11 @@ global.help = function(cmd) {
 }
 
 global.toggleVisual = function(visual) {
-    if (!global.visualToggles) global.visualToggles = {
-        roomPlanning: false,
-        distanceTransform: false,
-        pathfinding: false,
-        worldRoomScoring: false,
-        worldRemotes: false,
-        worldPathfinding: false
-    };
 
-    if (visual in global.visualToggles) {
-        global.visualToggles[visual] = !global.visualToggles[visual]
-        console.log(`${visual} toggled to ${global.visualToggles[visual]}.`);
+
+    if (visual in global.Cache.visualToggles) {
+        global.Cache.visualToggles[visual] = !global.Cache.visualToggles[visual]
+        console.log(`${visual} toggled to ${global.Cache.visualToggles[visual]}.`);
         return OK;
     } else {
         console.log(`ERR_INVALID_ARGS. ${visual} is not a correct visual toggle.

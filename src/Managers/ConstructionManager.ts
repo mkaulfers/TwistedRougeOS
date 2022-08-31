@@ -36,7 +36,7 @@ export default class ConstructionManager {
             }
 
             if (Game.cpu.bucket > 500) {
-                planRoom(room, false)
+                planRoom(room)
             }
 
             let hubSkipped = [

@@ -1,7 +1,7 @@
 import { ErrorMapper } from "utils/ErrorMapper";
 import { Utils } from './utils/Index';
 import { OS } from "OS/Index";
-import './Prototypes/Index'
+import './Extensions/Index'
 import { Task, LogLevel } from './utils/Enums'
 import { colors } from "Models/Process";
 
