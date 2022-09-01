@@ -1,12 +1,3 @@
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
-
-interface SpawnOrder {
-    id: string, // role + count
-    scheduleTick?: number,
-    spawnTime: number,
-    body: BodyPartConstant[],
-    memory: {[key: string]: any},
-}
 
 export default class SpawnSchedule {
     roomName: string
@@ -19,19 +10,20 @@ export default class SpawnSchedule {
     schedule: SpawnOrder[]
 
     /**
-     * How to create a new spawn schedule.
+     * How to create a new spawn schedule. Can also recreate an existing schedule.
      * @param roomName Name of room.
      * @param spawnName Name of spawn.
      */
-    constructor(roomName: string, spawnName: string) {
+    constructor(roomName: string, spawnName: string, opts?: {tick: number, pausedTicks: number, schedule: SpawnOrder[], freeSpaces: [number, number][], usedSpace: number}) {
         this.roomName = roomName;
         this.spawnName = spawnName;
-        this.tick = 0;
-        this.pausedTicks = 0;
-        this.schedule = [];
-        this.freeSpaces = [[0,1500]];
-        this.usedSpace = 0;
         this.limiter = 0.80
+
+        this.tick = opts ? opts.tick : 0;
+        this.pausedTicks = opts ? opts.pausedTicks : 0;
+        this.schedule = opts ? opts.schedule : [];
+        this.freeSpaces = opts ? opts.freeSpaces : [[0,1500]];
+        this.usedSpace = opts ? opts.usedSpace : 0;
     }
 
     /**
@@ -43,17 +35,19 @@ export default class SpawnSchedule {
      */
     add(spawnOrders: SpawnOrder[], opts?: {force?: boolean}): SpawnOrder[] | undefined {
         // TODO: Modify to handle gaps between spawnOrders
+
+        // TODO: Modify to handle suggested scheduleTicks
         let externalSpawnOrders = spawnOrders;
         for (const spawnOrder of spawnOrders) {
             // Determine if large enough gap exists
             let firstFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[1] >= spawnOrder.spawnTime);
-            if (!firstFreeSpace || this.usedSpace >= (this.limiter * 1500)) return externalSpawnOrders;
+            if (!firstFreeSpace || ((opts && !opts.force || !opts) && this.usedSpace >= (this.limiter * 1500))) return externalSpawnOrders;
 
             spawnOrder.scheduleTick = firstFreeSpace[0];
             this.schedule.push(spawnOrder);
 
             this.freeSpaces[this.freeSpaces.indexOf(firstFreeSpace)] = [firstFreeSpace[0] + spawnOrder.spawnTime, firstFreeSpace[1] - spawnOrder.spawnTime];
-            this.usedSpace =+ spawnOrder.spawnTime;
+            this.usedSpace += spawnOrder.spawnTime;
             externalSpawnOrders.shift();
         }
         return undefined;
@@ -83,15 +77,24 @@ export default class SpawnSchedule {
                 this.freeSpaces[this.freeSpaces.indexOf(matchingSpace)] = [matchingSpace[0] - removeThis.spawnTime, matchingSpace[1] + removeThis.spawnTime]
             }
 
-            this.usedSpace =- removeThis.spawnTime;
+            this.usedSpace -= removeThis.spawnTime;
         }
         return undefined;
     }
 
     /**
+     * Determines if SpawnSchedule has room for more SpawnOrders.
+     * @returns a boolean representing if the schedule is at or above the limiter.
+     */
+    isFull(): boolean {
+        if (this.usedSpace >= (this.limiter * 1500)) return true;
+        return false;
+    }
+
+    /**
      * Resets the schedule without having to reinitialize the class.
      */
-    rebuild(): void {
+    reset(): void {
         this.tick = 0;
         this.pausedTicks = 0;
         this.schedule = [];
