@@ -147,4 +147,36 @@ export class Utility {
         delete descs.prototype
         Object.defineProperties(base.prototype, descs)
     }
+
+    static bodyCost(body: BodyPartConstant[]): number {
+        if (!body || body.length == 0) return ERR_INVALID_ARGS;
+        let cost = 0;
+        for (const part of body) {
+            switch (part) {
+                case TOUGH:
+                    cost += 10;
+                    break;
+                case MOVE:
+                case CARRY:
+                    cost += 50;
+                    break;
+                case ATTACK:
+                    cost += 80;
+                    break;
+                case WORK:
+                    cost += 100;
+                    break;
+                case RANGED_ATTACK:
+                    cost += 150;
+                    break;
+                case HEAL:
+                    cost += 250;
+                    break;
+                case CLAIM:
+                    cost += 600;
+                    break;
+            }
+        }
+        return cost;
+    }
 }
