@@ -9,30 +9,74 @@ export default class SpawnManager {
 
         const spawnMonitorTask = () => {
             let room = Game.rooms[roomId]
-            let availableSpawn = room.getAvailableSpawn()
+            // room.getAvailableSpawn()
+            // room.spawnCreep(role, availableSpawn)
+            // room.shouldPreSpawn(spawn: StructureSpawn): Creep | undefined
+            // room.scheduleSpawn(role: Role): void
+            // room.shouldSpawn(role: Role): boolean
+            // room.isSpawning(role: Role): boolean
+            // room.spawnCreep(role: Role, spawn: StructureSpawn, memory?: CreepMemory): void
+            // room.getAvailableSpawn(): StructureSpawn | undefined
+            // room.sourcesEnergyPotential(): number
+            // n WORK bodies in the room, on harvesters, x 2 per tick.
+            // room.currentHarvesterWorkPotential(): number
+            // n WORK bodies in the room, x 1 per tick.
+            // room.scientistEnergyConsumption(): number
+            // n WORK bodies in the room, x 1 per tick.
+            // room.engineerEnergyConsumption(): number
+            // n CARRY bodies in the room, on truckers, x 50.
+            // room.truckersCarryCapacity(): number
+            // room.averageDistanceFromSourcesToStructures(): number
+            // room.sources(): Source[]
+            // room.isSpawnDemandMet(): {met: boolean, demand: number}
+            // room.isScientistDemandMet(): {met: boolean, demand: number}
+            // room.scientistsWorkCapacity(): number
+            // room.rampartHPTarget(): number
+            // room.towers(): StructureTower[];
+            // room.labs(): StructureLab[];
+            // room.links(): StructureLink[];
+            // room.nuker(): StructureNuker;
+            // room.extractor(): StructureExtractor;
+            // room.extensions(): StructureExtension[];
+            // room.constructionSites(isBuilding?: BuildableStructureConstant): ConstructionSite[];
+            // room.minerals(): Mineral[];
+            // room.nextCreepToDie(): Creep | undefined
 
-            if (availableSpawn) {
-                // let respawnRole: Creep | undefined = room.shouldPreSpawn(availableSpawn)
-                // if (respawnRole) {
-                //     room.spawnCreep(respawnRole.memory.role as Role, availableSpawn, respawnRole.memory)
-                //     availableSpawn = room.getAvailableSpawn()
-                //     if (!availableSpawn) { return }
-                // }
 
-                for (let i = 0; i < Object.keys(Role).length; i++) {
-                    let role = Object.values(Role)[i]
-                    Utils.Logger.log(`Room -> scheduleSpawnMonitor() -> role: ${role}`, LogLevel.TRACE)
-                    let result = room.shouldSpawn(role)
-                    if (result) {
-                        room.spawnCreep(role, availableSpawn)
-                        return;
-                    }
-                }
-            }
+            // creep.upgradeEnergyConsumptionPerTick(): number
+            // creep.buildEnergyConsumptionPerTick(): number
+            // creep.repairEnergyConsumptionPerTick(): number
+            // creep.dismantleEnergyConsumptionPerTick(): number
+            // room.creeps(role?: Role): Creep[]
+            // room.sourceWithMostDroppedEnergy(): Source | undefined
+            // room.lowestSpawn(): StructureSpawn | undefined
+            // room.lowestExtension(): StructureExtension | undefined
+            // room.lowestTower(): StructureTower | undefined
+            // room.lowestScientist(): Creep | undefined
+            // source.validPositions(): RoomPosition[]
+            // source.isHarvestingAtMaxEfficiency(): boolean
+            // source.assignablePosition(): RoomPosition
+            // source.droppedEnergy(): Resource | undefined
         }
 
         let newProcess = new Process(`${room.name}_spawn_monitor`, ProcessPriority.LOW, spawnMonitorTask)
         global.scheduler.addProcess(newProcess)
+    }
+
+    /**
+     * Generates SpawnOrders for the minimum number of creeps to operate the room.
+     * @param room The room to consider.
+     */
+    static genMinCreepOrders(room: Room) {
+
+    }
+
+    /**
+     * Generates SpawnOrders for the extra creeps usable by the room.
+     * @param room The room to consider.
+     */
+    static genExtraCreepOrders(room: Room) {
+
     }
 
     static getBodyFor(room: Room, role: Role): BodyPartConstant[] {

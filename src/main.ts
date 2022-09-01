@@ -4,6 +4,7 @@ import { OS } from "OS/Index";
 import './Extensions/Index'
 import { Task, LogLevel } from './utils/Enums'
 import { colors } from "Models/Process";
+import prototypeExtender from "./Extensions/Index";
 
 declare global {
 
@@ -13,6 +14,9 @@ declare global {
     }
   }
 }
+
+// Once and Done code here
+prototypeExtender();
 
 export const loop = ErrorMapper.wrapLoop(() => {
   clearConsole()
