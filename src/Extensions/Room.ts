@@ -75,6 +75,7 @@ declare global {
         extensions(): StructureExtension[];
         constructionSites(isBuilding?: BuildableStructureConstant): ConstructionSite[];
         minerals(): Mineral[];
+        spawns(): StructureSpawn[];
 
         maxExtensionsAvail(): number;
         maxTowersAvail(): number;
@@ -404,6 +405,15 @@ export default class Room_Extended extends Room {
 
     minerals() {
         return this.find(FIND_MINERALS)
+    }
+
+    spawns() {
+        let mySpawns = this.find(FIND_MY_SPAWNS);
+        if (mySpawns) {
+            return mySpawns;
+        } else {
+            return this.find(FIND_HOSTILE_SPAWNS);
+        }
     }
 
     rampartHPTarget(): number {
