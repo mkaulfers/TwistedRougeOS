@@ -2,13 +2,21 @@ import { Utils } from '../utils/Index'
 import { Roles } from '../Creeps/Index';
 import { Role, Task, LogLevel, ProcessPriority } from '../utils/Enums'
 import { Process } from 'Models/Process';
+import SpawnSchedule from 'Models/SpawnSchedule';
 
 export default class SpawnManager {
     static scheduleSpawnMonitor(room: Room) {
         const roomId = room.name
 
         const spawnMonitorTask = () => {
+            // TODO: Modify so newly built schedules adjust and account for existing creeps and their lifetimes.
+            // TODO: Modify to allow for spawn-limiting due to security issues.
+
             let room = Game.rooms[roomId]
+            let spawns = room.spawns();
+            if (!room.cache.spawnSchedules) room.cache.spawnSchedules = [];
+            let spawnSchedules = room.cache.spawnSchedules;
+            /*
             // room.getAvailableSpawn()
             // room.spawnCreep(role, availableSpawn)
             // room.shouldPreSpawn(spawn: StructureSpawn): Creep | undefined
@@ -57,6 +65,72 @@ export default class SpawnManager {
             // source.isHarvestingAtMaxEfficiency(): boolean
             // source.assignablePosition(): RoomPosition
             // source.droppedEnergy(): Resource | undefined
+
+            */
+
+            // For each spawn ensure we have a schedule
+            if (spawnSchedules.length !== spawns.length) {
+                for (const spawn of spawns) {
+                    if (spawnSchedules && spawnSchedules.findIndex(s => s.spawnName === spawn.name) >= 0) continue;
+                    spawnSchedules.push(new SpawnSchedule(room.name, spawn.name));
+                }
+            }
+
+            // New Spawns? Rebuild schedule
+            if (room.cache.spawnSchedules.length !== spawns.length) {
+                spawnSchedules.forEach(s => s.reset());
+
+                let minSpawnOrders: SpawnOrder[] | undefined = this.genMinSpawnOrders(room);
+
+                for (let spawnSchedule of spawnSchedules) {
+                    if (spawnSchedule.isFull() == true || !minSpawnOrders || minSpawnOrders.length == 0) continue;
+                    minSpawnOrders = spawnSchedule.add(minSpawnOrders);
+                }
+                if (!minSpawnOrders || minSpawnOrders.length == 0) {
+                    let extraSpawnOrders: SpawnOrder[] | undefined = this.genExtraSpawnOrders(room);
+                    for (let spawnSchedule of spawnSchedules) {
+                        if (spawnSchedule.isFull() == true || !extraSpawnOrders || extraSpawnOrders.length == 0) continue;
+                        extraSpawnOrders = spawnSchedule.add(extraSpawnOrders);
+                    }
+                }
+            }
+
+            for (let spawnSchedule of spawnSchedules) {
+                let spawnOrder: SpawnOrder | undefined = spawnSchedule.schedule.find(o => o.scheduleTick == spawnSchedule.tick);
+
+                // Handle Emergencies
+                let emergency = false;
+                if (Game.spawns[spawnSchedule.spawnName].spawning && spawnOrder ||
+                    spawnOrder && room.energyAvailable < Utils.Utility.bodyCost(spawnOrder.body) ||
+                    room.cache.pauseSpawning && room.cache.pauseSpawning == true) emergency = true;
+
+                if (emergency === true) {
+                    Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt.`, LogLevel.DEBUG);
+                    spawnSchedule.pausedTicks++;
+
+                    // Is there anything else to do in an emergency? Don't think so, but...
+                } else if (emergency === false && spawnSchedule.pausedTicks !== 0) {
+                    if (spawnSchedule.pausedTicks > (1500 - spawnSchedule.usedSpace)) true; // do something here. You can't shift and regain functionality
+                    // we either have to full reset schedules or let the schedule screwup fix itself over 1500 ticks
+                    // Do we keep counting at tick? or do we resync the schedule with where all schedules are at?
+
+                    // If we don't have enough freespace, rebuild single schedule with the existing schedule, resorted by priority.
+                }
+
+                if (emergency === false) {
+                    // Handle Spawning
+
+                    spawnSchedule.tick++;
+                }
+            }
+
+            // Reconsider schedule when entering a freeSpace
+
+            // Do we have full logistical support? IFF not, calculate spawntimes based on required time to fill system
+
+            // ONLY SHIFT for prespawning when we have open space to move into! ALSO limit max shifting to space size
+
+            room.cache.spawnSchedules = spawnSchedules;
         }
 
         let newProcess = new Process(`${room.name}_spawn_monitor`, ProcessPriority.LOW, spawnMonitorTask)
@@ -67,15 +141,16 @@ export default class SpawnManager {
      * Generates SpawnOrders for the minimum number of creeps to operate the room.
      * @param room The room to consider.
      */
-    static genMinCreepOrders(room: Room) {
-
+    static genMinSpawnOrders(room: Room): SpawnOrder[] {
+        return []
     }
 
     /**
      * Generates SpawnOrders for the extra creeps usable by the room.
      * @param room The room to consider.
      */
-    static genExtraCreepOrders(room: Room) {
+    static genExtraSpawnOrders(room: Room): SpawnOrder[] {
+        return []
 
     }
 

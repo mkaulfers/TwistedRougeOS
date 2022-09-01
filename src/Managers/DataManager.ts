@@ -1,4 +1,5 @@
 import { Process } from 'Models/Process';
+import SpawnSchedule from 'Models/SpawnSchedule';
 import { LogLevel, ProcessPriority, ProcessResult, Task } from 'utils/Enums';
 import { Utils } from '../utils/Index';
 
@@ -44,6 +45,8 @@ declare global {
         towers: Id<StructureTower>[];
         towerTarget?: Id<AnyCreep>;
         links: {[key: Id<StructureLink>]: string};
+        spawnSchedules?: SpawnSchedule[];
+        pauseSpawning?: boolean;
     }
 
     // Add properties you wish to have stored in a creep's cache in the interface below.
