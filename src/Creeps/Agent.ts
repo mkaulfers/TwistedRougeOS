@@ -13,12 +13,21 @@ export class Agent extends Creep {
     static segment = []
 
     static shouldSpawn(room: Room): boolean {
-        let creeps = room.creeps()
+        let localCreeps = room.creeps()
+        let agentCount = 0
+        let creepsInMemory = Memory.creeps
+        for (let creepName in creepsInMemory) {
+            let creep = creepsInMemory[creepName]
+            if (creep.role == Role.AGENT) {
+                agentCount++
+            }
+        }
+
         if (!room.memory.frontiers) return false
-        if (creeps.filter(x => x.memory.role == Role.HARVESTER).length > 0 &&
-            creeps.filter(x => x.memory.role == Role.SCIENTIST).length > 0 &&
-            creeps.filter(x => x.memory.role == Role.TRUCKER).length > 0 &&
-            creeps.filter(x => x.memory.role == Role.AGENT).length < 1 &&
+        if (localCreeps.filter(x => x.memory.role == Role.HARVESTER).length > 0 &&
+            localCreeps.filter(x => x.memory.role == Role.SCIENTIST).length > 0 &&
+            localCreeps.filter(x => x.memory.role == Role.TRUCKER).length > 0 &&
+            agentCount < 1 &&
             room.memory.frontiers.length > 0) {
             return true
         }
