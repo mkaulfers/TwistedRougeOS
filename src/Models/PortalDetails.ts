@@ -1,4 +1,4 @@
-export class PortalDetails {
+export class PortalDetail {
     id: string
     decayTime: number
 

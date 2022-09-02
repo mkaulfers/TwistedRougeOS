@@ -1,4 +1,4 @@
-export class MineralDetails {
+export class MinertalDetail {
     id: string
     mineralType: MineralConstant
 

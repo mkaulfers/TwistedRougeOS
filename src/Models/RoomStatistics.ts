@@ -1,7 +1,7 @@
 import { InvaderDetail } from "./InvaderDetail"
-import { MineralDetails } from "./MineralDetails"
+import { MinertalDetail } from "./MineralDetails"
 import { PlayerDetail } from "./PlayerDetail"
-import { PortalDetails } from "./PortalDetails"
+import { PortalDetail } from "./PortalDetails"
 
 export class RoomStatistics {
     name: String
@@ -15,13 +15,13 @@ export class RoomStatistics {
     powerBankId?: string
     publicTerminalId?: string
 
-    portal?: PortalDetails
-    mineral?: MineralDetails
+    portal?: PortalDetail
+    mineral?: MinertalDetail
     controllerId?: string
     distanceBetweenSources?: number
     largestDistanceToController?: number
-    playerDetails?: PlayerDetail
-    invaderDetails?: InvaderDetail
+    playerDetail?: PlayerDetail
+    invaderDetail?: InvaderDetail
 
     constructor(name: String,
         swampCount: number,
@@ -32,13 +32,13 @@ export class RoomStatistics {
         sourcesIds?: string[],
         powerBankId?: string,
         publicTerminalId?: string,
-        portal?: PortalDetails,
-        mineral?: MineralDetails,
+        portal?: PortalDetail,
+        mineral?: MinertalDetail,
         controllerId?: string,
         distanceBetweenSources?: number,
         largestDistanceToController?: number,
-        playerDetails?: PlayerDetail,
-        invaderDetails?: InvaderDetail) {
+        playerDetail?: PlayerDetail,
+        invaderDetail?: InvaderDetail) {
         this.name = name
         this.swampCount = swampCount
         this.plainCount = plainCount
@@ -53,7 +53,7 @@ export class RoomStatistics {
         this.controllerId = controllerId
         this.distanceBetweenSources = distanceBetweenSources
         this.largestDistanceToController = largestDistanceToController
-        this.playerDetails = playerDetails
-        this.invaderDetails = invaderDetails
+        this.playerDetail = playerDetail
+        this.invaderDetail = invaderDetail
     }
 }

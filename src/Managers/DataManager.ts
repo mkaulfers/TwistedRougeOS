@@ -18,7 +18,6 @@ declare global {
         claim?: string
         remotes?: string[]
         frontiers?: string[]
-        explorationData?: string
         costMatrix: string
         blueprint: {
             anchor: number,

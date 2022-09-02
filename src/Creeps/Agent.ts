@@ -1,12 +1,11 @@
 import { InvaderDetail } from "Models/InvaderDetail"
-import { MineralDetails } from "Models/MineralDetails"
+import { MinertalDetail } from "Models/MineralDetails"
 import { DefenseStructuresDetails, HostileStructuresDetails, PlayerDetail, StorageDetails } from "Models/PlayerDetail"
-import { PortalDetails } from "Models/PortalDetails"
+import { PortalDetail } from "Models/PortalDetails"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
-import { DangerLevel, LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
+import { ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
-import { Logger } from "utils/Logger"
 
 export class Agent extends Creep {
     static baseBody = [MOVE]
@@ -106,15 +105,15 @@ export class Agent extends Creep {
         let publicTerminalId = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_TERMINAL })[0]?.id
 
         let portal = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_PORTAL })[0] as StructurePortal
-        let portalDetails: PortalDetails | undefined = undefined
+        let portalDetails: PortalDetail | undefined = undefined
         if (portal) {
-            portalDetails = new PortalDetails(portal.id, portal.ticksToDecay ? portal.ticksToDecay : 0)
+            portalDetails = new PortalDetail(portal.id, portal.ticksToDecay ? portal.ticksToDecay : 0)
         }
 
         let mineral = room.find(FIND_MINERALS)[0]
-        let mineralDetails: MineralDetails | undefined = undefined
+        let mineralDetails: MinertalDetail | undefined = undefined
         if (mineral) {
-            mineralDetails = new MineralDetails(mineral.id, mineral.mineralType)
+            mineralDetails = new MinertalDetail(mineral.id, mineral.mineralType)
         }
 
         let controllerId = room.controller?.id
@@ -179,22 +178,20 @@ export class Agent extends Creep {
 
     private static getThreatLevel(targetRoom: Room): number {
         let controller = targetRoom.controller
-        if (controller && controller.owner && controller.owner.username == "Invader") {
-            return controller.level
-        }
-
         if (controller && controller.owner && controller.owner.username != "Invader") {
             return controller.level
         }
 
+        let allStructures = targetRoom.find(FIND_STRUCTURES)
+
         if (!controller) {
-            let structures = targetRoom.find(FIND_STRUCTURES).filter(structure => structure.structureType == STRUCTURE_INVADER_CORE) as StructureInvaderCore[]
+            let structures = allStructures.filter(structure => structure.structureType == STRUCTURE_INVADER_CORE) as StructureInvaderCore[]
             if (structures.length > 0) {
                 return structures[0].level
             }
         } else {
-            let towers = targetRoom.find(FIND_STRUCTURES).filter(structure => structure.structureType == STRUCTURE_TOWER) as StructureTower[]
-            let ramparts = targetRoom.find(FIND_STRUCTURES).filter(structure => structure.structureType == STRUCTURE_RAMPART) as StructureRampart[]
+            let towers = allStructures.filter(structure => structure.structureType == STRUCTURE_TOWER) as StructureTower[]
+            let ramparts = allStructures.filter(structure => structure.structureType == STRUCTURE_RAMPART) as StructureRampart[]
             return towers.length / 2 + ramparts.length > 6 ? 1 : 0
         }
         return 0
@@ -279,7 +276,7 @@ export class Agent extends Creep {
     }
 
     private static getInvaderDetails(targetRoom: Room): InvaderDetail | undefined {
-        if (targetRoom.controller && !targetRoom.controller.my && targetRoom.controller.owner?.username == "Invader") {
+        if (targetRoom.controller && !targetRoom.controller.my && targetRoom.controller.reservation?.username == "Invader") {
             let coreId = targetRoom.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_INVADER_CORE })[0].id
             let storageDetails: StorageDetails[] = []
             let storeStructures: AnyStoreStructure[] = targetRoom.find(FIND_STRUCTURES, { filter: function (s: AnyStructure) { return 'store' in s } })
