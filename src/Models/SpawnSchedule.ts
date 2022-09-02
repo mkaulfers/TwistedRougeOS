@@ -54,6 +54,15 @@ export default class SpawnSchedule {
     }
 
     /**
+     * Determines if SpawnSchedule has room for more SpawnOrders.
+     * @returns a boolean representing if the schedule is at or above the limiter.
+     */
+    isFull(): boolean {
+        if (this.usedSpace >= (this.limiter * 1500)) return true;
+        return false;
+    }
+
+    /**
      * Removes SpawnOrders from the schedule.
      * @param spawnOrders All SpawnOrders you wish to remove.
      */
@@ -83,12 +92,10 @@ export default class SpawnSchedule {
     }
 
     /**
-     * Determines if SpawnSchedule has room for more SpawnOrders.
-     * @returns a boolean representing if the schedule is at or above the limiter.
+     * Reschedules existing schedule based on priority.
      */
-    isFull(): boolean {
-        if (this.usedSpace >= (this.limiter * 1500)) return true;
-        return false;
+    reschedule(): void {
+
     }
 
     /**
@@ -100,5 +107,12 @@ export default class SpawnSchedule {
         this.schedule = [];
         this.freeSpaces = [[0,1500]];
         this.usedSpace = 0;
+    }
+
+    /**
+     *
+     */
+    shift(): void {
+
     }
 }

@@ -16,7 +16,7 @@ export default class SpawnManager {
             let spawns = room.spawns();
             if (!room.cache.spawnSchedules) room.cache.spawnSchedules = [];
             let spawnSchedules = room.cache.spawnSchedules;
-            /*
+
             // room.getAvailableSpawn()
             // room.spawnCreep(role, availableSpawn)
             // room.shouldPreSpawn(spawn: StructureSpawn): Creep | undefined
@@ -50,7 +50,6 @@ export default class SpawnManager {
             // room.minerals(): Mineral[];
             // room.nextCreepToDie(): Creep | undefined
 
-
             // creep.upgradeEnergyConsumptionPerTick(): number
             // creep.buildEnergyConsumptionPerTick(): number
             // creep.repairEnergyConsumptionPerTick(): number
@@ -65,8 +64,6 @@ export default class SpawnManager {
             // source.isHarvestingAtMaxEfficiency(): boolean
             // source.assignablePosition(): RoomPosition
             // source.droppedEnergy(): Resource | undefined
-
-            */
 
             // For each spawn ensure we have a schedule
             if (spawnSchedules.length !== spawns.length) {
@@ -95,6 +92,7 @@ export default class SpawnManager {
                 }
             }
 
+            // Emergencies and SpawnChecks
             for (let spawnSchedule of spawnSchedules) {
                 let spawnOrder: SpawnOrder | undefined = spawnSchedule.schedule.find(o => o.scheduleTick == spawnSchedule.tick);
 
@@ -110,23 +108,26 @@ export default class SpawnManager {
 
                     // Is there anything else to do in an emergency? Don't think so, but...
                 } else if (emergency === false && spawnSchedule.pausedTicks !== 0) {
-                    if (spawnSchedule.pausedTicks > (1500 - spawnSchedule.usedSpace)) true; // do something here. You can't shift and regain functionality
-                    // we either have to full reset schedules or let the schedule screwup fix itself over 1500 ticks
-                    // Do we keep counting at tick? or do we resync the schedule with where all schedules are at?
-
-                    // If we don't have enough freespace, rebuild single schedule with the existing schedule, resorted by priority.
+                    // If we don't have enough freespace, rebuild single schedule with the existing schedule, resorted by priority, else just shift.
+                    if (spawnSchedule.pausedTicks > (1500 - spawnSchedule.usedSpace)) {
+                        Utils.Logger.log(`Emergency for SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} hit RESCHEDULE requisites to clear`, LogLevel.DEBUG)
+                    } else {
+                        Utils.Logger.log(`Emergency for SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} hit SHIFT requisites to clear`, LogLevel.DEBUG)
+                    }
+                    spawnSchedule.pausedTicks = 0;
                 }
 
                 if (emergency === false) {
                     // Handle Spawning
-
+                    if (spawnOrder) {
+                        Game.spawns[spawnSchedule.spawnName].spawnCreep(spawnOrder.body, this.generateNameFor(spawnOrder.memory.role as Role), { memory: spawnOrder.memory })
+                    }
                     spawnSchedule.tick++;
                 }
             }
 
             // Reconsider schedule when entering a freeSpace
 
-            // Do we have full logistical support? IFF not, calculate spawntimes based on required time to fill system
 
             // ONLY SHIFT for prespawning when we have open space to move into! ALSO limit max shifting to space size
 
@@ -142,6 +143,15 @@ export default class SpawnManager {
      * @param room The room to consider.
      */
     static genMinSpawnOrders(room: Room): SpawnOrder[] {
+        // Do we have full logistical support? IFF not, calculate spawntimes based on required time to fill system
+
+        // Array of creeps roles in prio order
+        let rolesNeeded: Role[] = [];
+
+
+
+        // Build each SpawnOrder
+
         return []
     }
 
@@ -150,8 +160,9 @@ export default class SpawnManager {
      * @param room The room to consider.
      */
     static genExtraSpawnOrders(room: Room): SpawnOrder[] {
-        return []
+        // Do we have full logistical support? IFF not, calculate spawntimes based on required time to fill system
 
+        return []
     }
 
     static getBodyFor(room: Room, role: Role): BodyPartConstant[] {
@@ -161,8 +172,8 @@ export default class SpawnManager {
 
         switch (role) {
             case Role.ENGINEER:
-                tempBody = Roles.Engineer.baseBody
-                tempSegment = Roles.Engineer.segment
+                tempBody = Roles.engineer.baseBody
+                tempSegment = Roles.engineer.segment
                 break
             case Role.HARVESTER:
                 tempBody = Roles.Harvester.baseBody

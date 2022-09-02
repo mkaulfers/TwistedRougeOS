@@ -4,5 +4,5 @@ interface SpawnOrder {
     scheduleTick?: number,
     spawnTime: number,
     body: BodyPartConstant[],
-    memory: {[key: string]: any},
+    memory: CreepMemory,
 }
