@@ -1,7 +1,7 @@
 import { InvaderDetail } from "./InvaderDetail"
 import { MineralDetail } from "./MineralDetail"
 import { PlayerDetail } from "./PlayerDetail"
-import { PortalDetail } from "./PortalDetails"
+import { PortalDetail } from "./PortalDetail"
 
 export class RoomStatistics {
     name: String

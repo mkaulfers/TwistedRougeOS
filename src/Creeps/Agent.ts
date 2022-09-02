@@ -1,7 +1,7 @@
 import { InvaderDetail } from "Models/InvaderDetail"
 import { MineralDetail } from "Models/MineralDetail"
 import { DefenseStructuresDetails, HostileStructuresDetails, PlayerDetail, StorageDetails } from "Models/PlayerDetail"
-import { PortalDetail } from "Models/PortalDetails"
+import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
 import { ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
