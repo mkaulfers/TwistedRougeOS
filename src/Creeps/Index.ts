@@ -4,6 +4,7 @@ import { Scientist } from './Scientist';
 import { Trucker } from './Trucker';
 import { Filler } from './Filler';
 import { Role } from 'utils/Enums';
+import { Agent } from './Agent';
 
 export var Roles: {[key in Role]?: any} = {
     engineer: Engineer,
@@ -11,4 +12,5 @@ export var Roles: {[key in Role]?: any} = {
     scientist: Scientist,
     trucker: Trucker,
     filler: Filler,
+    agent: Agent
 }

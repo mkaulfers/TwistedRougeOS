@@ -39,6 +39,8 @@ export default class CreepManager {
                 case Task.FILLER:
                     Roles.Filler.fillerWorking(creep)
                     break
+                case Task.AGENT:
+                    Roles.Agent.scheduleAgentTask(creep)
             }
         }
     }

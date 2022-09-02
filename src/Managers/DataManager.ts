@@ -1,5 +1,6 @@
 import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
+import { RoomStatistics } from 'Models/RoomStatistics';
 import { LogLevel, ProcessPriority, ProcessResult, Task } from 'utils/Enums';
 import { Utils } from '../utils/Index';
 
@@ -17,6 +18,7 @@ declare global {
     interface RoomMemory {
         claim?: string
         remotes?: string[]
+        frontiers?: string[]
         costMatrix: string
         blueprint: {
             anchor: number,
@@ -37,6 +39,7 @@ declare global {
         log: any;
         kernel: string
         scheduler: string
+        intelligence: RoomStatistics[]
     }
 
     // Add properties you wish to have stored in a room's cache in the interface below.

@@ -82,6 +82,7 @@ declare global {
         maxLabsAvail(): number;
 
         nextCreepToDie(): Creep | undefined;
+        setFrontiers(room: Room): void
     }
 }
 
@@ -132,7 +133,7 @@ export default class Room_Extended extends Room {
             validSourcePositions.push(...source.validPositions())
         }
 
-        let positionalEnergy = validSourcePositions.length * (Roles.Harvester.baseBody.filter(x => x == WORK).length * 2)
+        let positionalEnergy = validSourcePositions.length * (Roles.harvester.baseBody.filter((x: BodyPartConstant) => x == WORK).length * 2)
         return positionalEnergy > this.sources().length * 10 ? this.sources().length * 10 : positionalEnergy
     }
 
@@ -183,15 +184,17 @@ export default class Room_Extended extends Room {
                     return false
                 }
             case Role.ENGINEER:
-                return Roles.Engineer.shouldSpawn(this)
+                return Roles.engineer.shouldSpawn(this)
             case Role.HARVESTER:
-                return Roles.Harvester.shouldSpawn(this)
+                return Roles.harvester.shouldSpawn(this)
             case Role.SCIENTIST:
-                return Roles.Scientist.shouldSpawn(this)
+                return Roles.scientist.shouldSpawn(this)
             case Role.TRUCKER:
-                return Roles.Trucker.shouldSpawn(this)
+                return Roles.trucker.shouldSpawn(this)
             case Role.FILLER:
-                return Roles.Filler.shouldSpawn(this)
+                return Roles.filler.shouldSpawn(this)
+            case Role.AGENT:
+                return Roles.agent.shouldSpawn(this)
             case Role.NETWORK_ENGINEER:
             case Role.NETWORK_HARVESTER:
             case Role.NETWORK_ENGINEER:
@@ -499,5 +502,30 @@ export default class Room_Extended extends Room {
                 return 10;
         }
         return 0
+    }
+
+    setFrontiers(room: Room) {
+        let frontiers: string[] = []
+        let currentRoomGlobalPos = Utils.Utility.roomNameToCoords(this.name)
+        for (let wx = currentRoomGlobalPos.wx - 10; wx <= currentRoomGlobalPos.wx + 10; wx++) {
+            for (let wy = currentRoomGlobalPos.wy - 10; wy <= currentRoomGlobalPos.wy + 10; wy++) {
+                let roomName = Utils.Utility.roomNameFromCoords(wx, wy)
+                let result = Game.map.describeExits(roomName)
+                if (result != null) {
+                    frontiers.push(roomName)
+                }
+            }
+        }
+
+        frontiers = _.sortByOrder(frontiers, (roomName: string) => {
+            let roomGlobalPos = Utils.Utility.roomNameToCoords(roomName)
+            let dx = roomGlobalPos.wx - currentRoomGlobalPos.wx
+            let dy = roomGlobalPos.wy - currentRoomGlobalPos.wy
+            return Math.abs(dx) + Math.abs(dy)
+        }, 'asc')
+
+        frontiers.splice(0, 1)
+
+        room.memory.frontiers = frontiers
     }
 }

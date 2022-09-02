@@ -17,9 +17,9 @@
   },
   "xtwistedx": {
     "email": "xTwisteDx",
-    "password": "ensign102",
+    "password": "Ensign102",
     "protocol": "http",
-    "hostname": "10.0.0.138",
+    "hostname": "screeps.xtwistedx.com",
     "port": "21025",
     "path": "/",
     "branch": "pserver"

@@ -13,6 +13,11 @@ export default class ConstructionManager {
         const constructionMonitor = () => {
             let room = Game.rooms[roomName]
             if (!room) { return }
+
+            if (!room.memory.frontiers) {
+                room.setFrontiers(room)
+            }
+
             let controller = room.controller
             if (!controller) { return }
 
