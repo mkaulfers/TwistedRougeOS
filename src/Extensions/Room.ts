@@ -81,6 +81,7 @@ declare global {
         maxLabsAvail(): number;
 
         nextCreepToDie(): Creep | undefined;
+        setFrontiers(room: Room): void
     }
 }
 
@@ -191,6 +192,8 @@ export default class Room_Extended extends Room {
                 return Roles.Trucker.shouldSpawn(this)
             case Role.FILLER:
                 return Roles.Filler.shouldSpawn(this)
+            case Role.AGENT:
+                return Roles.Agent.shouldSpawn(this)
             case Role.NETWORK_ENGINEER:
             case Role.NETWORK_HARVESTER:
             case Role.NETWORK_ENGINEER:
@@ -489,5 +492,30 @@ export default class Room_Extended extends Room {
                 return 10;
         }
         return 0
+    }
+
+    setFrontiers(room: Room) {
+        let frontiers: string[] = []
+        let currentRoomGlobalPos = Utils.Utility.roomNameToCoords(this.name)
+        for (let wx = currentRoomGlobalPos.wx - 10; wx <= currentRoomGlobalPos.wx + 10; wx++) {
+            for (let wy = currentRoomGlobalPos.wy - 10; wy <= currentRoomGlobalPos.wy + 10; wy++) {
+                let roomName = Utils.Utility.roomNameFromCoords(wx, wy)
+                let result = Game.map.describeExits(roomName)
+                if (result != null) {
+                    frontiers.push(roomName)
+                }
+            }
+        }
+
+        frontiers = _.sortByOrder(frontiers, (roomName: string) => {
+            let roomGlobalPos = Utils.Utility.roomNameToCoords(roomName)
+            let dx = roomGlobalPos.wx - currentRoomGlobalPos.wx
+            let dy = roomGlobalPos.wy - currentRoomGlobalPos.wy
+            return Math.abs(dx) + Math.abs(dy)
+        }, 'asc')
+
+        frontiers.splice(0, 1)
+
+        room.memory.frontiers = frontiers
     }
 }

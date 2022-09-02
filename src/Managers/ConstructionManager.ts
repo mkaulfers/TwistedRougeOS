@@ -3,6 +3,7 @@ import { Utils } from "utils/Index"
 import { planRoom } from "utils/RoomPlanner"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from '../utils/Enums'
 import { Stamps } from "Models/Stamps"
+import { Logger } from "utils/Logger"
 
 export default class ConstructionManager {
     static scheduleConstructionMonitor(room: Room): void | ProcessResult {
@@ -13,6 +14,11 @@ export default class ConstructionManager {
         const constructionMonitor = () => {
             let room = Game.rooms[roomName]
             if (!room) { return }
+
+            if (!room.memory.frontiers) {
+                room.setFrontiers(room)
+            }
+
             let controller = room.controller
             if (!controller) { return }
 

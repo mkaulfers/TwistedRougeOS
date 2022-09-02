@@ -2,6 +2,7 @@ import { Utils } from '../utils/Index'
 import { Roles } from '../Creeps/Index';
 import { Role, Task, LogLevel, ProcessPriority } from '../utils/Enums'
 import { Process } from 'Models/Process';
+import { Logger } from 'utils/Logger';
 
 export default class SpawnManager {
     static scheduleSpawnMonitor(room: Room) {
@@ -12,16 +13,8 @@ export default class SpawnManager {
             let availableSpawn = room.getAvailableSpawn()
 
             if (availableSpawn) {
-                // let respawnRole: Creep | undefined = room.shouldPreSpawn(availableSpawn)
-                // if (respawnRole) {
-                //     room.spawnCreep(respawnRole.memory.role as Role, availableSpawn, respawnRole.memory)
-                //     availableSpawn = room.getAvailableSpawn()
-                //     if (!availableSpawn) { return }
-                // }
-
                 for (let i = 0; i < Object.keys(Role).length; i++) {
                     let role = Object.values(Role)[i]
-                    Utils.Logger.log(`Room -> scheduleSpawnMonitor() -> role: ${role}`, LogLevel.TRACE)
                     let result = room.shouldSpawn(role)
                     if (result) {
                         room.spawnCreep(role, availableSpawn)
@@ -60,6 +53,9 @@ export default class SpawnManager {
             case Role.FILLER:
                 tempBody = Roles.Filler.baseBody
                 tempSegment = Roles.Filler.segment
+            case Role.AGENT:
+                tempBody = Roles.Agent.baseBody
+                tempSegment = Roles.Agent.segment
         }
 
         let baseCost = this.bodyCost(tempBody)
@@ -80,6 +76,8 @@ export default class SpawnManager {
                     //TODO: Add more role restrictions, for example at RCL 8 there is a max amount for upgrading.
                     //TODO: Sort the body parts before returning.
                     //TODO: Perhaps set a wait timer to bigger bodies are spawned instead of a bunch of small ones.
+                    case Role.AGENT:
+                        return tempBody
                     default:
                         if (tempBody.length + tempSegment.length > 50) { return tempBody }
                         tempBody = tempBody.concat(tempSegment)

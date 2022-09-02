@@ -3,6 +3,7 @@ import { Harvester } from './Harvester';
 import { Scientist } from './Scientist';
 import { Trucker } from './Trucker';
 import { Filler } from './Filler';
+import { Agent } from './Agent';
 
 export var Roles = {
     Engineer: Engineer,
@@ -10,4 +11,5 @@ export var Roles = {
     Scientist: Scientist,
     Trucker: Trucker,
     Filler: Filler,
+    Agent: Agent
 }

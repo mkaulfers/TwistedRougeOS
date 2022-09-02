@@ -4,6 +4,7 @@ export enum Role {
     HARVESTER = 'harvester',
     ENGINEER = 'engineer',
     FILLER = 'filler',
+    AGENT = 'agent',
     NETWORK_HARVESTER = 'network_harvester',
     NETWORK_HAULER = 'network_hauler',
     NETWORK_ENGINEER = 'network_engineer'
@@ -23,6 +24,8 @@ export enum Task {
     ENGINEER_UPGRADING = 'engineer_upgrading',
 
     FILLER = 'filler_working',
+
+    AGENT = 'agent'
 }
 
 export enum ProcessPriority {
@@ -64,11 +67,11 @@ export enum StampType {
 }
 
 export enum DangerLevel {
-    PEACEFUL = 5,               // #00ff00
-    INVADERS = 4,               // #ccff33
-    WARY = 3,                   // #ffff1a
-    DANGER = 2,                 // #ff9900
-    NUKETHIS = 1,               // #ff0000
+    PEACEFUL = 0,               // #00ff00
+    INVADERS = 1,               // #ccff33
+    WARY = 2,                   // #ffff1a
+    DANGER = 3,                 // #ff9900
+    NUKETHIS = 4,               // #ff0000
 }
 
 export enum LinkState {
