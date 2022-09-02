@@ -1,5 +1,5 @@
 import { InvaderDetail } from "./InvaderDetail"
-import { MinertalDetail } from "./MineralDetails"
+import { MineralDetail } from "./MineralDetail"
 import { PlayerDetail } from "./PlayerDetail"
 import { PortalDetail } from "./PortalDetails"
 
@@ -16,7 +16,7 @@ export class RoomStatistics {
     publicTerminalId?: string
 
     portal?: PortalDetail
-    mineral?: MinertalDetail
+    mineral?: MineralDetail
     controllerId?: string
     distanceBetweenSources?: number
     largestDistanceToController?: number
@@ -33,7 +33,7 @@ export class RoomStatistics {
         powerBankId?: string,
         publicTerminalId?: string,
         portal?: PortalDetail,
-        mineral?: MinertalDetail,
+        mineral?: MineralDetail,
         controllerId?: string,
         distanceBetweenSources?: number,
         largestDistanceToController?: number,

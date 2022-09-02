@@ -1,5 +1,5 @@
 import { InvaderDetail } from "Models/InvaderDetail"
-import { MinertalDetail } from "Models/MineralDetails"
+import { MineralDetail } from "Models/MineralDetail"
 import { DefenseStructuresDetails, HostileStructuresDetails, PlayerDetail, StorageDetails } from "Models/PlayerDetail"
 import { PortalDetail } from "Models/PortalDetails"
 import { Process } from "Models/Process"
@@ -111,9 +111,9 @@ export class Agent extends Creep {
         }
 
         let mineral = room.find(FIND_MINERALS)[0]
-        let mineralDetails: MinertalDetail | undefined = undefined
+        let mineralDetails: MineralDetail | undefined = undefined
         if (mineral) {
-            mineralDetails = new MinertalDetail(mineral.id, mineral.mineralType)
+            mineralDetails = new MineralDetail(mineral.id, mineral.mineralType)
         }
 
         let controllerId = room.controller?.id
