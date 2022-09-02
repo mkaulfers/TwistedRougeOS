@@ -151,7 +151,7 @@ export default class SpawnManager {
 
         for (const role of Object.values(Role)) {
             if (role in Roles) {
-                Roles[role].shouldSpawn(room);
+                Roles[role]!.shouldSpawn(room, true);
             }
         }
 
