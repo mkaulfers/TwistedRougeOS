@@ -32,18 +32,18 @@ export class Utility {
     }
 
     static distanceTransform(roomName: string): CostMatrix {
-        let vis = new RoomVisual(roomName);
+        let vis = new RoomVisual(roomName)
 
         let topDownPass = new PathFinder.CostMatrix();
         for (let y = 0; y < 50; ++y) {
             for (let x = 0; x < 50; ++x) {
                 if (Game.map.getRoomTerrain(roomName).get(x, y) == TERRAIN_MASK_WALL) {
-                    topDownPass.set(x, y, 0);
+                    topDownPass.set(x, y, 0)
                 }
                 else {
                     topDownPass.set(x, y,
                         Math.min(topDownPass.get(x - 1, y - 1), topDownPass.get(x, y - 1),
-                            topDownPass.get(x + 1, y - 1), topDownPass.get(x - 1, y)) + 1);
+                            topDownPass.get(x + 1, y - 1), topDownPass.get(x - 1, y)) + 1)
                 }
             }
         }
@@ -52,8 +52,8 @@ export class Utility {
             for (let x = 49; x >= 0; --x) {
                 let value = Math.min(topDownPass.get(x, y),
                     topDownPass.get(x + 1, y + 1) + 1, topDownPass.get(x, y + 1) + 1,
-                    topDownPass.get(x - 1, y + 1) + 1, topDownPass.get(x + 1, y) + 1);
-                topDownPass.set(x, y, value);
+                    topDownPass.get(x - 1, y + 1) + 1, topDownPass.get(x + 1, y) + 1)
+                topDownPass.set(x, y, value)
                 // vis.circle(x, y, { radius: value / 15 });
             }
         }
@@ -67,7 +67,7 @@ export class Utility {
      * @param options An object containing the following properties: `resource, structures, order`.
      * @returns An array of approved targets or undefined
      */
-     static organizeTargets(targets: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite | Ruin)[], options?: {
+    static organizeTargets(targets: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite | Ruin)[], options?: {
 
         hits?: boolean,
         resource?: ResourceConstant,
@@ -76,10 +76,10 @@ export class Utility {
         order?: ('desc' | 'asc')
     }): any[] {
 
-        if (!targets) return targets;
-        if (!options) options = {};
+        if (!targets) return targets
+        if (!options) options = {}
         if (!options.order) {
-            options.order = 'desc';
+            options.order = 'desc'
         }
         if (options.hits && options.resource) return targets; // Need to modify to return error codes.
 
@@ -88,7 +88,7 @@ export class Utility {
             .filter(function (t) {
 
                 if (!options || !options.structures && !options.resource) {
-                    return t;
+                    return t
                 }
                 if (options.structures) {
                     if ('structureType' in t && options.structures.indexOf(t.structureType) == -1) return;
@@ -96,7 +96,7 @@ export class Utility {
                 if (options.hits) {
                     if (('hits' in t && t.hits === t.hitsMax) ||
                         ('remove' in t && t.progress === t.progressTotal) ||
-                        (!('hits' in t) && !('remove' in t))) return;
+                        (!('hits' in t) && !('remove' in t))) return
                 }
                 if (options.resource) {
                     if (('store' in t && t.store[options?.resource!] == 0) ||
@@ -117,9 +117,9 @@ export class Utility {
                     if ('store' in t) {
                         return t.store[options.resource];
                     } else if ('amount' in t) {
-                        return t.amount;
+                        return t.amount
                     } else {
-                        return;
+                        return
                     }
                 } else if (options?.hits) {
                     if ('hits' in t) {
@@ -127,14 +127,14 @@ export class Utility {
                     } else if ('remove' in t) {
                         return t.progressTotal / t.progress;
                     } else {
-                        return;
+                        return
                     }
                 }
-            return t;
+                return t
             }, options.order)
-            .value();
+            .value()
 
-        return targets;
+        return targets
     }
 
     /**
@@ -146,5 +146,23 @@ export class Utility {
         let descs = Object.getOwnPropertyDescriptors(extra.prototype)
         delete descs.prototype
         Object.defineProperties(base.prototype, descs)
+    }
+
+    static roomNameToCoords = (roomName: string) => {
+        let match = roomName.match(/^([WE])([0-9]+)([NS])([0-9]+)$/)
+        if (!match) throw new Error('Invalid room name')
+        let [, h, wx, v, wy] = match
+        return {
+            wx: h == 'W' ? Number(wx) : ~Number(wx),
+            wy: v == 'S' ? Number(wy) : ~Number(wy)
+        }
+    }
+
+    static roomNameFromCoords = (x: number, y: number) => {
+        let h = x < 0 ? 'E' : 'W'
+        let v = y < 0 ? 'N' : 'S'
+        x = x < 0 ? ~x : x
+        y = y < 0 ? ~y : y
+        return `${h}${x}${v}${y}`
     }
 }
