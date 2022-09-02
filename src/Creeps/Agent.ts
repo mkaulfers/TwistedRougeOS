@@ -1,6 +1,6 @@
 import { InvaderDetail } from "Models/InvaderDetail"
 import { MineralDetail } from "Models/MineralDetail"
-import { DefenseStructuresDetails, HostileStructuresDetails, PlayerDetail, StorageDetails } from "Models/PlayerDetail"
+import { DefenseStructuresDetail, HostileStructuresDetail, PlayerDetail, StorageDetail } from "Models/PlayerDetail"
 import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
@@ -238,28 +238,28 @@ export class Agent extends Creep {
             }
 
             let rclLevel = targetRoom.controller.level
-            let storageDetails: StorageDetails[] = []
+            let storageDetails: StorageDetail[] = []
             let storeStructures: AnyStoreStructure[] = targetRoom.find(FIND_STRUCTURES, { filter: function (s: AnyStructure) { return 'store' in s } })
             for (let structure of storeStructures) {
                 if (structure.store) {
-                    storageDetails.push(new StorageDetails(structure.id, this.getContentsOfStore(structure)))
+                    storageDetails.push(new StorageDetail(structure.id, this.getContentsOfStore(structure)))
                 }
             }
 
-            let hostileDetails: HostileStructuresDetails[] = []
+            let hostileDetails: HostileStructuresDetail[] = []
             let hostileStructures = targetRoom.find(FIND_HOSTILE_STRUCTURES).filter(
                 structure => structure.structureType == STRUCTURE_TOWER ||
                     structure.structureType == STRUCTURE_SPAWN ||
                     structure.structureType == STRUCTURE_POWER_SPAWN
             )
             for (let structure of hostileStructures) {
-                hostileDetails.push(new HostileStructuresDetails(structure.id, structure.structureType, structure.hits))
+                hostileDetails.push(new HostileStructuresDetail(structure.id, structure.structureType, structure.hits))
             }
 
-            let defenseDetails: DefenseStructuresDetails[] = []
+            let defenseDetails: DefenseStructuresDetail[] = []
             let defensiveStructures = targetRoom.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_RAMPART || structure.structureType == STRUCTURE_WALL })
             for (let structure of defensiveStructures) {
-                defenseDetails.push(new DefenseStructuresDetails(structure.id, structure.structureType, structure.hits))
+                defenseDetails.push(new DefenseStructuresDetail(structure.id, structure.structureType, structure.hits))
             }
 
             return new PlayerDetail(username, rclLevel, reserved, storageDetails, hostileDetails, defenseDetails)
@@ -271,11 +271,11 @@ export class Agent extends Creep {
     private static getInvaderDetails(targetRoom: Room): InvaderDetail | undefined {
         if (targetRoom.controller && !targetRoom.controller.my && targetRoom.controller.reservation?.username == "Invader") {
             let coreId = targetRoom.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_INVADER_CORE })[0].id
-            let storageDetails: StorageDetails[] = []
+            let storageDetails: StorageDetail[] = []
             let storeStructures: AnyStoreStructure[] = targetRoom.find(FIND_STRUCTURES, { filter: function (s: AnyStructure) { return 'store' in s } })
             for (let structure of storeStructures) {
                 if (structure.store) {
-                    storageDetails.push(new StorageDetails(structure.id, this.getContentsOfStore(structure)))
+                    storageDetails.push(new StorageDetail(structure.id, this.getContentsOfStore(structure)))
                 }
             }
 

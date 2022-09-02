@@ -3,16 +3,16 @@ export class PlayerDetail {
     rclLevel?: number
     reserved?: boolean
 
-    storageDetails?: StorageDetails[]
-    hostileStructuresDetails?: HostileStructuresDetails[]
-    defensiveStructuresDetails?: DefenseStructuresDetails[]
+    storageDetails?: StorageDetail[]
+    hostileStructuresDetails?: HostileStructuresDetail[]
+    defensiveStructuresDetails?: DefenseStructuresDetail[]
 
     constructor(username?: string,
         rclLevel?: number,
         reserved?: boolean,
-        storageDetails?: StorageDetails[],
-        hostileStructuresDetails?: HostileStructuresDetails[],
-        defensiveStructuresDetails?: DefenseStructuresDetails[]) {
+        storageDetails?: StorageDetail[],
+        hostileStructuresDetails?: HostileStructuresDetail[],
+        defensiveStructuresDetails?: DefenseStructuresDetail[]) {
         this.username = username
         this.rclLevel = rclLevel
         this.reserved = reserved
@@ -22,7 +22,7 @@ export class PlayerDetail {
     }
 }
 
-export class StorageDetails {
+export class StorageDetail {
     id: string
     resources: [ResourceConstant, number][]
 
@@ -32,7 +32,7 @@ export class StorageDetails {
     }
 }
 
-export class HostileStructuresDetails {
+export class HostileStructuresDetail {
     structureId: string
     structureType: StructureConstant
     health: number
@@ -44,7 +44,7 @@ export class HostileStructuresDetails {
     }
 }
 
-export class DefenseStructuresDetails {
+export class DefenseStructuresDetail {
     structureId: string
     structureType: StructureConstant
     health: number
