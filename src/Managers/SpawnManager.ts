@@ -148,6 +148,13 @@ export default class SpawnManager {
         // Array of creeps roles in prio order
         let rolesNeeded: Role[] = [];
 
+        for (const role of Object.values(Role)) {
+            if (role in Roles) {
+                Roles[role].shouldSpawn(room);
+            }
+        }
+
+
 
 
         // Build each SpawnOrder
@@ -176,20 +183,20 @@ export default class SpawnManager {
                 tempSegment = Roles.engineer.segment
                 break
             case Role.HARVESTER:
-                tempBody = Roles.Harvester.baseBody
-                tempSegment = Roles.Harvester.segment
+                tempBody = Roles.harvester.baseBody
+                tempSegment = Roles.harvester.segment
                 break
             case Role.SCIENTIST:
-                tempBody = Roles.Scientist.baseBody
-                tempSegment = Roles.Scientist.segment
+                tempBody = Roles.scientist.baseBody
+                tempSegment = Roles.scientist.segment
                 break
             case Role.TRUCKER:
-                tempBody = Roles.Trucker.baseBody
-                tempSegment = Roles.Trucker.segment
+                tempBody = Roles.trucker.baseBody
+                tempSegment = Roles.trucker.segment
                 break
             case Role.FILLER:
-                tempBody = Roles.Filler.baseBody
-                tempSegment = Roles.Filler.segment
+                tempBody = Roles.filler.baseBody
+                tempSegment = Roles.filler.segment
         }
 
         let baseCost = this.bodyCost(tempBody)
