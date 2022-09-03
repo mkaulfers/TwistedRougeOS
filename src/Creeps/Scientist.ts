@@ -45,21 +45,19 @@ export class Scientist extends Creep {
         }
     }
 
-    static shouldSpawn(room: Room): boolean {
-        let scientists = room.creeps(Role.SCIENTIST)
+    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
         let controller = room.controller
-        if (!controller) return false
-
-        if (room.scientistsWorkCapacity() >= 15 && controller.level == 8) { return false }
-
-        let sources = room.sources()
-        let areAllSourcesRealized = sources.every(source => source.isHarvestingAtMaxEfficiency())
+        if (!controller) return 0
+        if (min && min == true) return 1;
 
         let totalEnergyConsumption = 0
         totalEnergyConsumption += room.scientistEnergyConsumption()
         totalEnergyConsumption += room.engineerEnergyConsumption()
+        totalEnergyConsumption += (rolesNeeded.length * room.energyCapacityAvailable) / 1500
 
-        let hasRemainingEnergyToUse = room.currentHarvesterWorkPotential() >= totalEnergyConsumption
-        return areAllSourcesRealized && hasRemainingEnergyToUse || scientists.length < controller.level && room.creeps(Role.HARVESTER).length > 0
+        // TODO: Modify to return correct amount to consume energy, limited by RCL 8 limiter as necessary
+        //if (room.scientistsWorkCapacity() >= 15 && controller.level == 8) return 0;
+        if (room.currentHarvesterWorkPotential() >= totalEnergyConsumption) return 4
+        return 1;
     }
 }

@@ -7,10 +7,10 @@ import { Role } from 'utils/Enums';
 import { Agent } from './Agent';
 
 export var Roles: {[key in Role]?: any} = {
-    engineer: Engineer,
     harvester: Harvester,
-    scientist: Scientist,
     trucker: Trucker,
+    engineer: Engineer,
     filler: Filler,
+    scientist: Scientist,
     agent: Agent
 }

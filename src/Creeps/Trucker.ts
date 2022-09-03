@@ -265,11 +265,12 @@ export class Trucker extends Creep {
         }
     }
 
-    static shouldSpawn(room: Room): boolean {
-        if (room.creeps().filter(x => x.memory.role == Role.HARVESTER).length < 1) { return false }
+    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
+        if (rolesNeeded.filter(x => x == Role.HARVESTER).length < 1) return 0;
+        if (min && min == true) return 1;
         Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.DEBUG)
         Logger.log(`Demand to Meet: ${room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.DEBUG)
-        if (room.truckersCarryCapacity() > room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)) { return false }
-        return true
+        if (room.truckersCarryCapacity() > room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)) return 4;
+        return 0;
     }
 }

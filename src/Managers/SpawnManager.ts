@@ -149,14 +149,19 @@ export default class SpawnManager {
         // Array of CreepRoles in prio order
         let rolesNeeded: Role[] = [];
 
-        for (const role of Object.values(Role)) {
-            if (role in Roles) {
-                let count: number = Roles[role].shouldSpawn(room, true);
-                for (let i = 0; i < count; i++) {
-                    rolesNeeded.push(role);
+        for (let allFound = false; allFound == false;) {
+            allFound = true;
+            for (const role of Object.values(Role)) {
+                if (role in Roles) {
+                    let count: number = Roles[role].shouldSpawn(room, rolesNeeded, true);
+                    if (count > 0) allFound = false;
+                    for (let i = 0; i < count; i++) {
+                        rolesNeeded.push(role);
+                    }
                 }
             }
         }
+
 
         // Build each SpawnOrder
 

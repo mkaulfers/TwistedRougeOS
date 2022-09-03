@@ -8,8 +8,10 @@ export class Filler extends Creep {
     static baseBody = [CARRY, CARRY, CARRY, CARRY, MOVE]
     static segment = [CARRY]
 
-    static shouldSpawn(room: Room): boolean {
-        return this.isFillerComplete(room) && room.creeps(Role.FILLER).length < 4
+    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
+        if (min && min == true) return 0;
+        if (this.isFillerComplete(room)) return 4;
+        return 0;
     }
 
     static dispatch(room: Room) {

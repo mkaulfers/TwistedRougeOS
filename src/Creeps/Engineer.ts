@@ -350,14 +350,16 @@ export class Engineer extends Creep {
 
     }
 
-    static shouldSpawn(room: Room, min?: boolean): number {
+    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
         if (!(room.controller && room.controller.my && room.controller.level >= 2)) return 0;
-        if (min && min == true) return 1;
+        let engineers = rolesNeeded.filter(x => x == Role.HARVESTER).length
+        if (rolesNeeded.filter(x => x == Role.HARVESTER).length == 0 &&
+            rolesNeeded.filter(x => x == Role.TRUCKER).length == 0) return 0;
+        if (min && min == true) return engineers == 0 ? 1 : 0;
         if (room.constructionSites().length == 0 && room.find(FIND_STRUCTURES).length == 0 ) return 0;
-        if (room.constructionSites().length > 5) return 2;
-        if (room.constructionSites().length > 10) return 3;
-
-        return 1
+        if (room.constructionSites().length > 5) return engineers < 2 ? 2 - engineers : 0;
+        if (room.constructionSites().length > 10) return engineers < 3 ? 3 - engineers : 0;
+        if (room.find(FIND_STRUCTURES).length > 30) return engineers < 2 ? 2 - engineers : 0;
+        return 1;
     }
-
 }
