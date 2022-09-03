@@ -76,6 +76,7 @@ declare global {
         constructionSites(isBuilding?: BuildableStructureConstant): ConstructionSite[];
         minerals(): Mineral[];
         spawns(): StructureSpawn[];
+        observer(): StructureObserver | undefined;
 
         maxExtensionsAvail(): number;
         maxTowersAvail(): number;
@@ -417,6 +418,11 @@ export default class Room_Extended extends Room {
         } else {
             return this.find(FIND_HOSTILE_SPAWNS);
         }
+    }
+
+    observer() {
+        let observers: StructureObserver[] = this.find(FIND_STRUCTURES, { filter: { StructureType: STRUCTURE_OBSERVER } });
+        return observers[0] ? observers[0] : undefined;
     }
 
     rampartHPTarget(): number {

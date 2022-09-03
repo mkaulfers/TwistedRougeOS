@@ -18,7 +18,7 @@ export default class SpawnManager {
             let spawnSchedules = room.cache.spawnSchedules;
 
             // room.getAvailableSpawn()
-            // room.spawnCreep(role, availableSpawn)
+            // room.spawnCreep(role, availableSpawn)                           ////////// PROBABLY KILL THIS
             // room.shouldPreSpawn(spawn: StructureSpawn): Creep | undefined
             // room.scheduleSpawn(role: Role): void
             // room.shouldSpawn(role: Role): boolean
@@ -146,17 +146,17 @@ export default class SpawnManager {
     static genMinSpawnOrders(room: Room): SpawnOrder[] {
         // Do we have full logistical support? IFF not, calculate spawntimes based on required time to fill system
 
-        // Array of creeps roles in prio order
+        // Array of CreepRoles in prio order
         let rolesNeeded: Role[] = [];
 
         for (const role of Object.values(Role)) {
             if (role in Roles) {
-                Roles[role]!.shouldSpawn(room, true);
+                let count: number = Roles[role].shouldSpawn(room, true);
+                for (let i = 0; i < count; i++) {
+                    rolesNeeded.push(role);
+                }
             }
         }
-
-
-
 
         // Build each SpawnOrder
 
@@ -203,12 +203,12 @@ export default class SpawnManager {
                 tempSegment = Roles.agent.segment
         }
 
-        let baseCost = this.bodyCost(tempBody)
+        let baseCost = Utils.Utility.bodyCost(tempBody)
         if (baseCost > room.energyAvailable) {
             return []
         }
         if (baseCost <= room.energyAvailable) {
-            let additionalSegmentCount = Math.floor((room.energyAvailable - baseCost) / this.bodyCost(tempSegment))
+            let additionalSegmentCount = Math.floor((room.energyAvailable - baseCost) / Utils.Utility.bodyCost(tempSegment))
             for (let i = 0; i < additionalSegmentCount && tempBody.length < 50; i++) {
                 switch (role) {
                     case Role.HARVESTER:
@@ -233,18 +233,11 @@ export default class SpawnManager {
         return tempBody
     }
 
-    static bodyCost(body: BodyPartConstant[]): number {
-        let sum = 0;
-        for (let i in body)
-            sum += BODYPART_COST[body[i]];
-        return sum;
-    }
-
     static generateNameFor(role: Role) {
-        return Utils.Utility.truncateString(role) + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false)
+        return Utils.Utility.truncateString(role) + 0 + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false)
     }
 
-    static generateTaskFor(role: Role, room: Room): Task | undefined {
+    static generateTaskFor(role: Role, room: Room): Task | undefined { // Probably killing this
         Utils.Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
         switch (role) {
             case Role.HARVESTER:
