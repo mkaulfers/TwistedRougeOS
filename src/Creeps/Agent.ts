@@ -4,21 +4,22 @@ import { DefenseStructuresDetails, HostileStructuresDetails, PlayerDetail, Stora
 import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
-import { ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
+import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
+import { Logger } from "utils/Logger"
 
 export class Agent extends Creep {
     static baseBody = [MOVE]
     static segment = []
 
     static shouldSpawn(room: Room): boolean {
-        let localCreeps = room.creeps()
+        let localCreeps = room.localCreeps
         let agents = _.filter(Game.creeps, (creep) => creep.memory.role == Role.AGENT && creep.memory.homeRoom == room.name);
 
         if (!room.memory.frontiers) return false
-        if (localCreeps.filter(x => x.memory.role == Role.HARVESTER).length > 0 &&
-            localCreeps.filter(x => x.memory.role == Role.SCIENTIST).length > 0 &&
-            localCreeps.filter(x => x.memory.role == Role.TRUCKER).length > 0 &&
+        if (localCreeps.harvesters.length > 0 &&
+            localCreeps.scientists.length > 0 &&
+            localCreeps.truckers.length > 0 &&
             agents.length < 1 &&
             room.memory.frontiers.length > 0) {
             return true
@@ -27,11 +28,9 @@ export class Agent extends Creep {
     }
 
     static dispatch(room: Room) {
-        let agents = room.creeps(Role.AGENT)
+        let agents = room.stationedCreeps.agents
         for (let agent of agents) {
-            if (!agent.memory.task) {
-                this.scheduleAgentTask(agent)
-            }
+            this.scheduleAgentTask(agent)
         }
     }
 
@@ -44,10 +43,9 @@ export class Agent extends Creep {
             let frontiers = Game.rooms[creep.memory.homeRoom].memory.frontiers
             if (!frontiers) { return ProcessResult.FAILED }
             if (!Memory.intelligence) { Memory.intelligence = [] }
-
             if (creep.room.name != frontiers[0]) {
                 let targetFrontier = new RoomPosition(25, 25, frontiers[0])
-                let resutl = creep.moveTo(targetFrontier)
+                creep.travel(targetFrontier)
 
                 if (frontiers[0] != creep.memory.homeRoom && !this.isRoomExplored(creep.room)) {
                     let roomStatistics = this.generateRoomStatistics(creep.room)

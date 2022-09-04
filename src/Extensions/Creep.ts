@@ -42,7 +42,7 @@ export default class Creep_Extended extends Creep {
         if (pos.roomName === this.room.name) {
             result = this.moveToDefault(pos);
         } else {
-            let route = Game.map.findRoute(this.room.name, this.room.name);
+            let route = Game.map.findRoute(this.room.name, pos.roomName);
             if (route == ERR_NO_PATH || !route || !route[0]) {
                 result = ERR_NO_PATH;
             } else {

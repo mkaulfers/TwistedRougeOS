@@ -143,7 +143,7 @@ export class Trucker extends Creep {
                 // Determines new target
                 if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                     // Targets scientists, sorted by how much energy they have in them
-                    let potentialTargets: Creep[] = creep.room.creeps(Role.SCIENTIST);
+                    let potentialTargets: Creep[] = creep.room.localCreeps.scientists;
                     potentialTargets = Utils.Utility.organizeTargets(potentialTargets, {resource: RESOURCE_ENERGY, order: 'asc', rNeed: true});
                     let potTarget = creep.pos.findClosestByRange(potentialTargets);
 
@@ -239,7 +239,7 @@ export class Trucker extends Creep {
         let turrets = room.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER }});
         turrets = turrets.filter((t) => { return ( 'store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)})
         if (room.energyAvailable < room.energyCapacityAvailable || turrets.length > 0) {
-            let truckers = room.creeps(Role.TRUCKER)
+            let truckers = room.localCreeps.truckers
             Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.TRACE)
             for (let trucker of truckers) {
                 if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_SCIENTIST) {
@@ -248,7 +248,7 @@ export class Trucker extends Creep {
                 }
             }
         } else {
-            let truckers = room.creeps(Role.TRUCKER)
+            let truckers = room.localCreeps.truckers
             if (!(truckers.length > 0)) return;
             Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.TRACE)
 
@@ -266,7 +266,7 @@ export class Trucker extends Creep {
     }
 
     static shouldSpawn(room: Room): boolean {
-        if (room.creeps().filter(x => x.memory.role == Role.HARVESTER).length < 1) { return false }
+        if (room.localCreeps.harvesters.length < 1) { return false }
         Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.DEBUG)
         Logger.log(`Demand to Meet: ${room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.DEBUG)
         if (room.truckersCarryCapacity() > room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)) { return false }

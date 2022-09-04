@@ -2,6 +2,7 @@ import { Utils } from '../utils/Index'
 import { Roles } from '../Creeps/Index';
 import { Role, Task, LogLevel, ProcessPriority } from '../utils/Enums'
 import { Process } from 'Models/Process';
+import { Logger } from 'utils/Logger';
 
 export default class SpawnManager {
     static scheduleSpawnMonitor(room: Room) {
@@ -69,20 +70,20 @@ export default class SpawnManager {
                         if (tempBody.filter(x => x == WORK).length >= 5) { return tempBody }
                         tempBody = tempBody.concat(tempSegment)
                         break
-                    case Role.FILLER:
-                        if (tempBody.filter(x => x == CARRY).length >= 22) { return tempBody }
-                        tempBody = tempBody.concat(tempSegment)
-                    //TODO: Add more role restrictions, for example at RCL 8 there is a max amount for upgrading.
-                    //TODO: Sort the body parts before returning.
-                    //TODO: Perhaps set a wait timer to bigger bodies are spawned instead of a bunch of small ones.
-                    case Role.AGENT:
-                        return tempBody
-                    default:
-                        if (tempBody.length + tempSegment.length > 50) { return tempBody }
-                        tempBody = tempBody.concat(tempSegment)
-                }
-            }
-        }
+                        case Role.FILLER:
+                            if (tempBody.filter(x => x == CARRY).length >= 22) { return tempBody }
+                            tempBody = tempBody.concat(tempSegment)
+                            //TODO: Add more role restrictions, for example at RCL 8 there is a max amount for upgrading.
+                            //TODO: Sort the body parts before returning.
+                            //TODO: Perhaps set a wait timer to bigger bodies are spawned instead of a bunch of small ones.
+                            case Role.AGENT:
+                                return tempBody
+                                default:
+                                    if (tempBody.length + tempSegment.length > 50) { return tempBody }
+                                    tempBody = tempBody.concat(tempSegment)
+                                }
+                            }
+                        }
         Utils.Logger.log(`Temp Body Length: ${tempBody.length}`, LogLevel.DEBUG)
         return tempBody
     }
@@ -102,7 +103,7 @@ export default class SpawnManager {
         Utils.Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
         switch (role) {
             case Role.HARVESTER:
-                if (room.creeps(Role.TRUCKER).length < room.find(FIND_SOURCES).length) {
+                if (room.localCreeps.truckers.length < room.sources.length) {
                     return Task.HARVESTER_EARLY
                 }
                 return Task.HARVESTER_SOURCE

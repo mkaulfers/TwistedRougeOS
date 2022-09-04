@@ -114,7 +114,7 @@ export default class ConstructionManager {
 
                         //Farthest Source Link
                         let links = blueprint.links
-                        let sources = room.sources()
+                        let sources = room.sources
                         let blueprintAnchor = Utils.Utility.unpackPostionToRoom(blueprint.anchor, room.name)
                         let farthestSource: Source | undefined = undefined
 
