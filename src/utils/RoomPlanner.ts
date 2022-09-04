@@ -66,8 +66,8 @@ function generateNewPlan(room: Room) {
     room.memory.blueprint.stamps = room.memory.blueprint.stamps.concat(stamps)
 
     let roadPositions: PathStep[] = []
-    let sources = room.find(FIND_SOURCES)
-    let minerals = room.find(FIND_MINERALS)
+    let sources = room.sources
+    let minerals = room.sources
 
     let leftExits = getLeftExits(room)
     for (let exit of leftExits) {
@@ -529,7 +529,7 @@ function getBottomExits(room: Room): RoomPosition[][] {
 function generateBluePrintAnchor(room: Room, positions: RoomPosition[] = []): RoomPosition | undefined {
     let controller = room.controller
     if (!controller) return undefined
-    let sources = room.sources()
+    let sources = room.sources
 
     positions.push(new RoomPosition(controller.pos.x, controller.pos.y, room.name))
     for (let source of sources) {

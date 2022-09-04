@@ -280,7 +280,7 @@ export class Engineer extends Creep {
     static dispatch(room: Room) {
         Utils.Logger.log("CreepDispatch -> engineer.dispatch()", LogLevel.TRACE)
 
-        let engineers = room.creeps(Role.ENGINEER)
+        let engineers = room.localCreeps.engineers
 
         let cSites: ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
         cSites = Utils.Utility.organizeTargets(cSites, { hits: true, order: 'asc' })
@@ -361,5 +361,6 @@ export class Engineer extends Creep {
         if (room.constructionSites().length > 10) return engineers < 3 ? 3 - engineers : 0;
         if (room.find(FIND_STRUCTURES).length > 30) return engineers < 2 ? 2 - engineers : 0;
         return 1;
+
     }
 }

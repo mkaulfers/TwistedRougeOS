@@ -4,32 +4,33 @@ import { DefenseStructuresDetail, HostileStructuresDetail, PlayerDetail, Storage
 import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
-import { ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
+import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
 
 export class Agent extends Creep {
     static baseBody = [MOVE]
     static segment = []
 
-    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        if (min && min == true) return 0;
-        if (!room.memory.frontiers || room.observer() !== undefined) return 0;
-        if (rolesNeeded.filter(x => x == Role.HARVESTER).length > 0 &&
-            rolesNeeded.filter(x => x == Role.SCIENTIST).length > 0 &&
-            rolesNeeded.filter(x => x == Role.TRUCKER).length > 0 &&
-            rolesNeeded.filter(x => x == Role.AGENT).length < 1 &&
+
+    static shouldSpawn(room: Room): boolean {
+        let localCreeps = room.localCreeps
+        let agents = _.filter(Game.creeps, (creep) => creep.memory.role == Role.AGENT && creep.memory.homeRoom == room.name);
+
+        if (!room.memory.frontiers) return false
+        if (localCreeps.harvesters.length > 0 &&
+            localCreeps.scientists.length > 0 &&
+            localCreeps.truckers.length > 0 &&
+            agents.length < 1 &&
             room.memory.frontiers.length > 0) {
-            return 1
+            return true
         }
-        return 0;
+        return false
     }
 
     static dispatch(room: Room) {
-        let agents = room.creeps(Role.AGENT)
+        let agents = room.stationedCreeps.agents
         for (let agent of agents) {
-            if (!agent.memory.task) {
-                this.scheduleAgentTask(agent)
-            }
+            this.scheduleAgentTask(agent)
         }
     }
 
@@ -45,7 +46,7 @@ export class Agent extends Creep {
 
             if (creep.room.name != frontiers[0]) {
                 let targetFrontier = new RoomPosition(25, 25, frontiers[0])
-                let resutl = creep.moveTo(targetFrontier)
+                creep.travel(targetFrontier)
 
                 if (frontiers[0] != creep.memory.homeRoom && !this.isRoomExplored(creep.room)) {
                     let roomStatistics = this.generateRoomStatistics(creep.room)
@@ -91,7 +92,7 @@ export class Agent extends Creep {
         let highestDT = this.getHighestDT(room)
         let threatLevel = this.getThreatLevel(room)
 
-        let sourcesIds = room.find(FIND_SOURCES).map(source => source.id)
+        let sourcesIds = room.sources.map(source => source.id)
         let powerBankId = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_POWER_BANK })[0]?.id
         let publicTerminalId = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_TERMINAL })[0]?.id
 
@@ -189,7 +190,8 @@ export class Agent extends Creep {
     }
 
     private static getDistanceBetweenSources(targetRoom: Room): number {
-        let sources = targetRoom.find(FIND_SOURCES)
+
+        let sources = targetRoom.sources
         if (sources.length <= 1) { return -1 }
         let distance = 0
         for (let source of sources) {
@@ -208,7 +210,8 @@ export class Agent extends Creep {
     private static largestDistanceToController(targetRoom: Room): number {
         let controller = targetRoom.controller
         if (!controller) { return -1 }
-        let sources = targetRoom.find(FIND_SOURCES)
+        let sources = targetRoom.sources
+
         if (sources.length == 0) { return -1 }
         let distance = 0
         for (let source of sources) {

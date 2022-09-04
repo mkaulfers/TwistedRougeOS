@@ -6,7 +6,7 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, Danger
 export default class CreepManager {
     static scheduleCreepTask(room: Room) {
         Utils.Logger.log("Room -> scheduleCreepTask()", LogLevel.TRACE)
-        let creeps = room.creeps(undefined)
+        let creeps = room.localCreeps.all
         for (let i = 0; i < creeps.length; i++) {
             let creep = creeps[i]
             if (global.scheduler.processQueue.has(creep.name)) { continue }
@@ -47,14 +47,13 @@ export default class CreepManager {
 
     static scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
         const roomName = room.name
-        if (global.scheduler.processQueue.has(`${roomName}_task_monitor`)) { return }
 
         const roomTaskMonitor = () => {
             let room = Game.rooms[roomName]
             let roles = _.keys(Roles) as Array<keyof typeof Roles>; // triage change to make this role-confirming section work.
             if (!room) { return }
             _.forEach(roles, function (role) {
-                if (room.creeps().length < 1) { return }
+                if (room.localCreeps.all.length < 1) { return }
                 Roles[role].dispatch(room);
             });
         }

@@ -88,7 +88,6 @@ export default class SpawnManager {
                     for (let spawnSchedule of spawnSchedules) {
                         if (spawnSchedule.isFull() == true || !extraSpawnOrders || extraSpawnOrders.length == 0) continue;
                         extraSpawnOrders = spawnSchedule.add(extraSpawnOrders);
-
                     }
                 }
             }
@@ -240,6 +239,7 @@ export default class SpawnManager {
                 }
             }
         }
+
         Utils.Logger.log(`Temp Body Length: ${tempBody.length}`, LogLevel.DEBUG)
         return tempBody
     }
@@ -254,7 +254,7 @@ export default class SpawnManager {
         Utils.Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
         switch (role) {
             case Role.HARVESTER:
-                if (room.creeps(Role.TRUCKER).length < room.find(FIND_SOURCES).length) {
+                if (room.localCreeps.truckers.length < room.sources.length) {
                     return Task.HARVESTER_EARLY
                 }
                 return Task.HARVESTER_SOURCE

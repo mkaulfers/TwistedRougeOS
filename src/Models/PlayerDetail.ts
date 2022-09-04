@@ -22,6 +22,7 @@ export class PlayerDetail {
     }
 }
 
+
 export class StorageDetail {
     id: string
     resources: [ResourceConstant, number][]
@@ -33,6 +34,7 @@ export class StorageDetail {
 }
 
 export class HostileStructuresDetail {
+
     structureId: string
     structureType: StructureConstant
     health: number

@@ -16,7 +16,7 @@ export class Filler extends Creep {
     }
 
     static dispatch(room: Room) {
-        let fillers = room.creeps(Role.FILLER)
+        let fillers = room.localCreeps.fillers
         for (let filler of fillers) {
             if (!filler.memory.task) {
                 global.scheduler.swapProcess(filler, Task.FILLER)
@@ -84,7 +84,7 @@ export class Filler extends Creep {
             new RoomPosition(anchor.x + 1, anchor.y + 1, anchor.roomName),
         ]
 
-        let creeps = room.creeps(Role.FILLER)
+        let creeps = room.localCreeps.fillers
         for (let creep of creeps) {
             if (creep.memory.assignedPos) {
                 for (let assignable of assignablePositions) {

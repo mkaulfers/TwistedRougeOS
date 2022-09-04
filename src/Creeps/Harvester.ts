@@ -20,9 +20,9 @@ export class Harvester extends Creep {
             let closestSource: Source | undefined = undefined
 
             if (!creep.memory.assignedPos) {
-                let sources = creep.room.sources()
+                let sources = creep.room.sources
                 for (let source of sources) {
-                    if (!source.isHarvestingAtMaxEfficiency()) {
+                    if (!source.isHarvestingAtMaxEfficiency) {
                         closestSource = source
                         creep.memory.assignedPos = Utils.Utility.packPosition(source.assignablePosition())
                     }
@@ -61,9 +61,9 @@ export class Harvester extends Creep {
             let closestSource: Source | undefined = undefined
 
             if (!creep.memory.assignedPos) {
-                let sources = creep.room.sources()
+                let sources = creep.room.sources
                 for (let source of sources) {
-                    if (!source.isHarvestingAtMaxEfficiency()) {
+                    if (!source.isHarvestingAtMaxEfficiency) {
                         closestSource = source
                         creep.memory.assignedPos = Utils.Utility.packPosition(source.assignablePosition())
                     }
@@ -107,8 +107,8 @@ export class Harvester extends Creep {
     }
 
     static dispatch(room: Room) {
-        let harvesters = room.creeps(Role.HARVESTER)
-        let truckers = room.creeps(Role.TRUCKER)
+        let harvesters = room.localCreeps.harvesters
+        let truckers = room.localCreeps.truckers
         if (truckers.length < 1) {
             for (let harvester of harvesters) {
                 if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_SOURCE) {
@@ -126,7 +126,7 @@ export class Harvester extends Creep {
 
     static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
         Utils.Logger.log("harvester.shouldSpawn()", LogLevel.TRACE)
-        let sources = room.sources().length;
+        let sources = room.sources.length;
         let harvesters = rolesNeeded.filter(x => x == Role.HARVESTER).length
         if (min && min == true) return harvesters < sources ? sources - harvesters : 0;
         if (harvesters < sources) return sources - harvesters;

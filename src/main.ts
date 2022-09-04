@@ -5,6 +5,7 @@ import prototypeExtender from "./Extensions/Index";
 
 import { colors } from "Models/Process";
 
+
 declare global {
 
   namespace NodeJS {
@@ -18,6 +19,7 @@ declare global {
 prototypeExtender();
 
 export const loop = Utils.ErrorMapper.wrapLoop(() => {
+
   clearConsole()
   setup()
   boot()
