@@ -66,8 +66,8 @@ function generateNewPlan(room: Room) {
     room.memory.blueprint.stamps = room.memory.blueprint.stamps.concat(stamps)
 
     let roadPositions: PathStep[] = []
-    let sources = room.find(FIND_SOURCES)
-    let minerals = room.find(FIND_MINERALS)
+    let sources = room.sources
+    let minerals = room.sources
 
     let leftExits = getLeftExits(room)
     for (let exit of leftExits) {

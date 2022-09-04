@@ -91,7 +91,7 @@ export class Agent extends Creep {
         let highestDT = this.getHighestDT(room)
         let threatLevel = this.getThreatLevel(room)
 
-        let sourcesIds = room.find(FIND_SOURCES).map(source => source.id)
+        let sourcesIds = room.sources.map(source => source.id)
         let powerBankId = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_POWER_BANK })[0]?.id
         let publicTerminalId = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_TERMINAL })[0]?.id
 
@@ -189,7 +189,7 @@ export class Agent extends Creep {
     }
 
     private static getDistanceBetweenSources(targetRoom: Room): number {
-        let sources = targetRoom.find(FIND_SOURCES)
+        let sources = targetRoom.sources
         if (sources.length <= 1) { return -1 }
         let distance = 0
         for (let source of sources) {
@@ -208,7 +208,7 @@ export class Agent extends Creep {
     private static largestDistanceToController(targetRoom: Room): number {
         let controller = targetRoom.controller
         if (!controller) { return -1 }
-        let sources = targetRoom.find(FIND_SOURCES)
+        let sources = targetRoom.sources
         if (sources.length == 0) { return -1 }
         let distance = 0
         for (let source of sources) {
