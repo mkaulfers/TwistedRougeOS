@@ -37,7 +37,7 @@ export class Scientist extends Creep {
     }
 
     static dispatch(room: Room) {
-        let scientists = room.creeps(Role.SCIENTIST)
+        let scientists = room.localCreeps(Role.SCIENTIST)
         for (let scientist of scientists) {
             if (!scientist.memory.task) {
                 global.scheduler.swapProcess(scientist, Task.SCIENTIST_UPGRADING)
@@ -46,7 +46,7 @@ export class Scientist extends Creep {
     }
 
     static shouldSpawn(room: Room): boolean {
-        let scientists = room.creeps(Role.SCIENTIST)
+        let scientists = room.localCreeps(Role.SCIENTIST)
         let controller = room.controller
         if (!controller) return false
 
@@ -60,6 +60,6 @@ export class Scientist extends Creep {
         totalEnergyConsumption += room.engineerEnergyConsumption()
 
         let hasRemainingEnergyToUse = room.currentHarvesterWorkPotential() >= totalEnergyConsumption
-        return areAllSourcesRealized && hasRemainingEnergyToUse || scientists.length < controller.level && room.creeps(Role.HARVESTER).length > 0
+        return areAllSourcesRealized && hasRemainingEnergyToUse || scientists.length < controller.level && room.localCreeps(Role.HARVESTER).length > 0
     }
 }

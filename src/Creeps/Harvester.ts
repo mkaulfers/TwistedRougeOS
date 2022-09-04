@@ -107,8 +107,8 @@ export class Harvester extends Creep {
     }
 
     static dispatch(room: Room) {
-        let harvesters = room.creeps(Role.HARVESTER)
-        let truckers = room.creeps(Role.TRUCKER)
+        let harvesters = room.localCreeps(Role.HARVESTER)
+        let truckers = room.localCreeps(Role.TRUCKER)
         if (truckers.length < 1) {
             for (let harvester of harvesters) {
                 if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_SOURCE) {

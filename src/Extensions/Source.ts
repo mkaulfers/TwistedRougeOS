@@ -52,7 +52,7 @@ export default class Source_Extended extends Source {
     }
 
     isHarvestingAtMaxEfficiency(): boolean {
-        let harvesters = this.room.creeps(Role.HARVESTER)
+        let harvesters = this.room.localCreeps(Role.HARVESTER)
         let harvestersAssignedHere: Creep[] = []
 
         for (let harvester of harvesters) {
@@ -77,7 +77,7 @@ export default class Source_Extended extends Source {
 
     assignablePosition(): RoomPosition {
         let validPositions = this.validPositions()
-        let assignedPositions = this.room.creeps(Role.HARVESTER).map(x => x.memory.assignedPos)
+        let assignedPositions = this.room.localCreeps(Role.HARVESTER).map(x => x.memory.assignedPos)
         let unassignedPositions = validPositions.filter(x => !assignedPositions.includes(Utility.packPosition(x)))
         // Logger.log(`Source ${this.id} has ${unassignedPositions.length} unassigned positions.`, LogLevel.DEBUG)
         return unassignedPositions[0]

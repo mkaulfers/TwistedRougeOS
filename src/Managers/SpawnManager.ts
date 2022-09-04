@@ -102,7 +102,7 @@ export default class SpawnManager {
         Utils.Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
         switch (role) {
             case Role.HARVESTER:
-                if (room.creeps(Role.TRUCKER).length < room.find(FIND_SOURCES).length) {
+                if (room.localCreeps(Role.TRUCKER).length < room.find(FIND_SOURCES).length) {
                     return Task.HARVESTER_EARLY
                 }
                 return Task.HARVESTER_SOURCE

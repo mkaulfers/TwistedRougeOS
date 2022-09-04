@@ -28,7 +28,8 @@ declare global {
          */
         shouldSpawn(role: Role): boolean
         scheduleTasks(): void
-        creeps(role?: Role): Creep[];
+        localCreeps(role?: Role): Creep[];
+        stationedCreeps(role?: Role): Creep[];
         isSpawning(role: Role): boolean
         spawnCreep(role: Role, spawn: StructureSpawn, memory?: CreepMemory): void
         getAvailableSpawn(): StructureSpawn | undefined
@@ -104,11 +105,29 @@ export default class Room_Extended extends Room {
         Managers.ConstructionManager.scheduleConstructionMonitor(this)
     }
 
-    creeps(role?: Role): Creep[] {
+    localCreeps(role?: Role): Creep[] {
         if (!role) {
             return this.find(FIND_MY_CREEPS);
         }
         return this.find(FIND_MY_CREEPS, { filter: (c: Creep) => c.memory.role === role });
+    }
+
+    stationedCreeps(role?: Role): Creep[] {
+        let creeps: Creep[] = []
+        let creepsInMemory = Memory.creeps
+        for (let name in creepsInMemory) {
+            let creep = Game.creeps[name]
+            if (creep && creep.memory.homeRoom == this.name) {
+                if (role) {
+                    if (creep.memory.role == role) {
+                        creeps.push(creep)
+                    }
+                } else {
+                    creeps.push(creep)
+                }
+            }
+        }
+        return creeps
     }
 
     sources(): Source[] {
@@ -137,7 +156,7 @@ export default class Room_Extended extends Room {
     }
 
     currentHarvesterWorkPotential(): number {
-        let harvesters = this.creeps(Role.HARVESTER)
+        let harvesters = this.localCreeps(Role.HARVESTER)
         let harvestersPotential = 0
         for (let harvester of harvesters) {
             harvestersPotential += harvester.getActiveBodyparts(WORK) * 2
@@ -151,7 +170,7 @@ export default class Room_Extended extends Room {
     }
 
     truckersCarryCapacity(): number {
-        let truckers = this.creeps(Role.TRUCKER)
+        let truckers = this.localCreeps(Role.TRUCKER)
         let truckersCapacity = 0
         for (let trucker of truckers) {
             truckersCapacity += trucker.getActiveBodyparts(CARRY) * 50
@@ -303,7 +322,7 @@ export default class Room_Extended extends Room {
     }
 
     scientistEnergyConsumption(): number {
-        let scientists = this.creeps(Role.SCIENTIST)
+        let scientists = this.localCreeps(Role.SCIENTIST)
         let scientistEnergyConsumption = 0
         for (let scientist of scientists) {
             scientistEnergyConsumption += scientist.getActiveBodyparts(WORK)
@@ -312,7 +331,7 @@ export default class Room_Extended extends Room {
     }
 
     engineerEnergyConsumption(): number {
-        let engineers = this.creeps(Role.ENGINEER)
+        let engineers = this.localCreeps(Role.ENGINEER)
         let engineerEnergyConsumption = 0
         for (let engineer of engineers) {
             engineerEnergyConsumption += engineer.getActiveBodyparts(WORK)
@@ -321,7 +340,7 @@ export default class Room_Extended extends Room {
     }
 
     lowestScientist(): Creep | undefined {
-        let scientists = this.creeps(Role.SCIENTIST)
+        let scientists = this.localCreeps(Role.SCIENTIST)
         let lowestScientist = undefined
         for (let scientist of scientists) {
             if (!lowestScientist) { lowestScientist = scientist }
@@ -333,7 +352,7 @@ export default class Room_Extended extends Room {
     }
 
     nextCreepToDie(): Creep | undefined {
-        let creeps = this.creeps()
+        let creeps = this.localCreeps()
         let nextCreepToDie: Creep | undefined = undefined
         for (let creep of creeps) {
             if (!nextCreepToDie) { nextCreepToDie = creep }
@@ -348,7 +367,7 @@ export default class Room_Extended extends Room {
     }
 
     scientistsWorkCapacity(): number {
-        let scientists = this.creeps(Role.SCIENTIST)
+        let scientists = this.localCreeps(Role.SCIENTIST)
         let scientistsWorkCapacity = 0
         for (let scientist of scientists) {
             scientistsWorkCapacity += scientist.getActiveBodyparts(WORK)
@@ -499,10 +518,10 @@ export default class Room_Extended extends Room {
         let currentRoomGlobalPos = Utils.Utility.roomNameToCoords(this.name)
         for (let wx = currentRoomGlobalPos.wx - 10; wx <= currentRoomGlobalPos.wx + 10; wx++) {
             for (let wy = currentRoomGlobalPos.wy - 10; wy <= currentRoomGlobalPos.wy + 10; wy++) {
-                let roomName = Utils.Utility.roomNameFromCoords(wx, wy)
-                let result = Game.map.describeExits(roomName)
-                if (result != null) {
-                    frontiers.push(roomName)
+                let prospectFrontier = Utils.Utility.roomNameFromCoords(wx, wy)
+                let result = Game.map.describeExits(prospectFrontier)
+                if (result != null && Game.map.getRoomStatus(prospectFrontier).status == Game.map.getRoomStatus(room.name).status) {
+                    frontiers.push(prospectFrontier)
                 }
             }
         }
