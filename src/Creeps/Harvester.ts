@@ -127,9 +127,11 @@ export class Harvester extends Creep {
     static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
         Utils.Logger.log("harvester.shouldSpawn()", LogLevel.TRACE)
         let sources = room.sources().length;
-        if (min && min == true) return sources;
+        let harvesters = rolesNeeded.filter(x => x == Role.HARVESTER).length
+        if (min && min == true) return harvesters < sources ? sources - harvesters : 0;
+        if (harvesters < sources) return sources - harvesters;
         // if (room.currentHarvesterWorkPotential() < sources * 10) return sources;
-        return sources;
+        return 0;
     }
 
 }

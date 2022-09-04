@@ -121,7 +121,7 @@ export default class SpawnManager {
                 if (emergency === false) {
                     // Handle Spawning
                     if (spawnOrder) {
-                        Game.spawns[spawnSchedule.spawnName].spawnCreep(spawnOrder.body, this.generateNameFor(spawnOrder.memory.role as Role), { memory: spawnOrder.memory })
+                        Game.spawns[spawnSchedule.spawnName].spawnCreep(spawnOrder.body, this.genNameFor(spawnOrder.memory.role as Role), { memory: spawnOrder.memory })
                     }
                     spawnSchedule.tick++;
                 }
@@ -178,6 +178,12 @@ export default class SpawnManager {
         return []
     }
 
+    /**
+     * Generates a body for a creep taking into account factors such as maximum cost, supportable cost given income, etc.
+     * @param room
+     * @param role
+     * @returns
+     */
     static getBodyFor(room: Room, role: Role): BodyPartConstant[] {
         Utils.Logger.log("Spawn -> getBodyFor()", LogLevel.TRACE)
         let tempBody: BodyPartConstant[] = []
@@ -238,11 +244,13 @@ export default class SpawnManager {
         return tempBody
     }
 
-    static generateNameFor(role: Role) {
-        return Utils.Utility.truncateString(role) + 0 + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false)
+    /** Generates a name: XXXYY_ZZZZ, X being the role, Y being the count position in the spawn schedule, and Z being game time */
+    static genNameFor(role: Role, spawnScheduleNumber?: number) {
+        let stringSSN = spawnScheduleNumber ? spawnScheduleNumber.toString().length < 2 ? '0' + spawnScheduleNumber.toString() : spawnScheduleNumber.toString() : '00';
+        return Utils.Utility.truncateString(role) + stringSSN + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false)
     }
 
-    static generateTaskFor(role: Role, room: Room): Task | undefined { // Probably killing this
+    static genTaskFor(role: Role, room: Room): Task | undefined { // Probably killing this
         Utils.Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
         switch (role) {
             case Role.HARVESTER:

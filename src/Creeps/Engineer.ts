@@ -355,7 +355,7 @@ export class Engineer extends Creep {
         let engineers = rolesNeeded.filter(x => x == Role.HARVESTER).length
         if (rolesNeeded.filter(x => x == Role.HARVESTER).length == 0 &&
             rolesNeeded.filter(x => x == Role.TRUCKER).length == 0) return 0;
-        if (min && min == true) return engineers == 0 ? 1 : 0;
+        if (min && min == true) return engineers < 1 ? 1 : 0;
         if (room.constructionSites().length == 0 && room.find(FIND_STRUCTURES).length == 0 ) return 0;
         if (room.constructionSites().length > 5) return engineers < 2 ? 2 - engineers : 0;
         if (room.constructionSites().length > 10) return engineers < 3 ? 3 - engineers : 0;

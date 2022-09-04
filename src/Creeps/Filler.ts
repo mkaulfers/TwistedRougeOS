@@ -10,7 +10,8 @@ export class Filler extends Creep {
 
     static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
         if (min && min == true) return 0;
-        if (this.isFillerComplete(room)) return 4;
+        let fillers = rolesNeeded.filter(x => x == Role.FILLER).length
+        if (this.isFillerComplete(room) && fillers !== 4) return 4 - fillers;
         return 0;
     }
 

@@ -231,8 +231,8 @@ export default class Room_Extended extends Room {
     spawnCreep(role: Role, spawn: StructureSpawn, memory?: CreepMemory) {
         Utils.Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
         let body = Managers.SpawnManager.getBodyFor(this, role)
-        let name = Managers.SpawnManager.generateNameFor(role)
-        let task = Managers.SpawnManager.generateTaskFor(role, this)
+        let name = Managers.SpawnManager.genNameFor(role)
+        let task = Managers.SpawnManager.genTaskFor(role, this)
 
         let sources = spawn.room.sources()
         let assignableSource: Source | undefined = undefined
