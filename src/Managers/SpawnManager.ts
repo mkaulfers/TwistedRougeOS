@@ -81,7 +81,6 @@ export default class SpawnManager {
                                 default:
                                     if (tempBody.length + tempSegment.length > 50) { return tempBody }
                                     tempBody = tempBody.concat(tempSegment)
-                                    Logger.log("Test 5", LogLevel.DEBUG)
                                 }
                             }
                         }

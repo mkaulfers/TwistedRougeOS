@@ -407,13 +407,9 @@ isSpawning(role: Role): boolean {
 
 spawnCreep(role: Role, spawn: StructureSpawn, memory ?: CreepMemory) {
     Utils.Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
-    Logger.log("Test 1", LogLevel.DEBUG)
     let body = Managers.SpawnManager.getBodyFor(this, role)
-    Logger.log("Test 2", LogLevel.DEBUG)
     let name = Managers.SpawnManager.generateNameFor(role)
-    Logger.log("Test 3", LogLevel.DEBUG)
     let task = Managers.SpawnManager.generateTaskFor(role, this)
-    Logger.log("Test 4", LogLevel.DEBUG)
 
     let sources = spawn.room.sources
     let assignableSource: Source | undefined = undefined
