@@ -9,11 +9,11 @@ export class Filler extends Creep {
     static segment = [CARRY]
 
     static shouldSpawn(room: Room): boolean {
-        return this.isFillerComplete(room) && room.localCreeps(Role.FILLER).length < 4
+        return this.isFillerComplete(room) && room.localCreeps.fillers.length < 4
     }
 
     static dispatch(room: Room) {
-        let fillers = room.localCreeps(Role.FILLER)
+        let fillers = room.localCreeps.fillers
         for (let filler of fillers) {
             if (!filler.memory.task) {
                 global.scheduler.swapProcess(filler, Task.FILLER)
@@ -81,7 +81,7 @@ export class Filler extends Creep {
             new RoomPosition(anchor.x + 1, anchor.y + 1, anchor.roomName),
         ]
 
-        let creeps = room.localCreeps(Role.FILLER)
+        let creeps = room.localCreeps.fillers
         for (let creep of creeps) {
             if (creep.memory.assignedPos) {
                 for (let assignable of assignablePositions) {
