@@ -32,7 +32,7 @@ declare global {
             fillers: Creep[],
             agents: Creep[],
             networkHarvesters: Creep[],
-            networkHaulers: Creep[]
+            networkHaulers: Creep[],
             networkEngineers: Creep[]
         };
 
@@ -45,7 +45,7 @@ declare global {
             fillers: Creep[],
             agents: Creep[],
             networkHarvesters: Creep[],
-            networkHaulers: Creep[]
+            networkHaulers: Creep[],
             networkEngineers: Creep[]
         };
 
@@ -132,7 +132,7 @@ export default class Room_Extended extends Room {
         fillers: Creep[],
         agents: Creep[],
         networkHarvesters: Creep[],
-        networkHaulers: Creep[]
+        networkHaulers: Creep[],
         networkEngineers: Creep[]
     } | undefined
 
@@ -145,7 +145,7 @@ export default class Room_Extended extends Room {
         fillers: Creep[],
         agents: Creep[],
         networkHarvesters: Creep[],
-        networkHaulers: Creep[]
+        networkHaulers: Creep[],
         networkEngineers: Creep[]
     } {
         if (this._localCreeps) { return this._localCreeps }
