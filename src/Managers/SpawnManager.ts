@@ -3,16 +3,19 @@ import { Roles } from '../Creeps/Index';
 import { Role, Task, LogLevel, ProcessPriority } from '../utils/Enums'
 import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
+import { Logger } from 'utils/Logger';
 
 export default class SpawnManager {
     static scheduleSpawnMonitor(room: Room) {
         const roomId = room.name
 
         const spawnMonitorTask = () => {
+
             // TODO: Modify so newly built schedules adjust and account for existing creeps and their lifetimes.
             // TODO: Modify to allow for spawn-limiting due to security issues.
 
             let room = Game.rooms[roomId]
+            Utils.Logger.log(`SpawnManager -> ${room.name}_spawn_monitor`, LogLevel.DEBUG)
             let spawns = room.spawns();
             if (!room.cache.spawnSchedules) room.cache.spawnSchedules = [];
             let spawnSchedules = room.cache.spawnSchedules;
@@ -77,14 +80,14 @@ export default class SpawnManager {
             if (room.cache.spawnSchedules.length !== spawns.length) {
                 spawnSchedules.forEach(s => s.reset());
 
-                let minSpawnOrders: SpawnOrder[] | undefined = this.genMinSpawnOrders(room);
+                let minSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, true);
 
                 for (let spawnSchedule of spawnSchedules) {
                     if (spawnSchedule.isFull() == true || !minSpawnOrders || minSpawnOrders.length == 0) continue;
                     minSpawnOrders = spawnSchedule.add(minSpawnOrders);
                 }
                 if (!minSpawnOrders || minSpawnOrders.length == 0) {
-                    let extraSpawnOrders: SpawnOrder[] | undefined = this.genExtraSpawnOrders(room);
+                    let extraSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room);
                     for (let spawnSchedule of spawnSchedules) {
                         if (spawnSchedule.isFull() == true || !extraSpawnOrders || extraSpawnOrders.length == 0) continue;
                         extraSpawnOrders = spawnSchedule.add(extraSpawnOrders);
@@ -139,110 +142,57 @@ export default class SpawnManager {
     }
 
     /**
-     * Generates SpawnOrders for the minimum number of creeps to operate the room.
+     * Generates SpawnOrders for the room
      * @param room The room to consider.
+     * @param minimum Limits SpawnOrder generation to just ones considered required for room functionality.
      */
-    static genMinSpawnOrders(room: Room): SpawnOrder[] {
-        // Do we have full logistical support? IFF not, calculate spawntimes based on required time to fill system
+    static genSpawnOrders(room: Room, minimum?: boolean): SpawnOrder[] {
+        Utils.Logger.log(`SpawnManager -> genMinSpawnOrders(${room.name})`, LogLevel.DEBUG)
 
-        // Array of CreepRoles in prio order
+        // Build array of CreepRoles in prio order
         let rolesNeeded: Role[] = [];
 
         for (let allFound = false; allFound == false;) {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
-                    let count: number = Roles[role].shouldSpawn(room, rolesNeeded, true);
+                    let count: number = Roles[role].shouldSpawn(room, rolesNeeded, minimum ? minimum : undefined);
                     if (count > 0) allFound = false;
-                    for (let i = 0; i < count; i++) {
-                        rolesNeeded.push(role);
-                    }
+                    for (let i = 0; i < count; i++) rolesNeeded.push(role);
                 }
             }
         }
-
 
         // Build each SpawnOrder
-
-        return []
-    }
-
-    /**
-     * Generates SpawnOrders for the extra creeps usable by the room.
-     * @param room The room to consider.
-     */
-    static genExtraSpawnOrders(room: Room): SpawnOrder[] {
-        // Do we have full logistical support? IFF not, calculate spawntimes based on required time to fill system
-
-        return []
-    }
-
-    /**
-     * Generates a body for a creep taking into account factors such as maximum cost, supportable cost given income, etc.
-     * @param room
-     * @param role
-     * @returns
-     */
-    static getBodyFor(room: Room, role: Role): BodyPartConstant[] {
-        Utils.Logger.log("Spawn -> getBodyFor()", LogLevel.TRACE)
-        let tempBody: BodyPartConstant[] = []
-        let tempSegment: BodyPartConstant[] = []
-
-        switch (role) {
-            case Role.ENGINEER:
-                tempBody = Roles.engineer.baseBody
-                tempSegment = Roles.engineer.segment
-                break
-            case Role.HARVESTER:
-                tempBody = Roles.harvester.baseBody
-                tempSegment = Roles.harvester.segment
-                break
-            case Role.SCIENTIST:
-                tempBody = Roles.scientist.baseBody
-                tempSegment = Roles.scientist.segment
-                break
-            case Role.TRUCKER:
-                tempBody = Roles.trucker.baseBody
-                tempSegment = Roles.trucker.segment
-                break
-            case Role.FILLER:
-                tempBody = Roles.filler.baseBody
-                tempSegment = Roles.filler.segment
-            case Role.AGENT:
-                tempBody = Roles.agent.baseBody
-                tempSegment = Roles.agent.segment
-        }
-
-        let baseCost = Utils.Utility.bodyCost(tempBody)
-        if (baseCost > room.energyAvailable) {
-            return []
-        }
-        if (baseCost <= room.energyAvailable) {
-            let additionalSegmentCount = Math.floor((room.energyAvailable - baseCost) / Utils.Utility.bodyCost(tempSegment))
-            for (let i = 0; i < additionalSegmentCount && tempBody.length < 50; i++) {
-                switch (role) {
-                    case Role.HARVESTER:
-                        if (tempBody.filter(x => x == WORK).length >= 5) { return tempBody }
-                        tempBody = tempBody.concat(tempSegment)
-                        break
-                    case Role.FILLER:
-                        if (tempBody.filter(x => x == CARRY).length >= 22) { return tempBody }
-                        tempBody = tempBody.concat(tempSegment)
-                    //TODO: Add more role restrictions, for example at RCL 8 there is a max amount for upgrading.
-                    //TODO: Sort the body parts before returning.
-                    //TODO: Perhaps set a wait timer to bigger bodies are spawned instead of a bunch of small ones.
-                    case Role.AGENT:
-                        return tempBody
-                    default:
-                        if (tempBody.length + tempSegment.length > 50) { return tempBody }
-                        tempBody = tempBody.concat(tempSegment)
-                }
+        let spawnOrders: SpawnOrder[] = [];
+        for (const role of rolesNeeded) {
+            let roleName = Utils.Utility.truncateString(role);
+            let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
+            // TODO: Consider if we have logistical support for spawnTime value
+            let body = Utils.Utility.getBodyFor(room, role)
+            if (body.length === 0) {
+                Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
+                continue;
             }
+            let spawnOrder: SpawnOrder = {
+                id: roleName + (roleCount.toString().length < 2 ? `0` + roleCount.toString() : roleCount.toString()),
+                body: body,
+                spawnTime: body.length * 3,
+                memory: {
+                    role: role,
+                    working: false,
+                    target: undefined,
+                    homeRoom: room.name
+                }
+            };
+
+            spawnOrders.push(spawnOrder);
         }
 
-        Utils.Logger.log(`Temp Body Length: ${tempBody.length}`, LogLevel.DEBUG)
-        return tempBody
+        return spawnOrders;
     }
+
+
 
     /** Generates a name: XXXYY_ZZZZ, X being the role, Y being the count position in the spawn schedule, and Z being game time */
     static genNameFor(role: Role, spawnScheduleNumber?: number) {
@@ -251,7 +201,7 @@ export default class SpawnManager {
     }
 
     static genTaskFor(role: Role, room: Room): Task | undefined { // Probably killing this
-        Utils.Logger.log("Spawn -> generateTaskFor()", LogLevel.TRACE)
+        Utils.Logger.log("SpawnManager -> generateTaskFor()", LogLevel.TRACE)
         switch (role) {
             case Role.HARVESTER:
                 if (room.localCreeps.truckers.length < room.sources.length) {
