@@ -1,12 +1,11 @@
 import { Process } from "Models/Process";
 import { Utils } from "utils/Index"
-import { Logger } from "utils/Logger";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export class Trucker extends Creep {
 
     static baseBody = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
-    static segment = [CARRY, CARRY, MOVE]
+    static segment = [MOVE, CARRY, CARRY]
     static carryModifier = 3.0
 
     static truckerStorage(creep: Creep) {
@@ -270,10 +269,9 @@ export class Trucker extends Creep {
         let truckers = rolesNeeded.filter(x => x == Role.TRUCKER).length
         if (min && min == true) return truckers < 1 ? 1 : 0;
 
-        Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.DEBUG)
-        Logger.log(`Demand to Meet: ${room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.DEBUG)
-        // TODO: Modify to handle planned body-size for the below calculation
-        if (room.truckersCarryCapacity() > room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)) return truckers < 4 ? 4 - truckers : 0;
-        return 0;
+        Utils.Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.DEBUG)
+        Utils.Logger.log(`Demand to Meet: ${room.sources.length * 10 * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.DEBUG)
+        let shouldBe = Math.floor((room.sources.length * 10 * room.averageDistanceFromSourcesToStructures() * this.carryModifier) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == CARRY).length * 50));
+        return truckers < shouldBe ? shouldBe - truckers : 0;
     }
 }

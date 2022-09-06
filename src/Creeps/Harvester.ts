@@ -8,6 +8,7 @@ export class Harvester extends Creep {
 
     static baseBody = [CARRY, MOVE, WORK, WORK]
     static segment = [WORK]
+    static partLimits = [5]
 
     static harvesterEarlyTask(creep: Creep) {
         let creepId = creep.id
@@ -109,7 +110,7 @@ export class Harvester extends Creep {
     static dispatch(room: Room) {
         let harvesters = room.localCreeps.harvesters
         let truckers = room.localCreeps.truckers
-        if (truckers.length < 1) {
+        if (room.controller!.level <= 2 && truckers.length < harvesters.length) {
             for (let harvester of harvesters) {
                 if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_SOURCE) {
                     global.scheduler.swapProcess(harvester, Task.HARVESTER_EARLY)
@@ -129,9 +130,12 @@ export class Harvester extends Creep {
         let sources = room.sources.length;
         let harvesters = rolesNeeded.filter(x => x == Role.HARVESTER).length
         if (min && min == true) return harvesters < sources ? sources - harvesters : 0;
-        if (harvesters < sources) return sources - harvesters;
-        // if (room.currentHarvesterWorkPotential() < sources * 10) return sources;
-        return 0;
-    }
 
+        // Determine max needed harvesters based on harvest efficiency and valid spaces around source
+        let shouldBe = Math.floor((Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits).filter(p => p == WORK).length) / (sources * 5));
+        let maxPositions = 0;
+        room.sources.forEach(s => maxPositions += s.validPositions.length);
+        if (shouldBe > maxPositions) shouldBe = maxPositions;
+        return harvesters < shouldBe ? shouldBe - harvesters : 0;
+    }
 }

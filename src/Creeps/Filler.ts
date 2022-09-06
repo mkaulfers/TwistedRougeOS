@@ -5,7 +5,7 @@ import { Utils } from "utils/Index"
 import { Logger } from "utils/Logger"
 
 export class Filler extends Creep {
-    static baseBody = [CARRY, CARRY, CARRY, CARRY, MOVE]
+    static baseBody = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE]
     static segment = [CARRY]
 
     static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
