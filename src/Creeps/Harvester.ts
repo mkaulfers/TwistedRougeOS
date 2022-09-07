@@ -110,7 +110,7 @@ export class Harvester extends Creep {
     static dispatch(room: Room) {
         let harvesters = room.localCreeps.harvesters
         let truckers = room.localCreeps.truckers
-        if (room.controller!.level <= 2 && truckers.length < harvesters.length) {
+        if (truckers.length < Math.ceil(harvesters.length / 2)) {
             for (let harvester of harvesters) {
                 if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_SOURCE) {
                     global.scheduler.swapProcess(harvester, Task.HARVESTER_EARLY)
