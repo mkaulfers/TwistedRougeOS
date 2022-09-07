@@ -1,3 +1,5 @@
+import { LogLevel } from "utils/Enums"
+import { Utils } from "utils/Index"
 
 export default class SpawnSchedule {
     roomName: string
@@ -37,14 +39,22 @@ export default class SpawnSchedule {
         // TODO: Modify to handle gaps between spawnOrders
 
         // TODO: Modify to handle suggested scheduleTicks
-        let externalSpawnOrders = spawnOrders;
+        let externalSpawnOrders = [...spawnOrders];
         for (const spawnOrder of spawnOrders) {
+            // Already exists?
+            if (this.schedule.findIndex((o) => o.id === spawnOrder.id) >= 0) continue;
+
+            // Does creep for spawnOrder already exist? Target it's death to spawn the new one.
+            let relCreep = Game.rooms[this.roomName].stationedCreeps.all.find((c) => c.name.substring(0,5) === spawnOrder.id)
+            let relCreepTOD = relCreep ? relCreep.ticksToLive : undefined
             // Determine if large enough gap exists
             let firstFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[1] >= spawnOrder.spawnTime);
+            Utils.Logger.log(`${this.spawnName} schedule early return check: ${(!firstFreeSpace || ((opts && !opts.force || !opts) && this.usedSpace >= (this.limiter * 1500)))}`, LogLevel.DEBUG);
             if (!firstFreeSpace || ((opts && !opts.force || !opts) && this.usedSpace >= (this.limiter * 1500))) return externalSpawnOrders;
 
             spawnOrder.scheduleTick = firstFreeSpace[0];
             this.schedule.push(spawnOrder);
+            Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.DEBUG);
 
             this.freeSpaces[this.freeSpaces.indexOf(firstFreeSpace)] = [firstFreeSpace[0] + spawnOrder.spawnTime, firstFreeSpace[1] - spawnOrder.spawnTime];
             this.usedSpace += spawnOrder.spawnTime;
