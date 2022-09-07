@@ -384,17 +384,18 @@ export default class Room_Extended extends Room {
     }
 
     shouldPreSpawn(spawn: StructureSpawn): Creep | undefined {
-        let creep = this.nextCreepToDie()
-        let creepToSpawn: Creep | undefined
-        if (creep && creep.ticksToLive) {
-            let distFromSpawnToCreep = spawn.pos.getRangeTo(creep)
-            let totalTickCost = Managers.SpawnManager.getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
+        // let creep = this.nextCreepToDie()
+        // let creepToSpawn: Creep | undefined
+        // if (creep && creep.ticksToLive) {
+        //     let distFromSpawnToCreep = spawn.pos.getRangeTo(creep)
+        //     let totalTickCost = Managers.SpawnManager.getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
 
-            if (creep.ticksToLive * 1.02 <= totalTickCost) {
-                creepToSpawn = creep
-            }
-        }
-        return creepToSpawn
+        //     if (creep.ticksToLive * 1.02 <= totalTickCost) {
+        //         creepToSpawn = creep
+        //     }
+        // }
+        // return creepToSpawn
+        return undefined
     }
 
     isSpawning(role: Role): boolean {
@@ -412,7 +413,7 @@ export default class Room_Extended extends Room {
 
     spawnCreep(role: Role, spawn: StructureSpawn, memory?: CreepMemory) {
         Utils.Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
-        let body = Managers.SpawnManager.getBodyFor(this, role)
+        let body = Utils.Utility.getBodyFor(this, Roles[role].baseBody, Roles[role].segment)
         let name = Managers.SpawnManager.genNameFor(role)
         let task = Managers.SpawnManager.genTaskFor(role, this)
 

@@ -11,20 +11,18 @@ export class Agent extends Creep {
     static baseBody = [MOVE]
     static segment = []
 
-
-    static shouldSpawn(room: Room): boolean {
-        let localCreeps = room.localCreeps
-        let agents = _.filter(Game.creeps, (creep) => creep.memory.role == Role.AGENT && creep.memory.homeRoom == room.name);
-
-        if (!room.memory.frontiers) return false
-        if (localCreeps.harvesters.length > 0 &&
-            localCreeps.scientists.length > 0 &&
-            localCreeps.truckers.length > 0 &&
-            agents.length < 1 &&
+    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
+        if (min && min == true) return 0;
+        let agents = rolesNeeded.filter(x => x == Role.AGENT).length;
+        if (!room.memory.frontiers || room.observer() !== undefined) return 0;
+        if (rolesNeeded.filter(x => x == Role.HARVESTER).length > 0 &&
+            rolesNeeded.filter(x => x == Role.SCIENTIST).length > 0 &&
+            rolesNeeded.filter(x => x == Role.TRUCKER).length > 0 &&
+            agents < 1 &&
             room.memory.frontiers.length > 0) {
-            return true
+            return agents < 1 ? 1 - agents : 0;
         }
-        return false
+        return 0;
     }
 
     static dispatch(room: Room) {

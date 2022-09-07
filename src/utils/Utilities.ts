@@ -265,7 +265,7 @@ export class Utility {
             }
         });
 
-        Logger.log(`Temp Body Length: ${tempBody.length}`, LogLevel.DEBUG)
+        Logger.log(`Temp Body Length: ${tempBody.length}`, LogLevel.TRACE)
         return tempBody
     }
 }

@@ -46,6 +46,7 @@ export class Scientist extends Creep {
     }
 
     static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
+        Utils.Logger.log("ShouldSpawn -> scientist.shouldSpawn()", LogLevel.TRACE)
         let controller = room.controller
         if (!controller) return 0
         let scientists = rolesNeeded.filter(x => x == Role.SCIENTIST).length
@@ -58,7 +59,8 @@ export class Scientist extends Creep {
 
         // TODO: Modify to return correct amount to consume energy, limited by RCL 8 and income as necessary
 
-        let shouldBe = Math.floor((Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length) / (room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3));
-        return shouldBe < scientists ? shouldBe - scientists : 0;
+        let shouldBe = Math.floor((room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length));
+        Utils.Logger.log(`scientist.shouldSpawn() shouldBe: ${shouldBe}, ${(room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3)}, ${(Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length)}`, LogLevel.DEBUG)
+        return scientists < shouldBe ? shouldBe - scientists : 0;
     }
 }

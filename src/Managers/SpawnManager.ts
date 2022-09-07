@@ -69,18 +69,22 @@ export default class SpawnManager {
             // source.droppedEnergy(): Resource | undefined
 
             // For each spawn ensure we have a schedule
+            let rebuild = false;
             if (spawnSchedules.length !== spawns.length) {
                 for (const spawn of spawns) {
                     if (spawnSchedules && spawnSchedules.findIndex(s => s.spawnName === spawn.name) >= 0) continue;
                     spawnSchedules.push(new SpawnSchedule(room.name, spawn.name));
+                    rebuild = true;
                 }
             }
-
             // New Spawns? Rebuild schedule
-            if (room.cache.spawnSchedules.length !== spawns.length) {
+            if (room.cache.spawnSchedules.length !== spawns.length || rebuild == true) {
+                Utils.Logger.log(`SpawnManager in spawnSchedule check`, LogLevel.DEBUG)
                 spawnSchedules.forEach(s => s.reset());
 
                 let minSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, true);
+                Logger.log(`minSpawnOrders: ${JSON.stringify(minSpawnOrders)}`, LogLevel.DEBUG)
+
 
                 for (let spawnSchedule of spawnSchedules) {
                     if (spawnSchedule.isFull() == true || !minSpawnOrders || minSpawnOrders.length == 0) continue;
@@ -88,6 +92,8 @@ export default class SpawnManager {
                 }
                 if (!minSpawnOrders || minSpawnOrders.length == 0) {
                     let extraSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room);
+                    Logger.log(`extraSpawnOrders: ${JSON.stringify(extraSpawnOrders)}`, LogLevel.DEBUG)
+
                     for (let spawnSchedule of spawnSchedules) {
                         if (spawnSchedule.isFull() == true || !extraSpawnOrders || extraSpawnOrders.length == 0) continue;
                         extraSpawnOrders = spawnSchedule.add(extraSpawnOrders);
@@ -120,13 +126,16 @@ export default class SpawnManager {
                     spawnSchedule.pausedTicks = 0;
                 }
 
+                Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} tick: ${spawnSchedule.tick}`, LogLevel.DEBUG)
                 if (emergency === false) {
                     // Handle Spawning
                     if (spawnOrder) {
                         Game.spawns[spawnSchedule.spawnName].spawnCreep(spawnOrder.body, this.genNameFor(spawnOrder.memory.role as Role), { memory: spawnOrder.memory })
                     }
+
                     spawnSchedule.tick++;
                 }
+
             }
 
             // Reconsider schedule when entering a freeSpace
@@ -147,7 +156,7 @@ export default class SpawnManager {
      * @param minimum Limits SpawnOrder generation to just ones considered required for room functionality.
      */
     static genSpawnOrders(room: Room, minimum?: boolean): SpawnOrder[] {
-        Utils.Logger.log(`SpawnManager -> genMinSpawnOrders(${room.name})`, LogLevel.DEBUG)
+        Utils.Logger.log(`SpawnManager -> genSpawnOrders(${room.name}) with minimum: ${minimum}`, LogLevel.DEBUG)
 
         // Build array of CreepRoles in prio order
         let rolesNeeded: Role[] = [];
@@ -156,12 +165,14 @@ export default class SpawnManager {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
-                    let count: number = Roles[role].shouldSpawn(room, rolesNeeded, minimum ? minimum : undefined);
+                    let count: number = Roles[role].shouldSpawn(room, rolesNeeded, minimum);
                     if (count > 0) allFound = false;
                     for (let i = 0; i < count; i++) rolesNeeded.push(role);
                 }
             }
         }
+
+        Logger.log(`rolesNeeded for ${minimum ? minimum : false}: ${JSON.stringify(rolesNeeded)}`, LogLevel.DEBUG)
 
         // Build each SpawnOrder
         let spawnOrders: SpawnOrder[] = [];
@@ -169,7 +180,7 @@ export default class SpawnManager {
             let roleName = Utils.Utility.truncateString(role);
             let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
             // TODO: Consider if we have logistical support for spawnTime value
-            let body = Utils.Utility.getBodyFor(room, role)
+            let body = Utils.Utility.getBodyFor(room, Roles[role].baseBody, Roles[role].segment)
             if (body.length === 0) {
                 Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
                 continue;
