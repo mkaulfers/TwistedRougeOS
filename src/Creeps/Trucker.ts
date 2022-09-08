@@ -267,8 +267,7 @@ export class Trucker extends Creep {
 
     static shouldSpawn(room: Room): boolean {
         if (room.localCreeps.harvesters.length < 1) { return false }
-        Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.DEBUG)
-        Logger.log(`Demand to Meet: ${room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.DEBUG)
+        if (room.localCreeps.truckers.length < 2) { return true }
         if (room.truckersCarryCapacity() > room.currentHarvesterWorkPotential() * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)) { return false }
         return true
     }

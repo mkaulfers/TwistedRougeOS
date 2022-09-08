@@ -428,7 +428,7 @@ export default class RoomVisuals_Extended extends RoomVisual {
     }
 
     connectRoads(opts: {color?: string, opacity?: number}): RoomVisual | undefined {
-        let color = opts.color || colors.road || 'white'
+        let color = opts?.color || colors.road || 'white'
         if(!this.roads) return
         this.roads.forEach(r=>{
           for(let i=1;i<=4;i++){
@@ -439,7 +439,7 @@ export default class RoomVisuals_Extended extends RoomVisual {
               this.line(r[0],r[1],c[0],c[1],{
                 color: color,
                 width: 0.15,
-                opacity: opts.opacity || 1
+                opacity: opts?.opacity || 1
               })
             }
           }

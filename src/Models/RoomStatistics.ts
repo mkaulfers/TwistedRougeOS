@@ -4,7 +4,7 @@ import { PlayerDetail } from "./PlayerDetail"
 import { PortalDetail } from "./PortalDetail"
 
 export class RoomStatistics {
-    name: String
+    name: string
     swampCount: number
     plainCount: number
     wallCount: number
@@ -23,7 +23,7 @@ export class RoomStatistics {
     playerDetail?: PlayerDetail
     invaderDetail?: InvaderDetail
 
-    constructor(name: String,
+    constructor(name: string,
         swampCount: number,
         plainCount: number,
         wallCount: number,
