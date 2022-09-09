@@ -1,13 +1,13 @@
 export enum Role {
-    SCIENTIST = 'scientist',
-    TRUCKER = 'trucker',
     HARVESTER = 'harvester',
+    TRUCKER = 'trucker',
     ENGINEER = 'engineer',
     FILLER = 'filler',
     AGENT = 'agent',
     NETWORK_HARVESTER = 'network_harvester',
     NETWORK_HAULER = 'network_hauler',
-    NETWORK_ENGINEER = 'network_engineer'
+    NETWORK_ENGINEER = 'network_engineer',
+    SCIENTIST = 'scientist'
 }
 
 export enum Task {

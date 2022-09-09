@@ -1,3 +1,4 @@
+
 export class MineralDetail {
     id: string
     mineralType: MineralConstant

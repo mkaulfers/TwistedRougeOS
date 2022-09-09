@@ -3,13 +3,17 @@ import { Harvester } from './Harvester';
 import { Scientist } from './Scientist';
 import { Trucker } from './Trucker';
 import { Filler } from './Filler';
+import { Role } from 'utils/Enums';
 import { Agent } from './Agent';
 
-export var Roles = {
-    Engineer: Engineer,
-    Harvester: Harvester,
-    Scientist: Scientist,
-    Trucker: Trucker,
-    Filler: Filler,
-    Agent: Agent
+var Roles: {[key in Role]?: any} = {
+    harvester: Harvester,
+    trucker: Trucker,
+    engineer: Engineer,
+    filler: Filler,
+    scientist: Scientist,
+    agent: Agent
 }
+
+export default Roles;
+

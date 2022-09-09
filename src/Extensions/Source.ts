@@ -25,7 +25,6 @@ export default class Source_Extended extends Source {
         return nearby
     }
 
-
     get validPositions(): RoomPosition[] {
         let validPositions: RoomPosition[] = []
         let nonValidatedPositions: { x: number, y: number }[] = []
