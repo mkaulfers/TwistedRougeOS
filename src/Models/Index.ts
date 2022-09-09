@@ -7,7 +7,7 @@ import { RoomStatistics } from "./RoomStatistics"
 import SpawnSchedule from "./SpawnSchedule"
 import { Stamps } from "./Stamps"
 
-export var Roles = {
+export var Models = {
     InvaderDetail: InvaderDetail,
     MineralDetail: MineralDetail,
     PlayerDetail: PlayerDetail,
