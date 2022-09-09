@@ -237,6 +237,7 @@ export class Agent extends Creep {
             }
 
             let rclLevel = targetRoom.controller.level
+
             let storageDetails: StorageDetail[] = []
             let storeStructures: AnyStoreStructure[] = targetRoom.find(FIND_STRUCTURES, { filter: function (s: AnyStructure) { return 'store' in s } })
             for (let structure of storeStructures) {
@@ -246,12 +247,14 @@ export class Agent extends Creep {
             }
 
             let hostileDetails: HostileStructuresDetail[] = []
+
             let hostileStructures = targetRoom.find(FIND_HOSTILE_STRUCTURES).filter(
                 structure => structure.structureType == STRUCTURE_TOWER ||
                     structure.structureType == STRUCTURE_SPAWN ||
                     structure.structureType == STRUCTURE_POWER_SPAWN
             )
             for (let structure of hostileStructures) {
+
                 hostileDetails.push(new HostileStructuresDetail(structure.id, structure.structureType, structure.hits))
             }
 
@@ -270,6 +273,7 @@ export class Agent extends Creep {
     private static getInvaderDetails(targetRoom: Room): InvaderDetail | undefined {
         if (targetRoom.controller && !targetRoom.controller.my && targetRoom.controller.reservation?.username == "Invader") {
             let coreId = targetRoom.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_INVADER_CORE })[0].id
+
             let storageDetails: StorageDetail[] = []
             let storeStructures: AnyStoreStructure[] = targetRoom.find(FIND_STRUCTURES, { filter: function (s: AnyStructure) { return 'store' in s } })
             for (let structure of storeStructures) {

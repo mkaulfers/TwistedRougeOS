@@ -2,16 +2,19 @@ import { Utils } from './utils/Index';
 import { LogLevel } from './utils/Enums'
 import { OS } from "OS/Index";
 import prototypeExtender from "./Extensions/Index";
-import Roles from 'Creeps/Index';
+import { memHack } from "Models/MemHack";
 
 import { colors } from "Models/Process";
 
 
 declare global {
+  interface RawMemory {
+    [key: string]: any
+  }
 
   namespace NodeJS {
     interface Global {
-      //example: any
+      Memory?: Memory
     }
   }
 }
@@ -20,7 +23,6 @@ declare global {
 prototypeExtender();
 
 export const loop = Utils.ErrorMapper.wrapLoop(() => {
-
   clearConsole()
   setup()
   boot()
@@ -30,6 +32,7 @@ export const loop = Utils.ErrorMapper.wrapLoop(() => {
 });
 
 function setup() {
+  memHack.modifyMemory()
   // TODO: Deserialize scheduler and kernel.
   // DEV MODE LOGGING
   Utils.Logger.devLogLevel = LogLevel.DEBUG;

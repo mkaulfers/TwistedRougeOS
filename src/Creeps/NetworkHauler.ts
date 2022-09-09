@@ -1,7 +1,7 @@
 import { Trucker } from "./Trucker";
 
 export class NetworkHauler extends Trucker {
-    shouldSpawn(room: Room): boolean {
-        return false;
+    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number  {
+        return 0;
     }
 }

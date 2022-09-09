@@ -1,7 +1,7 @@
 import { Harvester } from "./Harvester";
 
 export class NetworkHarvester extends Harvester {
-    shouldSpawn(room: Room): boolean {
-        return false;
+    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number  {
+        return 0;
     }
 }

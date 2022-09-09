@@ -2,6 +2,7 @@ import { Managers } from 'Managers/Index'
 import { Utils } from 'utils/Index'
 import { Logger } from 'utils/Logger'
 import Roles from '../Creeps/Index'
+
 import { Role, LogLevel } from '../utils/Enums'
 
 declare global {
@@ -98,12 +99,15 @@ declare global {
         spawns(): StructureSpawn[];
         observer(): StructureObserver | undefined;
 
+
         maxExtensionsAvail(): number;
         maxTowersAvail(): number;
         maxLabsAvail(): number;
 
         nextCreepToDie(): Creep | undefined;
         setFrontiers(room: Room): void
+        isFastFillerComplete(): boolean
+
     }
 }
 
@@ -384,18 +388,16 @@ export default class Room_Extended extends Room {
     }
 
     shouldPreSpawn(spawn: StructureSpawn): Creep | undefined {
-        // let creep = this.nextCreepToDie()
-        // let creepToSpawn: Creep | undefined
-        // if (creep && creep.ticksToLive) {
-        //     let distFromSpawnToCreep = spawn.pos.getRangeTo(creep)
-        //     let totalTickCost = Managers.SpawnManager.getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
-
-        //     if (creep.ticksToLive * 1.02 <= totalTickCost) {
-        //         creepToSpawn = creep
-        //     }
-        // }
-        // return creepToSpawn
-        return undefined
+        let creep = this.nextCreepToDie()
+        let creepToSpawn: Creep | undefined
+        if (creep && creep.ticksToLive) {
+            let distFromSpawnToCreep = spawn.pos.getRangeTo(creep)
+            let totalTickCost = Managers.SpawnManager.getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
+            if (creep.ticksToLive * 1.02 <= totalTickCost) {
+                creepToSpawn = creep
+            }
+        }
+        return creepToSpawn
     }
 
     isSpawning(role: Role): boolean {
@@ -421,7 +423,6 @@ export default class Room_Extended extends Room {
         let assignableSource: Source | undefined = undefined
         for (let source of sources) {
             if (!source.isHarvestingAtMaxEfficiency) {
-
                 assignableSource = source
                 break
             }
@@ -596,7 +597,6 @@ export default class Room_Extended extends Room {
         let observers: StructureObserver[] = this.find(FIND_STRUCTURES, { filter: { StructureType: STRUCTURE_OBSERVER } });
         return observers[0] ? observers[0] : undefined;
     }
-
     rampartHPTarget(): number {
         if (!this.controller) return 0;
         switch (this.controller.level) {
@@ -705,5 +705,14 @@ export default class Room_Extended extends Room {
         frontiers.splice(0, 1)
 
         room.memory.frontiers = frontiers
+    }
+
+    isFastFillerComplete(): boolean {
+        let anchorPos = Utils.Utility.unpackPostionToRoom(this.memory.blueprint.anchor, this.name)
+        let results = this.lookAtArea(anchorPos.y - 2, anchorPos.x - 2, anchorPos.y + 2, anchorPos.x + 2, true).filter(x => x.structure?.structureType != STRUCTURE_ROAD)
+        if (results.length >= 16) {
+            return true
+        }
+        return false
     }
 }

@@ -3,7 +3,6 @@ import Roles from '../Creeps/Index';
 import { Role, Task, LogLevel, ProcessPriority } from '../utils/Enums'
 import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
-import { Logger } from 'utils/Logger';
 
 export default class SpawnManager {
     static scheduleSpawnMonitor(room: Room) {

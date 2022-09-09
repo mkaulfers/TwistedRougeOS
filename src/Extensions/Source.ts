@@ -5,7 +5,6 @@ declare global {
     interface Source {
         nearbyEnergy: number
 
-
         /**
         * Checks if a position around a source is a wall, or a valid position a creep can reach to harvest.
         * O is a valid position.
@@ -14,7 +13,6 @@ declare global {
         *     O X O
         *     O O O
         */
-
         validPositions: RoomPosition[]
         isHarvestingAtMaxEfficiency: boolean
         assignablePosition(): RoomPosition
@@ -22,7 +20,6 @@ declare global {
 }
 
 export default class Source_Extended extends Source {
-
     get nearbyEnergy(): number {
         let nearby = this.pos.findInRange(FIND_DROPPED_RESOURCES, 1).filter(x => x.resourceType == RESOURCE_ENERGY).length
         return nearby
