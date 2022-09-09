@@ -2,6 +2,7 @@ import { Utils } from './utils/Index';
 import { LogLevel } from './utils/Enums'
 import { OS } from "OS/Index";
 import prototypeExtender from "./Extensions/Index";
+import Roles from 'Creeps/Index';
 
 import { colors } from "Models/Process";
 

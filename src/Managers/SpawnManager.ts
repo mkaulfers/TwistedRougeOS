@@ -1,5 +1,5 @@
 import { Utils } from '../utils/Index'
-import { Roles } from '../Creeps/Index';
+import Roles from '../Creeps/Index';
 import { Role, Task, LogLevel, ProcessPriority } from '../utils/Enums'
 import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
@@ -126,7 +126,7 @@ export default class SpawnManager {
 
                 Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} tick: ${spawnSchedule.tick}`, LogLevel.DEBUG)
                 let nextOrder = spawnSchedule.schedule.find((o) => o.scheduleTick && o.scheduleTick > spawnSchedule.tick);
-                Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id}`, LogLevel.DEBUG)
+                Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id} in ${nextOrder && nextOrder.scheduleTick ? nextOrder.scheduleTick - spawnSchedule.tick : spawnSchedule.schedule[0].scheduleTick! - spawnSchedule.tick} ticks.`, LogLevel.DEBUG)
                 if (emergency === false) {
                     // Handle Spawning
                     if (spawnOrder) {
@@ -138,35 +138,15 @@ export default class SpawnManager {
 
             }
 
-            // Reconsider schedule when entering a freeSpace
+            // TODO: Make as cheap as possible to reconsider
+            // Reconsider schedule every 1500 ticks
             if (_.any(spawnSchedules, (s) => s.tick == 1500)) {
-                // Build full list of spawnOrders
-                let allOrders: SpawnOrder[] = [];
-                spawnSchedules.forEach((s) => allOrders.push(...s.schedule))
+                Utils.Logger.log(`SpawnManager schedule found at tick 1500, RESCHEDULING ALL`, LogLevel.DEBUG)
+                Utils.Logger.log(`SpawnManager schedule found at tick 1500, RESCHEDULING ALL`, LogLevel.DEBUG)
+                Utils.Logger.log(`SpawnManager schedule found at tick 1500, RESCHEDULING ALL`, LogLevel.DEBUG)
+                Utils.Logger.log(`SpawnManager schedule found at tick 1500, RESCHEDULING ALL`, LogLevel.DEBUG)
 
-                // Build new rolesNeeded and compare
-                let rolesNeeded: Role[] = [];
-                for (let allFound = false; allFound == false;) {
-                    allFound = true;
-                    for (const role of Object.values(Role)) {
-                        if (role in Roles) {
-                            let count: number = Roles[role].shouldSpawn(room, rolesNeeded);
-                            if (count > 0) allFound = false;
-                            for (let i = 0; i < count; i++) rolesNeeded.push(role);
-                        }
-                    }
-                }
-
-                let allFound = true;
-                rolesNeeded.filter((role) => allOrders.findIndex((o) => o.id )
-
-                let roleName = Utils.Utility.truncateString(role);roleName + (roleCount.toString().length < 2 ? `0` + roleCount.toString() : roleCount.toString())
-
-
-                for (let spawnSchedule of spawnSchedules) {
-                    if (spawnSchedule.isFull() == true || !newSpawnOrders || newSpawnOrders.length == 0) continue;
-                    newSpawnOrders = spawnSchedule.add(newSpawnOrders);
-                }
+                for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
             }
 
             // ONLY SHIFT for prespawning when we have open space to move into! ALSO limit max shifting to space size

@@ -271,7 +271,7 @@ export class Trucker extends Creep {
 
         Utils.Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.DEBUG)
         Utils.Logger.log(`Demand to Meet: ${room.sources.length * 10 * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.DEBUG)
-        let shouldBe = Math.floor((room.sources.length * 10 * room.averageDistanceFromSourcesToStructures() * this.carryModifier) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == CARRY).length * 50));
+        let shouldBe = Math.ceil((room.sources.length * 10 * room.averageDistanceFromSourcesToStructures() * this.carryModifier) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == CARRY).length * 50));
         return truckers < shouldBe ? shouldBe - truckers : 0;
     }
 }

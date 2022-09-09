@@ -1,7 +1,7 @@
 import { Managers } from 'Managers/Index'
 import { Utils } from 'utils/Index'
 import { Logger } from 'utils/Logger'
-import { Roles } from '../Creeps/Index'
+import Roles from '../Creeps/Index'
 import { Role, LogLevel } from '../utils/Enums'
 
 declare global {

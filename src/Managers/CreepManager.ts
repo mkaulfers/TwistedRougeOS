@@ -1,4 +1,4 @@
-import { Roles } from "Creeps/Index"
+import Roles from "Creeps/Index"
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from '../utils/Enums'

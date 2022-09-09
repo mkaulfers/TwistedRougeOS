@@ -57,14 +57,14 @@ export default class SpawnSchedule {
                 spawnOrder.scheduleTick = relCreep.ticksToLive! - spawnOrder.spawnTime;
                 if (relCFreeSpace[0] == spawnOrder.scheduleTick) {
                     this.freeSpaces[this.freeSpaces.indexOf(relCFreeSpace)] = [relCFreeSpace[0] + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + 1)];
-                    Utils.Logger.log(`Exact POST: ${JSON.stringify(this.freeSpaces)}`, LogLevel.DEBUG);
+                    Utils.Logger.log(`Exact POST: ${JSON.stringify(this.freeSpaces)}`, LogLevel.INFO);
                 }
                 else {
                     let i = this.freeSpaces.indexOf(relCFreeSpace);
                     this.freeSpaces[i] = [relCFreeSpace[0], spawnOrder.scheduleTick - (relCFreeSpace[0] + 1)];
-                    Utils.Logger.log(`Rel POST First: ${JSON.stringify(this.freeSpaces)}`, LogLevel.DEBUG);
+                    Utils.Logger.log(`Rel POST First: ${JSON.stringify(this.freeSpaces)}`, LogLevel.INFO);
                     this.freeSpaces.splice(i + 1, 0, [spawnOrder.scheduleTick + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + this.freeSpaces[i][1] + 2)]);
-                    Utils.Logger.log(`Rel POST: ${JSON.stringify(this.freeSpaces)}`, LogLevel.DEBUG);
+                    Utils.Logger.log(`Rel POST: ${JSON.stringify(this.freeSpaces)}`, LogLevel.INFO);
                 }
             }
             else {
@@ -79,7 +79,7 @@ export default class SpawnSchedule {
             this.usedSpace += spawnOrder.spawnTime;
             this.schedule.push(spawnOrder);
             externalSpawnOrders.shift();
-            Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.TRACE);
+            Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.INFO);
         }
         this.schedule = _.sortBy(this.schedule, (o) => o.scheduleTick);
         return undefined;

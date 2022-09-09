@@ -6,7 +6,7 @@ import { Filler } from './Filler';
 import { Role } from 'utils/Enums';
 import { Agent } from './Agent';
 
-export var Roles: {[key in Role]?: any} = {
+var Roles: {[key in Role]?: any} = {
     harvester: Harvester,
     trucker: Trucker,
     engineer: Engineer,
@@ -14,3 +14,5 @@ export var Roles: {[key in Role]?: any} = {
     scientist: Scientist,
     agent: Agent
 }
+
+export default Roles;

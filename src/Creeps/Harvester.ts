@@ -132,7 +132,7 @@ export class Harvester extends Creep {
         if (min && min == true) return harvesters < sources ? sources - harvesters : 0;
 
         // Determine max needed harvesters based on harvest efficiency and valid spaces around source
-        let shouldBe = Math.floor((sources * 5) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits).filter(p => p == WORK).length));
+        let shouldBe = Math.ceil((sources * 5) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits).filter(p => p == WORK).length));
         let maxPositions = 0;
         room.sources.forEach(s => maxPositions += s.validPositions.length);
 

@@ -244,7 +244,7 @@ export class Utility {
         }
 
         // Sort tempBody
-        _.sortBy(tempBody, function(p) {
+        tempBody = _.sortBy(tempBody, function(p) {
             switch (p) {
                 case TOUGH:
                     return sortOrder && sortOrder.tough ? sortOrder.tough : 0;
