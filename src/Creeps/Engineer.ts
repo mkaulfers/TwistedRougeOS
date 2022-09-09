@@ -350,17 +350,17 @@ export class Engineer extends Creep {
 
     }
 
-    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        Utils.Logger.log("ShouldSpawn -> engineer.shouldSpawn()", LogLevel.TRACE)
+    static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
+        Utils.Logger.log("quantityWanted -> engineer.quantityWanted()", LogLevel.TRACE)
         if (!(room.controller && room.controller.my && room.controller.level >= 2)) return 0;
-        let engineers = rolesNeeded.filter(x => x == Role.ENGINEER).length
+        let engineerCount = rolesNeeded.filter(x => x == Role.ENGINEER).length
         if (rolesNeeded.filter(x => x == Role.HARVESTER).length == 0 &&
             rolesNeeded.filter(x => x == Role.TRUCKER).length == 0) return 0;
-        if (min && min == true) return engineers < 1 ? 1 : 0;
+        if (min && min == true) return engineerCount < 1 ? 1 : 0;
         if (room.constructionSites().length == 0 && room.find(FIND_STRUCTURES).length == 0 ) return 0;
-        if (room.constructionSites().length > 5) return engineers < 2 ? 2 - engineers : 0;
-        if (room.constructionSites().length > 10) return engineers < 3 ? 3 - engineers : 0;
-        if (room.find(FIND_STRUCTURES).length > 30) return engineers < 2 ? 2 - engineers : 0;
-        return engineers < 1 ? 1 : 0;
+        if (room.constructionSites().length > 5) return engineerCount < 2 ? 2 - engineerCount : 0;
+        if (room.constructionSites().length > 10) return engineerCount < 3 ? 3 - engineerCount : 0;
+        if (room.find(FIND_STRUCTURES).length > 30) return engineerCount < 2 ? 2 - engineerCount : 0;
+        return engineerCount < 1 ? 1 : 0;
     }
 }

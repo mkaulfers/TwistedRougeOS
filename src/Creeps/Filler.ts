@@ -7,11 +7,11 @@ export class Filler extends Creep {
     static baseBody = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE]
     static segment = [CARRY]
 
-    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        Utils.Logger.log("ShouldSpawn -> filler.shouldSpawn()", LogLevel.TRACE)
+    static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
+        Utils.Logger.log("quantityWanted -> filler.quantityWanted()", LogLevel.TRACE)
         if (min && min == true) return 0;
-        let fillers = rolesNeeded.filter(x => x == Role.FILLER).length
-        if (this.isFillerComplete(room) && fillers !== 4) return 4 - fillers;
+        let fillerCount = rolesNeeded.filter(x => x == Role.FILLER).length
+        if (this.isFillerComplete(room) && fillerCount !== 4) return 4 - fillerCount;
         return 0;
     }
 
@@ -133,7 +133,7 @@ export class Filler extends Creep {
                 result.structure.structureType == STRUCTURE_SPAWN ||
                 result.structure.structureType == STRUCTURE_LINK
         )
-        Logger.log(`${room.name} has ${results.length} structures`, LogLevel.DEBUG)
+        Logger.log(`${room.name} has ${results.length} structures`, LogLevel.INFO)
         return results.length >= 16
     }
 }

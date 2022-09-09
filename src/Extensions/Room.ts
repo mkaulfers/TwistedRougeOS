@@ -22,7 +22,6 @@ declare global {
          * Returns a boolean value indicating whether a role should be spawned.
          * @param role checks to see if provided role should be spawned.
          */
-        shouldSpawn(role: Role): boolean
         scheduleTasks(): void
 
         localCreeps: {
@@ -306,31 +305,6 @@ export default class Room_Extended extends Room {
         return this._stationedCreeps
     }
 
-    shouldSpawn(role: Role): boolean {
-        switch (role) {
-            default:
-                if (this.isSpawning(role)) {
-                    return false
-                }
-            case Role.ENGINEER:
-                return Roles.engineer.shouldSpawn(this)
-            case Role.HARVESTER:
-                return Roles.harvester.shouldSpawn(this)
-            case Role.SCIENTIST:
-                return Roles.scientist.shouldSpawn(this)
-            case Role.TRUCKER:
-                return Roles.trucker.shouldSpawn(this)
-            case Role.FILLER:
-                return Roles.filler.shouldSpawn(this)
-            case Role.AGENT:
-                return Roles.agent.shouldSpawn(this)
-            case Role.NETWORK_ENGINEER:
-            case Role.NETWORK_HARVESTER:
-            case Role.NETWORK_ENGINEER:
-                return false
-        }
-    }
-
     _sources: Source[] | undefined
     get sources() {
         if (this._sources) { return this._sources }
@@ -418,7 +392,6 @@ export default class Room_Extended extends Room {
         Utils.Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
         let body = Utils.Utility.getBodyFor(this, Roles[role].baseBody, Roles[role].segment)
         let name = Managers.SpawnManager.genNameFor(role)
-        let task = Managers.SpawnManager.genTaskFor(role, this)
 
         let sources = spawn.room.sources
         let assignableSource: Source | undefined = undefined
@@ -433,7 +406,6 @@ export default class Room_Extended extends Room {
             body,
             name, {
             memory: {
-                task: memory ? memory.task : task,
                 role: memory ? memory.role : role,
                 working: memory ? memory.working : false,
                 target: memory ? memory.target : undefined,
@@ -519,7 +491,7 @@ export default class Room_Extended extends Room {
                 }
             }
         }
-        Logger.log(`Next Creep To Die: ${nextCreepToDie ? nextCreepToDie.name : "None"}`, LogLevel.DEBUG)
+        Logger.log(`Next Creep To Die: ${nextCreepToDie ? nextCreepToDie.name : "None"}`, LogLevel.INFO)
         return nextCreepToDie
     }
 

@@ -52,7 +52,7 @@ export default class SpawnSchedule {
 
             if (relCreep && relCFreeSpace) {
                 // Throw in to match death of existing creep
-                Utils.Logger.log(`${relCreep.name} found. TTL: ${relCreep.ticksToLive}`, LogLevel.DEBUG);
+                Utils.Logger.log(`${relCreep.name} found. TTL: ${relCreep.ticksToLive}`, LogLevel.INFO);
 
                 spawnOrder.scheduleTick = relCreep.ticksToLive! - spawnOrder.spawnTime;
                 if (relCFreeSpace[0] == spawnOrder.scheduleTick) {

@@ -264,14 +264,14 @@ export class Trucker extends Creep {
         }
     }
 
-    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
+    static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
         if (rolesNeeded.filter(x => x == Role.HARVESTER).length < 1) return 0;
-        let truckers = rolesNeeded.filter(x => x == Role.TRUCKER).length
-        if (min && min == true) return truckers < 1 ? 1 : 0;
+        let truckerCount = rolesNeeded.filter(x => x == Role.TRUCKER).length
+        if (min && min == true) return truckerCount < 1 ? 1 : 0;
 
-        Utils.Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.DEBUG)
-        Utils.Logger.log(`Demand to Meet: ${room.sources.length * 10 * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.DEBUG)
+        Utils.Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.INFO)
+        Utils.Logger.log(`Demand to Meet: ${room.sources.length * 10 * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.INFO)
         let shouldBe = Math.ceil((room.sources.length * 10 * room.averageDistanceFromSourcesToStructures() * this.carryModifier) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == CARRY).length * 50));
-        return truckers < shouldBe ? shouldBe - truckers : 0;
+        return truckerCount < shouldBe ? shouldBe - truckerCount : 0;
     }
 }

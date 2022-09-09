@@ -45,22 +45,17 @@ export class Scientist extends Creep {
         }
     }
 
-    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        Utils.Logger.log("ShouldSpawn -> scientist.shouldSpawn()", LogLevel.TRACE)
+    static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
+        Utils.Logger.log("quantityWanted -> scientist.quantityWanted()", LogLevel.TRACE)
         let controller = room.controller
         if (!controller) return 0
-        let scientists = rolesNeeded.filter(x => x == Role.SCIENTIST).length
-        if (min && min == true) return scientists < 1 ? 1 : 0;
-
-        // let totalEnergyConsumption = 0
-        // totalEnergyConsumption += room.scientistEnergyConsumption()
-        // totalEnergyConsumption += room.engineerEnergyConsumption()
-        // totalEnergyConsumption += (rolesNeeded.length * room.energyCapacityAvailable) / 1500
+        let sciCount = rolesNeeded.filter(x => x == Role.SCIENTIST).length
+        if (min && min == true) return sciCount < 1 ? 1 : 0;
 
         // TODO: Modify to return correct amount to consume energy, limited by RCL 8 and income as necessary
 
         let shouldBe = Math.floor((room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length));
-        Utils.Logger.log(`scientist.shouldSpawn() shouldBe: ${shouldBe}, ${(room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3)}, ${(Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length)}`, LogLevel.DEBUG)
-        return scientists < shouldBe ? shouldBe - scientists : 0;
+        Utils.Logger.log(`scientist.quantityWanted() shouldBe: ${shouldBe}, ${(room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3)}, ${(Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length)}`, LogLevel.INFO)
+        return sciCount < shouldBe ? shouldBe - sciCount : 0;
     }
 }

@@ -11,16 +11,16 @@ export class Agent extends Creep {
     static baseBody = [MOVE]
     static segment = []
 
-    static shouldSpawn(room: Room, rolesNeeded: Role[], min?: boolean): number {
+    static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
         if (min && min == true) return 0;
-        let agents = rolesNeeded.filter(x => x == Role.AGENT).length;
+        let agentCount = rolesNeeded.filter(x => x == Role.AGENT).length;
         if (!room.memory.frontiers || room.observer() !== undefined) return 0;
         if (rolesNeeded.filter(x => x == Role.HARVESTER).length > 0 &&
             rolesNeeded.filter(x => x == Role.SCIENTIST).length > 0 &&
             rolesNeeded.filter(x => x == Role.TRUCKER).length > 0 &&
-            agents < 1 &&
+            agentCount < 1 &&
             room.memory.frontiers.length > 0) {
-            return agents < 1 ? 1 - agents : 0;
+            return agentCount < 1 ? 1 - agentCount : 0;
         }
         return 0;
     }
