@@ -10,6 +10,7 @@ export default class SpawnSchedule {
     usedSpace: number
     limiter: number // Limits total amount of the schedule that is used.
     schedule: SpawnOrder[]
+    needsScheduled: boolean;
 
     /**
      * How to create a new spawn schedule. Can also recreate an existing schedule.
@@ -26,6 +27,7 @@ export default class SpawnSchedule {
         this.schedule = opts ? opts.schedule : [];
         this.freeSpaces = opts ? opts.freeSpaces : [[0,1500]];
         this.usedSpace = opts ? opts.usedSpace : 0;
+        this.needsScheduled = true;
     }
 
     /**
@@ -44,22 +46,42 @@ export default class SpawnSchedule {
             // Already exists?
             if (this.schedule.findIndex((o) => o.id === spawnOrder.id) >= 0) continue;
 
-            // Does creep for spawnOrder already exist? Target it's death to spawn the new one.
-            let relCreep = Game.rooms[this.roomName].stationedCreeps.all.find((c) => c.name.substring(0,5) === spawnOrder.id)
-            let relCreepTOD = relCreep ? relCreep.ticksToLive : undefined
-            // Determine if large enough gap exists
-            let firstFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[1] >= spawnOrder.spawnTime);
-            Utils.Logger.log(`${this.spawnName} schedule early return check: ${(!firstFreeSpace || ((opts && !opts.force || !opts) && this.usedSpace >= (this.limiter * 1500)))}`, LogLevel.DEBUG);
-            if (!firstFreeSpace || ((opts && !opts.force || !opts) && this.usedSpace >= (this.limiter * 1500))) return externalSpawnOrders;
+            let relCreep = Game.rooms[this.roomName].stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id && c.spawning == false);
+            let relCFreeSpace = relCreep ? this.freeSpaces.find(freeSpace => freeSpace[0] <= (relCreep!.ticksToLive! - spawnOrder.spawnTime) &&
+                (freeSpace[1] - ((relCreep!.ticksToLive! - spawnOrder.spawnTime) - freeSpace[0])) >= spawnOrder.spawnTime) : undefined;
 
-            spawnOrder.scheduleTick = firstFreeSpace[0];
-            this.schedule.push(spawnOrder);
-            Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.DEBUG);
+            if (relCreep && relCFreeSpace) {
+                // Throw in to match death of existing creep
+                Utils.Logger.log(`${relCreep.name} found. TTL: ${relCreep.ticksToLive}`, LogLevel.DEBUG);
 
-            this.freeSpaces[this.freeSpaces.indexOf(firstFreeSpace)] = [firstFreeSpace[0] + spawnOrder.spawnTime, firstFreeSpace[1] - spawnOrder.spawnTime];
+                spawnOrder.scheduleTick = relCreep.ticksToLive! - spawnOrder.spawnTime;
+                if (relCFreeSpace[0] == spawnOrder.scheduleTick) {
+                    this.freeSpaces[this.freeSpaces.indexOf(relCFreeSpace)] = [relCFreeSpace[0] + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + 1)];
+                    Utils.Logger.log(`Exact POST: ${JSON.stringify(this.freeSpaces)}`, LogLevel.DEBUG);
+                }
+                else {
+                    let i = this.freeSpaces.indexOf(relCFreeSpace);
+                    this.freeSpaces[i] = [relCFreeSpace[0], spawnOrder.scheduleTick - (relCFreeSpace[0] + 1)];
+                    Utils.Logger.log(`Rel POST First: ${JSON.stringify(this.freeSpaces)}`, LogLevel.DEBUG);
+                    this.freeSpaces.splice(i + 1, 0, [spawnOrder.scheduleTick + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + this.freeSpaces[i][1] + 2)]);
+                    Utils.Logger.log(`Rel POST: ${JSON.stringify(this.freeSpaces)}`, LogLevel.DEBUG);
+                }
+            }
+            else {
+                // Throw in at first available open slot
+                let firstFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[1] >= spawnOrder.spawnTime);
+                if (!firstFreeSpace || ((opts && !opts.force || !opts) && this.usedSpace >= (this.limiter * 1500)))
+                    return externalSpawnOrders;
+                spawnOrder.scheduleTick = firstFreeSpace[0];
+                this.freeSpaces[this.freeSpaces.indexOf(firstFreeSpace)] = [firstFreeSpace[0] + spawnOrder.spawnTime + 1, firstFreeSpace[1] - (spawnOrder.spawnTime + 1)];
+            }
+            // TODO: Fix useSpace Calculations
             this.usedSpace += spawnOrder.spawnTime;
+            this.schedule.push(spawnOrder);
             externalSpawnOrders.shift();
+            Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.TRACE);
         }
+        this.schedule = _.sortBy(this.schedule, (o) => o.scheduleTick);
         return undefined;
     }
 
@@ -117,6 +139,7 @@ export default class SpawnSchedule {
         this.schedule = [];
         this.freeSpaces = [[0,1500]];
         this.usedSpace = 0;
+        this.needsScheduled = true;
     }
 
     /**
