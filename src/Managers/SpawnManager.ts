@@ -19,54 +19,6 @@ export default class SpawnManager {
             if (!room.cache.spawnSchedules) room.cache.spawnSchedules = [];
             let spawnSchedules = room.cache.spawnSchedules;
 
-            // room.getAvailableSpawn()
-            // room.spawnCreep(role, availableSpawn)                           ////////// PROBABLY KILL THIS
-            // room.shouldPreSpawn(spawn: StructureSpawn): Creep | undefined
-            // room.scheduleSpawn(role: Role): void
-            // room.shouldSpawn(role: Role): boolean
-            // room.isSpawning(role: Role): boolean
-            // room.spawnCreep(role: Role, spawn: StructureSpawn, memory?: CreepMemory): void
-            // room.getAvailableSpawn(): StructureSpawn | undefined
-            // room.sourcesEnergyPotential(): number
-            // n WORK bodies in the room, on harvesters, x 2 per tick.
-            // room.currentHarvesterWorkPotential(): number
-            // n WORK bodies in the room, x 1 per tick.
-            // room.scientistEnergyConsumption(): number
-            // n WORK bodies in the room, x 1 per tick.
-            // room.engineerEnergyConsumption(): number
-            // n CARRY bodies in the room, on truckers, x 50.
-            // room.truckersCarryCapacity(): number
-            // room.averageDistanceFromSourcesToStructures(): number
-            // room.sources(): Source[]
-            // room.isSpawnDemandMet(): {met: boolean, demand: number}
-            // room.isScientistDemandMet(): {met: boolean, demand: number}
-            // room.scientistsWorkCapacity(): number
-            // room.rampartHPTarget(): number
-            // room.towers(): StructureTower[];
-            // room.labs(): StructureLab[];
-            // room.links(): StructureLink[];
-            // room.nuker(): StructureNuker;
-            // room.extractor(): StructureExtractor;
-            // room.extensions(): StructureExtension[];
-            // room.constructionSites(isBuilding?: BuildableStructureConstant): ConstructionSite[];
-            // room.minerals(): Mineral[];
-            // room.nextCreepToDie(): Creep | undefined
-
-            // creep.upgradeEnergyConsumptionPerTick(): number
-            // creep.buildEnergyConsumptionPerTick(): number
-            // creep.repairEnergyConsumptionPerTick(): number
-            // creep.dismantleEnergyConsumptionPerTick(): number
-            // room.creeps(role?: Role): Creep[]
-            // room.sourceWithMostDroppedEnergy(): Source | undefined
-            // room.lowestSpawn(): StructureSpawn | undefined
-            // room.lowestExtension(): StructureExtension | undefined
-            // room.lowestTower(): StructureTower | undefined
-            // room.lowestScientist(): Creep | undefined
-            // source.validPositions(): RoomPosition[]
-            // source.isHarvestingAtMaxEfficiency(): boolean
-            // source.assignablePosition(): RoomPosition
-            // source.droppedEnergy(): Resource | undefined
-
             // For each spawn ensure we have a schedule
             let rebuild = false;
             if (spawnSchedules.length !== spawns.length) {
