@@ -41,7 +41,7 @@ export default class Visuals {
     static visualsHandler() {
 
         const visualsHandler = () => {
-            Utils.Logger.log(`Visuals -> visualsHandler()`, LogLevel.DEBUG);
+            Utils.Logger.log(`Visuals -> visualsHandler()`, LogLevel.TRACE);
             let visualToggles = global.Cache.visualToggles;
             if (visualToggles && visualToggles.roomPlanning == true) {
                 this.roomPlanning();
