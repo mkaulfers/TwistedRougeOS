@@ -392,10 +392,11 @@ export default class Room_Extended extends Room {
         let creepToSpawn: Creep | undefined
         if (creep && creep.ticksToLive) {
             let distFromSpawnToCreep = spawn.pos.getRangeTo(creep)
-            let totalTickCost = Managers.SpawnManager.getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
-            if (creep.ticksToLive * 1.02 <= totalTickCost) {
-                creepToSpawn = creep
-            }
+            // TODO: Fix
+            //let totalTickCost = Managers.SpawnManager.getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
+            // if (creep.ticksToLive * 1.02 <= totalTickCost) {
+            //     creepToSpawn = creep
+            // }
         }
         return creepToSpawn
     }

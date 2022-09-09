@@ -40,7 +40,6 @@ export class Harvester extends Creep {
                 creep.mine(closestSource)
                 return ProcessResult.RUNNING
             }
-
             return ProcessResult.INCOMPLETE
         }
 

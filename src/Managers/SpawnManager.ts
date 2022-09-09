@@ -82,7 +82,7 @@ export default class SpawnManager {
                 spawnSchedules.forEach(function(s) { s.reset(); s.needsScheduled = false });
 
                 let minSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, true);
-                Logger.log(`minSpawnOrders: ${JSON.stringify(minSpawnOrders)}`, LogLevel.DEBUG)
+                Utils.Logger.log(`minSpawnOrders: ${JSON.stringify(minSpawnOrders)}`, LogLevel.DEBUG)
 
 
                 for (let spawnSchedule of spawnSchedules) {
@@ -91,7 +91,7 @@ export default class SpawnManager {
                 }
                 if (!minSpawnOrders || minSpawnOrders.length == 0) {
                     let extraSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room);
-                    Logger.log(`extraSpawnOrders: ${JSON.stringify(extraSpawnOrders)}`, LogLevel.DEBUG)
+                    Utils.Logger.log(`extraSpawnOrders: ${JSON.stringify(extraSpawnOrders)}`, LogLevel.DEBUG)
 
                     for (let spawnSchedule of spawnSchedules) {
                         if (spawnSchedule.isFull() == true || !extraSpawnOrders || extraSpawnOrders.length == 0) continue;
@@ -179,7 +179,7 @@ export default class SpawnManager {
             }
         }
 
-        Logger.log(`rolesNeeded for ${minimum ? minimum : false}: ${JSON.stringify(rolesNeeded)}`, LogLevel.DEBUG)
+        Utils.Logger.log(`rolesNeeded for ${minimum ? minimum : false}: ${JSON.stringify(rolesNeeded)}`, LogLevel.DEBUG)
 
         // Build each SpawnOrder
         let spawnOrders: SpawnOrder[] = [];
@@ -189,7 +189,7 @@ export default class SpawnManager {
             // TODO: Consider if we have logistical support for spawnTime value
             let body = Utils.Utility.getBodyFor(room, Roles[role].baseBody, Roles[role].segment, Roles[role].partLimits ? Roles[role].partLimits : undefined)
             if (body.length === 0) {
-                Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
+                Utils.Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
                 continue;
             }
             let spawnOrder: SpawnOrder = {
