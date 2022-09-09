@@ -188,7 +188,7 @@ export default class SpawnManager {
             let roleName = Utils.Utility.truncateString(role);
             let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
             // TODO: Consider if we have logistical support for spawnTime value
-            let body = Utils.Utility.getBodyFor(room, Roles[role].baseBody, Roles[role].segment)
+            let body = Utils.Utility.getBodyFor(room, Roles[role].baseBody, Roles[role].segment, Roles[role].partLimits ? Roles[role].partLimits : undefined)
             if (body.length === 0) {
                 Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
                 continue;

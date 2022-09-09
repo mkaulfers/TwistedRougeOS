@@ -237,7 +237,7 @@ export class Utility {
                     if (Utility.bodyCost(tempBody.concat([part])) >= eLimit) break;
                     let refIndex = refPartLimitsArray.indexOf(part);
                     if (refIndex >= 0 && partCounts[refIndex] >= partLimits[refIndex]) continue
-
+                    partCounts[refIndex]++;
                     tempBody.push(part);
                 }
             }
