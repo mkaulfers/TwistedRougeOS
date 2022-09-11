@@ -61,7 +61,7 @@ declare global {
     var Cache: {
         rooms: {[key: string]: RoomCache},
         creeps: {[key: string]: CreepCache},
-        visualToggles: {[key: string]: boolean},
+        cmd: {[key: string]: boolean},
     }
 }
 
@@ -100,14 +100,16 @@ export default class DataManager {
                 // Add required properties of Cache here
                 rooms: {},
                 creeps: {},
-                visualToggles: {
+                cmd: {
                     roomPlanning: false,
                     distanceTransform: false,
                     pathfinding: false,
                     worldRoomScoring: false,
                     worldRemotes: false,
-                    worldPathfinding: false
-                },
+                    worldPathfinding: false,
+
+                    destroyCreeps: true,
+                }
             };
             for (const roomName in Game.rooms) {
                 if (!global.Cache.rooms[roomName]) {
