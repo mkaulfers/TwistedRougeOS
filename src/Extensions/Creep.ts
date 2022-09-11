@@ -1,5 +1,7 @@
+import 'ts-polyfill/lib/es2019-array';
 import { Logger } from '../utils/Logger';
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
+import { moveTo } from 'screeps-cartographer';
 
 declare global {
     interface Creep {
@@ -40,7 +42,15 @@ export default class Creep_Extended extends Creep {
 
         let result: number;
         if (pos.roomName === this.room.name) {
-            result = this.moveToDefault(pos);
+            result = moveTo(this, pos, {
+                visualizePathStyle: {
+                    fill: 'transparent',
+                    stroke: '#fff',
+                    lineStyle: 'dashed',
+                    strokeWidth: .15,
+                    opacity: .2
+                }
+            })
         } else {
             let route = Game.map.findRoute(this.room.name, pos.roomName);
             if (route == ERR_NO_PATH || !route || !route[0]) {
@@ -50,7 +60,7 @@ export default class Creep_Extended extends Creep {
                 if (!goto) {
                     result = ERR_NO_PATH;
                 } else {
-                    result = this.moveToDefault(goto);
+                    result = (this).moveToDefault(goto);
                 }
             }
         }
@@ -71,13 +81,13 @@ export default class Creep_Extended extends Creep {
         Logger.log("Creep -> moveToDefault()", LogLevel.TRACE)
 
         // Visualization for fun, will remove long term.
-        return this.moveTo(pos, { reusePath: 5,
+        return moveTo(this, pos, {
             visualizePathStyle: {
                 fill: 'transparent',
                 stroke: '#fff',
                 lineStyle: 'dashed',
                 strokeWidth: .15,
-                opacity: .1
+                opacity: .2
             }
         });
     }
@@ -284,7 +294,7 @@ export default class Creep_Extended extends Creep {
         let result: number;
 
         if (this.room.name !== target) {
-            result = this.travel(new RoomPosition(25,25, target));
+            result = this.travel(new RoomPosition(25, 25, target));
         } else {
             var controller = Game.rooms[target].controller;
 

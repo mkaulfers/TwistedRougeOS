@@ -6,6 +6,7 @@ import { memHack } from "Models/MemHack";
 import { Logger } from "utils/Logger";
 
 import { colors } from "Models/Process";
+import { preTick, reconcileTraffic } from 'screeps-cartographer';
 
 
 declare global {
@@ -24,12 +25,14 @@ declare global {
 prototypeExtender();
 
 export const loop = Utils.ErrorMapper.wrapLoop(() => {
+  preTick()
   clearConsole()
   setup()
   boot()
   execute()
   end()
   loggingProcess()
+  reconcileTraffic()
 });
 
 function setup() {

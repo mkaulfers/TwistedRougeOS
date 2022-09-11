@@ -1,6 +1,6 @@
 import { Logger } from './Logger';
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './Enums';
-import { Coord } from "./RampartPlanner";
+import { Coord } from 'screeps-cartographer/dist/utils/packrat';
 
 interface IPrototype {
     prototype?: any
