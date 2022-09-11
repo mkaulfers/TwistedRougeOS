@@ -1,12 +1,15 @@
 import { Logger } from './Logger';
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './Enums';
+import { Coord } from 'screeps-cartographer/dist/utils/packrat';
 
 interface IPrototype {
     prototype?: any
 }
 
 export class Utility {
-    static packPosition(pos: RoomPosition): number {
+    static packPosition(pos: RoomPosition): number
+    static packPosition(pos: {wx: number, wy: number}): number
+    static packPosition(pos: any): number {
         return pos.x * 50 + pos.y
     }
 
