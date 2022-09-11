@@ -53,7 +53,7 @@ export class Agent extends Creep {
                     frontiers.splice(frontiers.indexOf(agent.room.name), 1)
                     Game.rooms[agent.memory.homeRoom].memory.frontiers = frontiers
                     let frontierAsCoords = Utils.Utility.roomNameToCoords(frontiers[0])
-                    let packedCoords = Utils.Utility.packPosition(frontierAsCoords)
+                    let packedCoords = Utils.Utility.packPosition({x: frontierAsCoords.wx, y: frontierAsCoords.wy})
                     agent.memory.assignedPos = packedCoords
 
                 }
