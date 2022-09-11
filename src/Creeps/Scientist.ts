@@ -54,7 +54,7 @@ export class Scientist extends Creep {
 
         // TODO: Modify to return correct amount to consume energy, limited by RCL 8 and income as necessary
 
-        let shouldBe = Math.floor((room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length));
+        let shouldBe = Math.ceil((room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length));
         Utils.Logger.log(`scientist.quantityWanted() shouldBe: ${shouldBe}, ${(room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3)}, ${(Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length)}`, LogLevel.INFO)
         return sciCount < shouldBe ? shouldBe - sciCount : 0;
     }

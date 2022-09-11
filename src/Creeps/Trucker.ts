@@ -19,7 +19,7 @@ export class Trucker extends Creep {
             // Switches working value if full or empty
             if (creep.memory.working == undefined) creep.memory.working = false;
             if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
-            (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
                 creep.memory.working = !creep.memory.working;
                 delete creep.memory.target;
             }
@@ -28,22 +28,24 @@ export class Trucker extends Creep {
             if (working) {
                 // Determines new target
                 if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
-                    let potentialTargets: Structure[] = creep.room.find(FIND_MY_STRUCTURES, {filter: function(s) {
-                        // Limits find to the below structureTypes
-                        switch (s.structureType) {
-                            case STRUCTURE_TOWER:
-                            case STRUCTURE_SPAWN:
-                            case STRUCTURE_POWER_SPAWN:
-                            case STRUCTURE_EXTENSION:
-                                // Returns only targets with room for energy
-                                if (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                                    return s;
-                                } else {
-                                    return;
-                                }
+                    let potentialTargets: Structure[] = creep.room.find(FIND_MY_STRUCTURES, {
+                        filter: function (s) {
+                            // Limits find to the below structureTypes
+                            switch (s.structureType) {
+                                case STRUCTURE_TOWER:
+                                case STRUCTURE_SPAWN:
+                                case STRUCTURE_POWER_SPAWN:
+                                case STRUCTURE_EXTENSION:
+                                    // Returns only targets with room for energy
+                                    if (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                                        return s;
+                                    } else {
+                                        return;
+                                    }
+                            }
+                            return;
                         }
-                        return;
-                    }});
+                    });
 
                     // Targets closest, or storage, or terminal, in that order.
                     let potTarget = creep.pos.findClosestByRange(potentialTargets);
@@ -83,7 +85,7 @@ export class Trucker extends Creep {
                         creep.room.find(FIND_DROPPED_RESOURCES),
                         creep.room.find(FIND_RUINS));
                     // Limits potential targets to only ones with energy, and if a structure, only structures that are containers or links.
-                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, {resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK] })
                     let potTarget = creep.pos.findClosestByRange(potentialTargets);
 
                     // Targets closest if closest will fill or most energy target, in that order
@@ -92,6 +94,8 @@ export class Trucker extends Creep {
                         creep.memory.target = potTarget.id;
                     } else if (potentialTargets.length > 0) {
                         creep.memory.target = potentialTargets[0].id;
+                    } else if (creep.room.storage && creep.room.storage.store.energy > 0) {
+                        creep.memory.target = creep.room.storage.id;
                     } else {
                         return ProcessResult.RUNNING
                     }
@@ -132,7 +136,7 @@ export class Trucker extends Creep {
             // Switches working value if full or empty
             if (creep.memory.working == undefined) creep.memory.working = false;
             if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
-            (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
                 creep.memory.working = !creep.memory.working;
                 delete creep.memory.target;
             }
@@ -143,7 +147,7 @@ export class Trucker extends Creep {
                 if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                     // Targets scientists, sorted by how much energy they have in them
                     let potentialTargets: Creep[] = creep.room.localCreeps.scientists;
-                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, {resource: RESOURCE_ENERGY, order: 'asc', rNeed: true});
+                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, order: 'asc', rNeed: true });
                     let potTarget = creep.pos.findClosestByRange(potentialTargets);
 
                     // Targets closest if scientist will take > 25 energy, or most empty scientist, in that order
@@ -184,10 +188,10 @@ export class Trucker extends Creep {
                         creep.room.find(FIND_STRUCTURES),
                         creep.room.find(FIND_RUINS));
                     // Limits potential targets to only ones with energy, and if a structure, only structures that are containers or links.
-                    nearbyInterests = Utils.Utility.organizeTargets(nearbyInterests, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+                    nearbyInterests = Utils.Utility.organizeTargets(nearbyInterests, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK] })
 
                     potentialTargets.push(...nearbyInterests);
-                    let priorityTargets = potentialTargets.filter(function(t) {
+                    let priorityTargets = potentialTargets.filter(function (t) {
                         (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
                     });
 
@@ -235,8 +239,8 @@ export class Trucker extends Creep {
     }
 
     static dispatch(room: Room) {
-        let turrets = room.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER }});
-        turrets = turrets.filter((t) => { return ( 'store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)})
+        let turrets = room.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
+        turrets = turrets.filter((t) => { return ('store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0) })
         if (room.energyAvailable < room.energyCapacityAvailable || turrets.length > 0) {
             let truckers = room.localCreeps.truckers
             Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.TRACE)
@@ -259,7 +263,7 @@ export class Trucker extends Creep {
             }
 
             if (truckers.filter(trucker => trucker.memory.task == Task.TRUCKER_SCIENTIST).length < 1) {
-                    truckers[0].memory.task = undefined
+                truckers[0].memory.task = undefined
             }
         }
     }
