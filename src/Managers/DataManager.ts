@@ -7,7 +7,7 @@ import { Utils } from '../utils/Index';
 // Add new Memory or Cache properties in this file.
 declare global {
     interface CreepMemory {
-        assignedPos?: number
+        assignedPos?: number | string
         task?: Task
         role: string
         working: boolean

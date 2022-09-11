@@ -48,7 +48,7 @@ export class Scientist extends Creep {
     static shouldSpawn(room: Room): boolean {
         let scientists = room.localCreeps.scientists
         let controller = room.controller
-        if (!controller) return false
+        if (!controller || room.localCreeps.truckers.length < 1) return false
 
         if (room.scientistsWorkCapacity() >= 15 && controller.level == 8) { return false }
 

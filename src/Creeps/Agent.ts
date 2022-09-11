@@ -38,29 +38,54 @@ export class Agent extends Creep {
         let creepId = creep.id
 
         const agentTask = () => {
-            let creep = Game.getObjectById(creepId)
-            if (!creep) { return ProcessResult.FAILED }
-            let frontiers = Game.rooms[creep.memory.homeRoom].memory.frontiers
-            if (!frontiers) { return ProcessResult.FAILED }
+            let agent = Game.getObjectById(creepId)
+            if (!agent) { return ProcessResult.FAILED }
+            let frontiers = Game.rooms[agent.memory.homeRoom].memory.frontiers
+            if (!frontiers || frontiers.length == 0) { return ProcessResult.FAILED }
             if (!Memory.intelligence) { Memory.intelligence = [] }
-            if (creep.room.name != frontiers[0]) {
-                let targetFrontier = new RoomPosition(25, 25, frontiers[0])
-                creep.travel(targetFrontier)
 
-                if (frontiers[0] != creep.memory.homeRoom && !this.isRoomExplored(creep.room)) {
-                    let roomStatistics = this.generateRoomStatistics(creep.room)
+            if (!agent.memory.assignedPos) {
+                agent.memory.assignedPos = frontiers[0]
+            }
+
+            let targetFrontier = new RoomPosition(25, 25, agent.memory.assignedPos as string)
+            if (agent.room.name == targetFrontier.roomName) {
+                if (!this.isRoomExplored(agent.room)) {
+                    let roomStatistics = this.generateRoomStatistics(agent.room)
                     Memory.intelligence.push(roomStatistics)
-                    frontiers.splice(frontiers.indexOf(creep.room.name), 1)
-                    Game.rooms[creep.memory.homeRoom].memory.frontiers = frontiers
+
+                    // if (frontiers.includes(agent.room.name)) {
+                        frontiers.splice(frontiers.indexOf(agent.room.name), 1)
+                        Game.rooms[creep.memory.homeRoom].memory.frontiers = frontiers
+                        agent.memory.assignedPos = frontiers[0]
+                    // }
                 }
+            } else {
+                agent.travel(targetFrontier)
             }
 
-            if (creep.room.name == frontiers[0]) {
-                let roomStatistics = this.generateRoomStatistics(creep.room)
-                Memory.intelligence.push(roomStatistics)
-                frontiers.splice(0, 1)
-                Game.rooms[creep.memory.homeRoom].memory.frontiers = frontiers
-            }
+
+            // // IF the creep's current room is not the target room, move to the target room.
+            // if (creep.room.name != frontiers[0]) {
+            //     let targetFrontier = new RoomPosition(25, 25, frontiers[0])
+            //     Logger.log("Moving to frontier: " + frontiers[0], LogLevel.DEBUG)
+            //     creep.travel(targetFrontier)
+
+            //     //If the target room is not the home-room, and the creep is in the target room, remove the target room from the frontiers list.
+            //     if (frontiers[0] != creep.memory.homeRoom && !this.isRoomExplored(creep.room)) {
+            //         let roomStatistics = this.generateRoomStatistics(creep.room)
+            //         Memory.intelligence.push(roomStatistics)
+            //         frontiers.splice(frontiers.indexOf(creep.room.name), 1)
+            //         Game.rooms[creep.memory.homeRoom].memory.frontiers = frontiers
+            //     }
+            // }
+
+            // if (creep.room.name == frontiers[0]) {
+            //     let roomStatistics = this.generateRoomStatistics(creep.room)
+            //     Memory.intelligence.push(roomStatistics)
+            //     frontiers.splice(0, 1)
+            //     Game.rooms[creep.memory.homeRoom].memory.frontiers = frontiers
+            // }
 
             return ProcessResult.RUNNING
         }

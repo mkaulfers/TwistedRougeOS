@@ -1,14 +1,19 @@
 import { Utils } from "./Index";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './Enums';
+import { Logger } from "./Logger";
+import { Coord } from "./RampartPlanner";
 
 interface IPrototype {
     prototype?: any
 }
 
 export class Utility {
-    static packPosition(pos: RoomPosition): number {
+    static packPosition(pos: RoomPosition): number
+    static packPosition(coord: Coord): number
+    static packPosition(pos: any): number {
         return pos.x * 50 + pos.y
     }
+
 
     static packPositionArray(pos: RoomPosition[]): number[] {
         let result: number[] = []

@@ -122,6 +122,7 @@ export default class Room_Extended extends Room {
         Managers.CreepManager.scheduleRoomTaskMonitor(this)
         Managers.LinkManager.schedule(this);
         Managers.ConstructionManager.scheduleConstructionMonitor(this)
+        Managers.RemoteManager.scheduleRemoteMonitor(this)
     }
 
     _localCreeps: {
@@ -668,7 +669,9 @@ export default class Room_Extended extends Room {
             for (let wy = currentRoomGlobalPos.wy - 10; wy <= currentRoomGlobalPos.wy + 10; wy++) {
                 let prospectFrontier = Utils.Utility.roomNameFromCoords(wx, wy)
                 let result = Game.map.describeExits(prospectFrontier)
-                if (result != null && Game.map.getRoomStatus(prospectFrontier).status == Game.map.getRoomStatus(room.name).status) {
+                if (result != null &&
+                    result != this.name &&
+                    Game.map.getRoomStatus(prospectFrontier).status == Game.map.getRoomStatus(room.name).status) {
                     frontiers.push(prospectFrontier)
                 }
             }

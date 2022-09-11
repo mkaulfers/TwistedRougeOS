@@ -1,3 +1,4 @@
+import { Logger } from 'utils/Logger'
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export class Process {

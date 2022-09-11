@@ -9,16 +9,17 @@ export class RemoteManager {
 
         const remoteMonitor = () => {
             let room = Game.rooms[roomName]
-            if (!room.memory.remotes) {
+            if (!room.memory.remotes || room.memory.remotes.length < 4) {
                 this.setRemotes(room)
             }
         }
 
-        let newProcess = new Process(`${this.name}_remote_monitor`, ProcessPriority.MEDIUM, remoteMonitor)
+        let newProcess = new Process(`${roomName}_remote_monitor`, ProcessPriority.MEDIUM, remoteMonitor)
         global.scheduler.addProcess(newProcess)
     }
 
     private static setRemotes(room: Room) {
+        if (!room.memory.remotes || room.memory.remotes.length == 4) return
         let sites: RemoteSite[] = []
         room.memory.remotes = []
 
@@ -38,7 +39,7 @@ export class RemoteManager {
             let reserved = playerDetail?.reserved
             let username = playerDetail?.username
 
-            if (!sources) continue
+            if (!sources || sources.length < 2) continue
 
             if (reserved) {
                 if (username != room.controller?.owner?.username) continue
@@ -49,7 +50,7 @@ export class RemoteManager {
                 if (controller && !controller.my) continue
             }
 
-            let newSite = new RemoteSite(remoteRoomName, sources, [], [], [], [])
+            let newSite = new RemoteSite(remoteRoomName, sources)
             Memory.intelligence = intelligence.filter(x => x.name != remoteRoomName)
             sites.push(newSite)
 
@@ -74,7 +75,7 @@ export class RemoteManager {
 
         let remote = remotes.find((remote) => remote.roomName == remoteRoomName)
         if (!remote) return
-        
+
         remotes = remotes.filter(x => x != remote)
 
         switch (creep.memory.role) {

@@ -2,6 +2,7 @@ import { Process } from "Models/Process";
 import { Utils } from "../utils/Index";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel } from '../utils/Enums'
 import { Stamps } from 'Models/Stamps'
+import { RemoteSite } from "Models/RemoteSite";
 
 declare global {
 
@@ -142,9 +143,9 @@ export default class Visuals {
         for (let roomName in Game.rooms) {
             if (!Memory.rooms[roomName] || !Memory.rooms[roomName].remotes || Memory.rooms[roomName].remotes!.length == 0) continue;
             let home = new RoomPosition(25,25,roomName);
-            let remotes = Memory.rooms[roomName].remotes as string[];
+            let remotes = Memory.rooms[roomName].remotes as RemoteSite[];
             for (let remote of remotes) {
-                let rPos = new RoomPosition(25,25,remote);
+                let rPos = new RoomPosition(25,25,remote.roomName);
                 Game.map.visual.line(rPos, home, {color: '#ffffff', width: 2.0});
             }
         }
