@@ -4,6 +4,7 @@ import { DefenseStructuresDetail, HostileStructuresDetail, PlayerDetail, Storage
 import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
+import { moveTo } from "screeps-cartographer"
 import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
 
@@ -49,18 +50,28 @@ export class Agent extends Creep {
                 if (frontiers[0] != creep.memory.homeRoom && !this.isRoomExplored(creep.room)) {
                     let roomStatistics = this.generateRoomStatistics(creep.room)
                     Memory.intelligence.push(roomStatistics)
-                    frontiers.splice(frontiers.indexOf(creep.room.name), 1)
+
+                    frontiers.splice(frontiers.indexOf(agent.room.name), 1)
                     Game.rooms[creep.memory.homeRoom].memory.frontiers = frontiers
+                    agent.memory.assignedPos = frontiers[0]
+
                 }
+            } else {
+                moveTo(agent, targetFrontier, {
+                    avoidCreeps: true,
+                    avoidObstacleStructures: true,
+                    avoidSourceKeepers: true,
+                    plainCost: 2,
+                    swampCost: 2,
+                    visualizePathStyle: {
+                        fill: 'transparent',
+                        stroke: '#fff',
+                        lineStyle: 'dashed',
+                        strokeWidth: .15,
+                        opacity: .2
+                    }
+                })
             }
-
-            if (creep.room.name == frontiers[0]) {
-                let roomStatistics = this.generateRoomStatistics(creep.room)
-                Memory.intelligence.push(roomStatistics)
-                frontiers.splice(0, 1)
-                Game.rooms[creep.memory.homeRoom].memory.frontiers = frontiers
-            }
-
             return ProcessResult.RUNNING
         }
 
