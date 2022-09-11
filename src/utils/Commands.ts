@@ -1,47 +1,247 @@
 import { LogLevel } from './Enums';
+import { Utility } from './Utilities';
+import { Logger } from './Logger';
 
 declare global {
             /**
              * Returns help text for specific commmands
              */
             function help(cmd: string): string;
-            /**
-             * Toggles a visual so that one may see its effects.
-             */
-            function toggleVisual(visual: string): number;
-            /**
-             * A heap-saved variable for housing the visual toggles.
-             */
+
+            // Visual Toggles
+            const toggleRoomPlanVisual: string;
+            const toggleDTVisual: string;
+            const togglePathfindingVisual: string;
+            const toggleWorldRoomScoreVisual: string;
+            const toggleWorldRemoteVisual: string;
+            const toggleWorldPathfindingVisual: string;
+
+            // Cleanup Commands
+            const destroyCreeps: string;
+            function destroyCreepsInRoom(name: string): string;
+            const destroyStructures: string;
+            function destroyStructuresInRoom(name: string): string;
+            const destroyCSites: string;
+            function destroyCSitesInRoom(name: string): string;
+
+            function setLogLevel(level: string): string;
+            function schedule(name: string, full?: boolean): string;
+
 }
 
 global.help = function(cmd) {
     let response = '';
     switch (cmd) {
-        case 'toggleVisual' || 'togglevisual' || 'visual' || 'visuals':
-        case 'toggle' || 'toggles':
-            response = `toggleVisual(visual: string) is used to toggle visual booleans so that you may see the visuals. \n
-                The accepted values are: \n'roomPlanning'\n'distanceTransform'\n'pathfinding'\n'worldRoomScoring'\n'worldRemotes'\n'worldPathfinding'`
-            console.log(response);
-            return response;
+
+        case 'toggleRoomPlanVisual':
+            return `'toggleRoomPlanVisual' is a toggle for seeing a room's planned structures, should it exist.`;
+        case 'toggleDTVisual':
+            return `'toggleDTVisual' is a toggle for seeing a room's Distance Transform Cost Matrix, should it exist.`;
+        case 'togglePathfindingVisual':
+            return `'togglePathfindingVisual' is a toggle for seeing a room's Pathfinding Cost Matrix for a single creep, should it exist.`;
+        case 'toggleWorldRoomScoreVisual':
+            return `'toggleWorldRoomScoreVisual' is a toggle for seeing a room's score for colonization on the world map, should it exist.`;
+        case 'toggleWorldRemoteVisual':
+            return `'toggleWorldRemoteVisual' is a toggle for seeing a room's remotes on the world map, should they exist.`;
+        case 'toggleWorldPathfindingVisual':
+            return `'toggleWorldPathfindingVisual' is a toggle for seeing a room's confirmed exits on the world map, should the data exist.`;
+        case 'destroyCreeps':
+            return `'destroyCreeps' is a confirmation required command for killing all creeps under one's control.`;
+        case 'destroyCreepsInRoom': case 'destroyCreepsInRoom(roomName)':
+            return `'destroyCreepsInRoom' is a confirmation required command for killing all creeps for a specific room under one's control.`;
+        case 'destroyStructures':
+            return `'destroyStructures' is a confirmation required command for destroying all structures under one's control.`;
+        case 'destroyStructuresInRoom': case 'destroyStructuresInRoom(roomName)':
+            return `'destroyStructuresInRoom' is a confirmation required command for destroying all structures for a specific room under one's control.`;
+        case 'destroyCSites':
+            return `'destroyCSites' is a confirmation required command for destroying all cSites under one's control.`;
+        case 'destroyCSitesInRoom': case 'destroyCSitesInRoom(roomName)':
+            return `'destroyCSitesInRoom' is a confirmation required command for destroying all cSites for a specific room under one's control.`;
+        case 'setLogLevel':
+            return `'setLogLevel(level)' is a command to change the current log level. Please use actual keys for the LogLevel enum.`;
+        case 'schedule': case 'schedule(roomName, full?)':
+            return `'schedule()' is a viewer for the room's spawn schedule. 'roomName' is the room's name, 'full' is an optional boolean for if you want the whole schedule object.`;
         default:
-            response = `${cmd} either has no help text or isn't a function. \n Accepted values are 'toggleVisual'.`
-            console.log(response);
+            response = `${cmd} either has no help text or isn't a function. \n Accepted values are:
+            'toggleRoomPlanVisual'
+            'toggleDTVisual'
+            'togglePathfindingVisual'
+            'toggleWorldRoomScoreVisual'
+            'toggleWorldRemoteVisual'
+            'toggleWorldPathfindingVisual'
+            'destroyCreeps'
+            'destroyCreepsInRoom'
+            'destroyStructures'
+            'destroyStructuresInRoom'
+            'destroyCSites'
+            'destroyCSitesInRoom'
+            'setLogLevel'
+            'schedule'`
             return response;
     }
 }
 
-global.toggleVisual = function(visual) {
-
-
-    if (visual in global.Cache.visualToggles) {
-        global.Cache.visualToggles[visual] = !global.Cache.visualToggles[visual]
-        console.log(`${visual} toggled to ${global.Cache.visualToggles[visual]}.`);
-        return OK;
-    } else {
-        console.log(`ERR_INVALID_ARGS. ${visual} is not a correct visual toggle.
-            The accepted values are: \n'roomPlanning'\n'distanceTransform'\n'pathfinding'\n'worldRoomScoring'\n'worldRemotes'\n'worldPathfinding'`);
-        return ERR_INVALID_ARGS;
+Object.defineProperty(global, 'toggleRoomPlanVisual', {
+    get() {
+        global.Cache.cmd.roomPlanning = !global.Cache.cmd.roomPlanning;
+        return `Room Planning Visual toggled to ${global.Cache.cmd.roomPlanning}.`;
     }
+});
+
+Object.defineProperty(global, 'toggleDTVisual', {
+    get() {
+        global.Cache.cmd.distanceTransform = !global.Cache.cmd.distanceTransform;
+        return `Room Distance Transform Visual toggled to ${global.Cache.cmd.distanceTransform}.`;
+    }
+});
+
+Object.defineProperty(global, 'togglePathfindingVisual', {
+    get() {
+        global.Cache.cmd.pathfinding = !global.Cache.cmd.pathfinding;
+        return `Room Pathfinding Visual toggled to ${global.Cache.cmd.pathfinding}.`;
+    }
+});
+
+Object.defineProperty(global, 'toggleWorldRoomScoreVisual', {
+    get() {
+        global.Cache.cmd.worldRoomScoring = !global.Cache.cmd.worldRoomScoring;
+        return `World Room Score Visual toggled to ${global.Cache.cmd.worldRoomScoring}.`;
+    }
+});
+
+Object.defineProperty(global, 'toggleWorldRemoteVisual', {
+    get() {
+        global.Cache.cmd.worldRemotes = !global.Cache.cmd.worldRemotes;
+        return `World Remotes Visual toggled to ${global.Cache.cmd.worldRemotes}.`;
+    }
+});
+
+Object.defineProperty(global, 'toggleWorldPathfindingVisual', {
+    get() {
+        global.Cache.cmd.worldPathfinding = !global.Cache.cmd.worldPathfinding;
+        return `World Pathfinding Visual toggled to ${global.Cache.cmd.worldPathfinding}.`;
+    }
+});
+
+Object.defineProperty(global, 'destroyCreeps', {
+    get() {
+        global.Cache.cmd.destroyCreeps = !global.Cache.cmd.destroyCreeps;
+        if (global.Cache.cmd.destroyCreeps == true) {
+            for (const creep of Object.values(Game.creeps)) {
+                creep.say(`Goodbye, dear overlords!`, true)
+                creep.suicide();
+            }
+            return `All creeps destroyed.`
+        } else return `To confirm your choice to kill all creeps, please resend the command.`
+    }
+});
+
+global.destroyCreepsInRoom = function(name) {
+    let room = Game.rooms[name];
+    if (!room) return `The chosen room is not in vision.`
+    global.Cache.cmd.destroyCreepsInRoom = !global.Cache.cmd.destroyCreepsInRoom;
+    if (global.Cache.cmd.destroyCreepsInRoom == true) {
+        for (const creep of Object.values(Game.creeps)) {
+            if (creep.memory.homeRoom !== name) continue;
+            creep.say(`Goodbye, dear overlords!`, true)
+            creep.suicide();
+        }
+        return `All creeps for ${name} destroyed.`
+    } else return `To confirm your choice to kill all creeps for ${name}, please resend the command.`
 }
 
+Object.defineProperty(global, 'destroyStructures', {
+    get() {
+        global.Cache.cmd.destroyStructures = !global.Cache.cmd.destroyStructures;
+        if (global.Cache.cmd.destroyStructures == true) {
+            for (const structure of Object.values(Game.structures)) {
+                structure.destroy();
+            }
+            return `All structures destroyed.`
+        } else return `To confirm your choice to kill all structures, please resend the command.`
+    }
+});
 
+global.destroyStructuresInRoom = function(name) {
+    global.Cache.cmd.destroyStructuresInRoom = !global.Cache.cmd.destroyStructuresInRoom;
+    if (global.Cache.cmd.destroyStructuresInRoom == true) {
+        for (const structure of Object.values(Game.structures)) {
+            if (structure.pos.roomName !== name) continue;
+            structure.destroy();
+        }
+        return `All structures for ${name} destroyed.`
+    } else return `To confirm your choice to kill all structures for ${name}, please resend the command.`
+}
+
+Object.defineProperty(global, 'destroyCSites', {
+    get() {
+        global.Cache.cmd.destroyCSites = !global.Cache.cmd.destroyCSites;
+        if (global.Cache.cmd.destroyCSites == true) {
+            for (const cSite of Object.values(Game.constructionSites)) {
+                cSite.remove();
+            }
+            return `All cSites destroyed.`
+        } else return `To confirm your choice to kill all cSites, please resend the command.`
+    }
+});
+
+global.destroyCSitesInRoom = function(name) {
+    global.Cache.cmd.destroyStructuresInRoom = !global.Cache.cmd.destroyStructuresInRoom;
+    if (global.Cache.cmd.destroyStructuresInRoom == true) {
+        for (const cSite of Object.values(Game.constructionSites)) {
+            if (cSite.pos.roomName !== name) continue;
+            cSite.remove();
+        }
+        return `All cSites for ${name} destroyed.`
+    } else return `To confirm your choice to kill all cSites for ${name}, please resend the command.`
+}
+
+global.setLogLevel = function(level) {
+    if (!(level in LogLevel)) return `Requested string is not a LogLevel. Please use: ALL, OFF, TRACE, DEBUG, INFO, WARN, ERROR, or FATAL.`;
+    switch (level) {
+        case 'OFF':
+            Logger.devLogLevel = LogLevel.OFF;
+            break;
+        case 'ALL':
+            Logger.devLogLevel = LogLevel.ALL;
+            break;
+        case 'TRACE':
+            Logger.devLogLevel = LogLevel.TRACE;
+            break;
+        case 'DEBUG':
+            Logger.devLogLevel = LogLevel.DEBUG;
+            break;
+        case 'INFO':
+            Logger.devLogLevel = LogLevel.INFO;
+            break;
+        case 'WARN':
+            Logger.devLogLevel = LogLevel.WARN;
+            break;
+        case 'ERROR':
+            Logger.devLogLevel = LogLevel.ERROR;
+            break;
+        case 'FATAL':
+            Logger.devLogLevel = LogLevel.FATAL;
+            break;
+    }
+    return `LogLevel set to ${level}.`
+}
+
+global.schedule = function(name, full) {
+    let room = Game.rooms[name];
+    if (!room) return `The chosen room is not one of ours.`
+    if (!room.cache.spawnSchedules) return `Schedule for ${name} not found.`
+
+    if (full && full == true) {
+        console.log(`${JSON.stringify(room.cache.spawnSchedules)}`)
+        return `Full schedule for ${name} logged.`
+    } else {
+        for (const spawnSchedule of room.cache.spawnSchedules) {
+            console.log(`Schedule for ${name}, ${spawnSchedule.spawnName}:`);
+            for (const spawnOrder of spawnSchedule.schedule) {
+                console.log(`${spawnOrder.id}: ${Utility.bodyCost(spawnOrder.body)} energy, in ${spawnOrder.scheduleTick ? spawnOrder.scheduleTick - spawnSchedule.tick : `unknown`} ticks.`)
+            }
+        }
+        return `Short schedule for ${name} logged.`
+    }
+}

@@ -62,6 +62,18 @@ export default class SpawnManager {
 
                 if (emergency === true) {
                     Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, LogLevel.INFO);
+
+                    if (spawnSchedule.pausedTicks > 0 && room.localCreeps.truckers.length == 0) {
+                        Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers.`, LogLevel.ERROR);
+                        let body = [CARRY, CARRY, MOVE];
+                        let segment = [CARRY, CARRY, MOVE];
+                        let modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(body));
+                        for (let i = 0; i < modifier; i++) {
+                            body.push(...segment);
+                        }
+                        Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 're.00', { memory: {role: 'trucker', working: false, homeRoom: room.name } })
+                    }
+
                     spawnSchedule.pausedTicks++;
 
                     // Is there anything else to do in an emergency? Don't think so, but...

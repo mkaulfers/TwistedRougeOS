@@ -23,6 +23,9 @@ declare global {
 // Once and Done code here
 prototypeExtender();
 
+// DEV MODE LOGGING
+Utils.Logger.devLogLevel = LogLevel.DEBUG;
+
 export const loop = Utils.ErrorMapper.wrapLoop(() => {
   preTick()
   clearConsole()
@@ -37,8 +40,6 @@ export const loop = Utils.ErrorMapper.wrapLoop(() => {
 function setup() {
   memHack.modifyMemory()
   // TODO: Deserialize scheduler and kernel.
-  // DEV MODE LOGGING
-  Utils.Logger.devLogLevel = LogLevel.DEBUG;
   if (!global.kernel) {
     Utils.Logger.log("Building new kernel.", LogLevel.DEBUG)
     global.kernel = new OS.Kernel()
