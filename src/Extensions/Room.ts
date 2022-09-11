@@ -1,7 +1,8 @@
 import { Managers } from 'Managers/Index'
 import { Utils } from 'utils/Index'
 import { Logger } from 'utils/Logger'
-import { Roles } from '../Creeps/Index'
+import Roles from '../Creeps/Index'
+
 import { Role, LogLevel } from '../utils/Enums'
 
 declare global {
@@ -21,8 +22,8 @@ declare global {
          * Returns a boolean value indicating whether a role should be spawned.
          * @param role checks to see if provided role should be spawned.
          */
-        shouldSpawn(role: Role): boolean
         scheduleTasks(): void
+
         localCreeps: {
             all: Creep[],
             harvesters: Creep[],
@@ -68,6 +69,7 @@ declare global {
         // Gets the distance from sources to each storage capable structure in the room.
         // Spawn, Extension, Tower, Storage, Link, PowerSpawn, Nuker, Labs, Factory, etc..
         averageDistanceFromSourcesToStructures(): number
+
         sources: Source[]
         lowestSpawn(): StructureSpawn | undefined
         lowestExtension(): StructureExtension | undefined
@@ -93,6 +95,9 @@ declare global {
         extensions(): StructureExtension[];
         constructionSites(isBuilding?: BuildableStructureConstant): ConstructionSite[];
         minerals(): Mineral[];
+        spawns(): StructureSpawn[];
+        observer(): StructureObserver | undefined;
+
 
         maxExtensionsAvail(): number;
         maxTowersAvail(): number;
@@ -101,6 +106,7 @@ declare global {
         nextCreepToDie(): Creep | undefined;
         setFrontiers(room: Room): void
         isFastFillerComplete(): boolean
+
     }
 }
 
@@ -300,31 +306,6 @@ export default class Room_Extended extends Room {
         return this._stationedCreeps
     }
 
-    shouldSpawn(role: Role): boolean {
-        switch (role) {
-            default:
-                if (this.isSpawning(role)) {
-                    return false
-                }
-            case Role.ENGINEER:
-                return Roles.Engineer.shouldSpawn(this)
-            case Role.HARVESTER:
-                return Roles.Harvester.shouldSpawn(this)
-            case Role.SCIENTIST:
-                return Roles.Scientist.shouldSpawn(this)
-            case Role.TRUCKER:
-                return Roles.Trucker.shouldSpawn(this)
-            case Role.FILLER:
-                return Roles.Filler.shouldSpawn(this)
-            case Role.AGENT:
-                return Roles.Agent.shouldSpawn(this)
-            case Role.NETWORK_ENGINEER:
-            case Role.NETWORK_HARVESTER:
-            case Role.NETWORK_ENGINEER:
-                return false
-        }
-    }
-
     _sources: Source[] | undefined
     get sources() {
         if (this._sources) { return this._sources }
@@ -386,10 +367,11 @@ export default class Room_Extended extends Room {
         let creepToSpawn: Creep | undefined
         if (creep && creep.ticksToLive) {
             let distFromSpawnToCreep = spawn.pos.getRangeTo(creep)
-            let totalTickCost = Managers.SpawnManager.getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
-            if (creep.ticksToLive * 1.02 <= totalTickCost) {
-                creepToSpawn = creep
-            }
+            // TODO: Fix
+            //let totalTickCost = Managers.SpawnManager.getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
+            // if (creep.ticksToLive * 1.02 <= totalTickCost) {
+            //     creepToSpawn = creep
+            // }
         }
         return creepToSpawn
     }
@@ -398,6 +380,7 @@ export default class Room_Extended extends Room {
         let subString = role.substring(0, 3)
         let spawns = this.find(FIND_MY_SPAWNS)
         for (let spawn of spawns) {
+
             let spawningName = spawn.name.substring(0, 3)
             if (spawningName == subString) {
                 return true
@@ -408,9 +391,8 @@ export default class Room_Extended extends Room {
 
     spawnCreep(role: Role, spawn: StructureSpawn, memory?: CreepMemory) {
         Utils.Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
-        let body = Managers.SpawnManager.getBodyFor(this, role)
-        let name = Managers.SpawnManager.generateNameFor(role)
-        let task = Managers.SpawnManager.generateTaskFor(role, this)
+        let body = Utils.Utility.getBodyFor(this, Roles[role].baseBody, Roles[role].segment)
+        let name = Managers.SpawnManager.genNameFor(role)
 
         let sources = spawn.room.sources
         let assignableSource: Source | undefined = undefined
@@ -425,7 +407,6 @@ export default class Room_Extended extends Room {
             body,
             name, {
             memory: {
-                task: memory ? memory.task : task,
                 role: memory ? memory.role : role,
                 working: memory ? memory.working : false,
                 target: memory ? memory.target : undefined,
@@ -511,7 +492,7 @@ export default class Room_Extended extends Room {
                 }
             }
         }
-        Logger.log(`Next Creep To Die: ${nextCreepToDie ? nextCreepToDie.name : "None"}`, LogLevel.DEBUG)
+        Logger.log(`Next Creep To Die: ${nextCreepToDie ? nextCreepToDie.name : "None"}`, LogLevel.INFO)
         return nextCreepToDie
     }
 
@@ -577,6 +558,19 @@ export default class Room_Extended extends Room {
         return this.find(FIND_MINERALS)
     }
 
+    spawns() {
+        let mySpawns = this.find(FIND_MY_SPAWNS);
+        if (mySpawns) {
+            return mySpawns;
+        } else {
+            return this.find(FIND_HOSTILE_SPAWNS);
+        }
+    }
+
+    observer() {
+        let observers: StructureObserver[] = this.find(FIND_STRUCTURES, { filter: { StructureType: STRUCTURE_OBSERVER } });
+        return observers[0] ? observers[0] : undefined;
+    }
     rampartHPTarget(): number {
         if (!this.controller) return 0;
         switch (this.controller.level) {

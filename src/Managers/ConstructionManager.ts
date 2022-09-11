@@ -190,7 +190,7 @@ export default class ConstructionManager {
 
                         let fastFiller = blueprint.stamps.find(s => s.type === StampType.FAST_FILLER)
                         if (fastFiller) {
-                            Utils.Logger.log(`Level ${controller.level}`, LogLevel.DEBUG)
+                            Utils.Logger.log(`Level ${controller.level}`, LogLevel.INFO)
                             Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(fastFiller.stampPos, room.name), fastFiller.type as StampType, fastFillerStructuresSkipped)
                         }
                 }

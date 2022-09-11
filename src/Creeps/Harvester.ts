@@ -1,4 +1,3 @@
-
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
 
@@ -8,6 +7,7 @@ export class Harvester extends Creep {
 
     static baseBody = [CARRY, MOVE, WORK, WORK]
     static segment = [WORK]
+    static partLimits = [5]
 
     static harvesterEarlyTask(creep: Creep) {
         let creepId = creep.id
@@ -40,7 +40,6 @@ export class Harvester extends Creep {
                 creep.mine(closestSource)
                 return ProcessResult.RUNNING
             }
-
             return ProcessResult.INCOMPLETE
         }
 
@@ -109,7 +108,7 @@ export class Harvester extends Creep {
     static dispatch(room: Room) {
         let harvesters = room.localCreeps.harvesters
         let truckers = room.localCreeps.truckers
-        if (truckers.length < 1) {
+        if (truckers.length < Math.ceil(harvesters.length / 2)) {
             for (let harvester of harvesters) {
                 if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_SOURCE) {
                     global.scheduler.swapProcess(harvester, Task.HARVESTER_EARLY)
@@ -124,10 +123,18 @@ export class Harvester extends Creep {
         }
     }
 
-    static shouldSpawn(room: Room): boolean {
-        Utils.Logger.log("Spawn -> shouldSpawnHarvester()", LogLevel.TRACE)
-        let sources = room.sources
-        return room.currentHarvesterWorkPotential() < sources.length * 10
-    }
+    static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
+        Utils.Logger.log("quantityWanted -> harvester.quantityWanted()", LogLevel.TRACE)
+        let sources = room.sources.length;
+        let harCount = rolesNeeded.filter(x => x == Role.HARVESTER).length
+        if (min && min == true) return harCount < sources ? sources - harCount : 0;
 
+        // Determine max needed harvesters based on harvest efficiency and valid spaces around source
+        let shouldBe = Math.ceil((sources * 5) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits).filter(p => p == WORK).length));
+        let maxPositions = 0;
+        room.sources.forEach(s => maxPositions += s.validPositions.length);
+
+        if (shouldBe > maxPositions) shouldBe = maxPositions;
+        return harCount < shouldBe ? shouldBe - harCount : 0;
+    }
 }

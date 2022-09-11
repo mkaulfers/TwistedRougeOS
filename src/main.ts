@@ -1,12 +1,12 @@
-import { ErrorMapper } from "utils/ErrorMapper";
 import { Utils } from './utils/Index';
+import { LogLevel } from './utils/Enums'
 import { OS } from "OS/Index";
-import './Extensions/Index'
-import { Task, LogLevel } from './utils/Enums'
-import { colors } from "Models/Process";
 import prototypeExtender from "./Extensions/Index";
 import { memHack } from "Models/MemHack";
 import { Logger } from "utils/Logger";
+
+import { colors } from "Models/Process";
+
 
 declare global {
   interface RawMemory {
@@ -23,7 +23,7 @@ declare global {
 // Once and Done code here
 prototypeExtender();
 
-export const loop = ErrorMapper.wrapLoop(() => {
+export const loop = Utils.ErrorMapper.wrapLoop(() => {
   clearConsole()
   setup()
   boot()

@@ -1,30 +1,28 @@
 import { InvaderDetail } from "Models/InvaderDetail"
 import { MineralDetail } from "Models/MineralDetail"
-import { DefenseStructuresDetails, HostileStructuresDetails, PlayerDetail, StorageDetails } from "Models/PlayerDetail"
+import { DefenseStructuresDetail, HostileStructuresDetail, PlayerDetail, StorageDetail } from "Models/PlayerDetail"
 import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
 import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
-import { Logger } from "utils/Logger"
 
 export class Agent extends Creep {
     static baseBody = [MOVE]
     static segment = []
 
-    static shouldSpawn(room: Room): boolean {
-        let localCreeps = room.localCreeps
-        let agents = _.filter(Game.creeps, (creep) => creep.memory.role == Role.AGENT && creep.memory.homeRoom == room.name);
-
-        if (!room.memory.frontiers) return false
-        if (localCreeps.harvesters.length > 0 &&
-            localCreeps.scientists.length > 0 &&
-            localCreeps.truckers.length > 0 &&
-            agents.length < 1 &&
+    static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
+        if (min && min == true) return 0;
+        let agentCount = rolesNeeded.filter(x => x == Role.AGENT).length;
+        if (!room.memory.frontiers || room.observer() !== undefined) return 0;
+        if (rolesNeeded.filter(x => x == Role.HARVESTER).length > 0 &&
+            rolesNeeded.filter(x => x == Role.SCIENTIST).length > 0 &&
+            rolesNeeded.filter(x => x == Role.TRUCKER).length > 0 &&
+            agentCount < 1 &&
             room.memory.frontiers.length > 0) {
-            return true
+            return agentCount < 1 ? 1 - agentCount : 0;
         }
-        return false
+        return 0;
     }
 
     static dispatch(room: Room) {
@@ -214,6 +212,7 @@ export class Agent extends Creep {
     }
 
     private static getDistanceBetweenSources(targetRoom: Room): number {
+
         let sources = targetRoom.sources
         if (sources.length <= 1) { return -1 }
         let distance = 0
@@ -234,6 +233,7 @@ export class Agent extends Creep {
         let controller = targetRoom.controller
         if (!controller) { return -1 }
         let sources = targetRoom.sources
+
         if (sources.length == 0) { return -1 }
         let distance = 0
         for (let source of sources) {
@@ -261,28 +261,31 @@ export class Agent extends Creep {
             }
 
             let rclLevel = targetRoom.controller.level
-            let storageDetails: StorageDetails[] = []
+
+            let storageDetails: StorageDetail[] = []
             let storeStructures: AnyStoreStructure[] = targetRoom.find(FIND_STRUCTURES, { filter: function (s: AnyStructure) { return 'store' in s } })
             for (let structure of storeStructures) {
                 if (structure.store) {
-                    storageDetails.push(new StorageDetails(structure.id, this.getContentsOfStore(structure)))
+                    storageDetails.push(new StorageDetail(structure.id, this.getContentsOfStore(structure)))
                 }
             }
 
-            let hostileDetails: HostileStructuresDetails[] = []
+            let hostileDetails: HostileStructuresDetail[] = []
+
             let hostileStructures = targetRoom.find(FIND_HOSTILE_STRUCTURES).filter(
                 structure => structure.structureType == STRUCTURE_TOWER ||
                     structure.structureType == STRUCTURE_SPAWN ||
                     structure.structureType == STRUCTURE_POWER_SPAWN
             )
             for (let structure of hostileStructures) {
-                hostileDetails.push(new HostileStructuresDetails(structure.id, structure.structureType, structure.hits))
+
+                hostileDetails.push(new HostileStructuresDetail(structure.id, structure.structureType, structure.hits))
             }
 
-            let defenseDetails: DefenseStructuresDetails[] = []
+            let defenseDetails: DefenseStructuresDetail[] = []
             let defensiveStructures = targetRoom.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_RAMPART || structure.structureType == STRUCTURE_WALL })
             for (let structure of defensiveStructures) {
-                defenseDetails.push(new DefenseStructuresDetails(structure.id, structure.structureType, structure.hits))
+                defenseDetails.push(new DefenseStructuresDetail(structure.id, structure.structureType, structure.hits))
             }
 
             return new PlayerDetail(username, rclLevel, reserved, storageDetails, hostileDetails, defenseDetails)
@@ -294,11 +297,12 @@ export class Agent extends Creep {
     private static getInvaderDetails(targetRoom: Room): InvaderDetail | undefined {
         if (targetRoom.controller && !targetRoom.controller.my && targetRoom.controller.reservation?.username == "Invader") {
             let coreId = targetRoom.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_INVADER_CORE })[0].id
-            let storageDetails: StorageDetails[] = []
+
+            let storageDetails: StorageDetail[] = []
             let storeStructures: AnyStoreStructure[] = targetRoom.find(FIND_STRUCTURES, { filter: function (s: AnyStructure) { return 'store' in s } })
             for (let structure of storeStructures) {
                 if (structure.store) {
-                    storageDetails.push(new StorageDetails(structure.id, this.getContentsOfStore(structure)))
+                    storageDetails.push(new StorageDetail(structure.id, this.getContentsOfStore(structure)))
                 }
             }
 

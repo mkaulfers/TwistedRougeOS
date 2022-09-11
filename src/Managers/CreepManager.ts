@@ -1,4 +1,4 @@
-import { Roles } from "Creeps/Index"
+import Roles from "Creeps/Index"
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from '../utils/Enums'
@@ -13,34 +13,34 @@ export default class CreepManager {
 
             switch (creep.memory.task as Task) {
                 case Task.HARVESTER_EARLY:
-                    Roles.Harvester.harvesterEarlyTask(creep)
+                    Roles.harvester.harvesterEarlyTask(creep)
                     break
                 case Task.HARVESTER_SOURCE:
-                    Roles.Harvester.harvesterSource(creep)
+                    Roles.harvester.harvesterSource(creep)
                     break
                 case Task.TRUCKER_STORAGE:
-                    Roles.Trucker.truckerStorage(creep)
+                    Roles.trucker.truckerStorage(creep)
                     break
                 case Task.TRUCKER_SCIENTIST:
-                    Roles.Trucker.truckerScientist(creep)
+                    Roles.trucker.truckerScientist(creep)
                     break
                 case Task.SCIENTIST_UPGRADING:
-                    Roles.Scientist.scientistUpgrading(creep)
+                    Roles.scientist.scientistUpgrading(creep)
                     break
                 case Task.ENGINEER_BUILDING:
-                    Roles.Engineer.engineerBuilding(creep)
+                    Roles.engineer.engineerBuilding(creep)
                     break
                 case Task.ENGINEER_REPAIRING:
-                    Roles.Engineer.engineerRepairing(creep)
+                    Roles.engineer.engineerRepairing(creep)
                     break
                 case Task.ENGINEER_UPGRADING:
-                    Roles.Engineer.engineerUpgrading(creep)
+                    Roles.engineer.engineerUpgrading(creep)
                     break
                 case Task.FILLER:
-                    Roles.Filler.fillerWorking(creep)
+                    Roles.filler.fillerWorking(creep)
                     break
                 case Task.AGENT:
-                    Roles.Agent.scheduleAgentTask(creep)
+                    Roles.agent.scheduleAgentTask(creep)
             }
         }
     }

@@ -1,11 +1,11 @@
-import { StorageDetails } from "./PlayerDetail"
+import { StorageDetail } from "./PlayerDetail"
 
 export class InvaderDetail {
     coreId?: string
-    containers?: StorageDetails[]
+    containers?: StorageDetail[]
 
     constructor(coreId?: string,
-        containers?: StorageDetails[]) {
+        containers?: StorageDetail[]) {
         this.coreId = coreId
         this.containers = containers
     }

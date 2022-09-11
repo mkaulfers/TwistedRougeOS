@@ -1,7 +1,8 @@
+import { Role } from "utils/Enums";
 import { Engineer } from "./Engineer";
 
 export class NetworkEngineer extends Engineer {
-    shouldSpawn(room: Room): boolean {
-        return false;
+    static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number  {
+        return 0;
     }
 }

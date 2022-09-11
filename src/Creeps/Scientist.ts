@@ -1,5 +1,5 @@
 import { Process } from "Models/Process";
-import { Logger } from "utils/Logger"
+import { Utils } from "utils/Index";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export class Scientist extends Creep {
@@ -11,11 +11,11 @@ export class Scientist extends Creep {
         let creepId = creep.id
 
         const upgradingTask = () => {
-            Logger.log("CreepTask -> upgradingTask()", LogLevel.TRACE);
+            Utils.Logger.log("CreepTask -> upgradingTask()", LogLevel.TRACE);
 
             let creep = Game.getObjectById(creepId);
             if (!creep) {
-                Logger.log(creepId, LogLevel.FATAL);
+                Utils.Logger.log(creepId, LogLevel.FATAL);
                 return ProcessResult.FAILED;
             }
 
@@ -27,7 +27,7 @@ export class Scientist extends Creep {
             if (result === OK || result === ERR_NOT_ENOUGH_ENERGY) {
                 return ProcessResult.RUNNING;
             }
-            Logger.log(`${creep.name} generated error code ${result} while attempting to praise ${controller.structureType}${JSON.stringify(controller.pos)}.`, LogLevel.ERROR);
+            Utils.Logger.log(`${creep.name} generated error code ${result} while attempting to praise ${controller.structureType}${JSON.stringify(controller.pos)}.`, LogLevel.ERROR);
             return ProcessResult.INCOMPLETE;
         }
 
@@ -45,21 +45,15 @@ export class Scientist extends Creep {
         }
     }
 
-    static shouldSpawn(room: Room): boolean {
-        let scientists = room.localCreeps.scientists
+    static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
+        Utils.Logger.log("quantityWanted -> scientist.quantityWanted()", LogLevel.TRACE)
         let controller = room.controller
         if (!controller || room.localCreeps.truckers.length < 1) return false
 
-        if (room.scientistsWorkCapacity() >= 15 && controller.level == 8) { return false }
+        // TODO: Modify to return correct amount to consume energy, limited by RCL 8 and income as necessary
 
-        let sources = room.sources
-        let areAllSourcesRealized = sources.every(source => source.isHarvestingAtMaxEfficiency)
-
-        let totalEnergyConsumption = 0
-        totalEnergyConsumption += room.scientistEnergyConsumption()
-        totalEnergyConsumption += room.engineerEnergyConsumption()
-
-        let hasRemainingEnergyToUse = room.currentHarvesterWorkPotential() >= totalEnergyConsumption
-        return areAllSourcesRealized && hasRemainingEnergyToUse || scientists.length < controller.level && room.localCreeps.harvesters.length > 0
+        let shouldBe = Math.floor((room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length));
+        Utils.Logger.log(`scientist.quantityWanted() shouldBe: ${shouldBe}, ${(room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3)}, ${(Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length)}`, LogLevel.INFO)
+        return sciCount < shouldBe ? shouldBe - sciCount : 0;
     }
 }

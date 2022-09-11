@@ -1,4 +1,4 @@
-import { Utils } from "./Index";
+import { Logger } from './Logger';
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './Enums';
 import { Logger } from "./Logger";
 import { Coord } from "./RampartPlanner";
@@ -169,5 +169,108 @@ export class Utility {
         x = x < 0 ? ~x : x
         y = y < 0 ? ~y : y
         return `${h}${x}${v}${y}`
+    }
+
+    static bodyCost(body: BodyPartConstant[]): number {
+        if (!body || body.length == 0) return ERR_INVALID_ARGS;
+        let sum = 0;
+        for (let i in body)
+            sum += BODYPART_COST[body[i]];
+        return sum;
+    }
+
+    /**
+     * Generates a body for a creep taking into account factors such as maximum cost, supportable cost given income, etc.
+     * @param sortOrder Sort order override, in ascending order numerically.
+     * Defaults to TOUGH, WORK, ATTACK, RANGED_ATTACK, CARRY, MOVE, HEAL, and CLAIM with values ranging from 0-7 respectively.
+     */
+     static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], sortOrder?: {[key in BodyPartConstant]?: number}): BodyPartConstant[] {
+        Logger.log("SpawnManager -> getBodyFor()", LogLevel.TRACE)
+
+        let tempBody = baseBody;
+        let tempSegment = segment;
+
+        // Build partLimits
+        /**
+         * Each number represents max number of each part in the tempSegment, when only the first of each unique bodypart used is kept.
+         * Example: [CARRY, CARRY, MOVE, CARRY, MOVE, WORK] would have a partLimits reference array of [CARRY, MOVE, WORK]
+         */
+        if (!partLimits) partLimits = [];
+        let refPartLimitsArray = tempSegment.filter((p, i) => tempSegment.indexOf(p) === i);
+        if (partLimits.length === 0 && tempSegment.length !== 0) {
+            // Builds a proportional partLimits that mimics the segments ratios while fully utilizing the max body size.
+            let freePartsPortion = Math.floor((50 - tempBody.length) / tempSegment.length);
+
+            refPartLimitsArray.forEach((p, i) => partLimits![i] = 0);
+            tempBody.forEach(function(p) {
+                let i = refPartLimitsArray.indexOf(p);
+                if (i >= 0) partLimits![i] += partLimits![i]
+            });
+
+            tempSegment.forEach(function(p) {
+                partLimits![refPartLimitsArray.indexOf(p)] += freePartsPortion;
+            })
+            let unusedParts = 50 - (tempBody.length + (partLimits.reduce((previousValue, currentValue) => previousValue + currentValue)));
+            for (let i = 0; unusedParts < 50; i >= tempSegment.length ? i = 0 : i++) {
+                partLimits[refPartLimitsArray.indexOf(tempSegment[i])] += 1;
+                unusedParts++;
+            }
+
+        }
+
+        // Determine energy limit for body generation
+        // TODO: Modify max energy expenditure calculations to allow for income compensation
+        let eLimit = room.energyCapacityAvailable;
+
+        // Expand tempBody to correct size given limits
+        let baseCost = Utility.bodyCost(tempBody)
+        if (baseCost > eLimit) return [];
+        if (baseCost <= eLimit && tempSegment.length > 0) {
+            let additionalSegmentCount = Math.floor((eLimit - baseCost) / Utility.bodyCost(tempSegment)) + 1
+
+            // Built partCounts
+            let partCounts: number[] = [];
+            refPartLimitsArray.forEach((p, i) => partCounts[i] = 0);
+            tempBody.forEach(function(p) {
+                let i = refPartLimitsArray.indexOf(p);
+                if (i >= 0) partCounts[i]++;
+            });
+
+            for (let i = 0; i < additionalSegmentCount && tempBody.length < 50; i++) {
+                for (const part of tempSegment) {
+                    if (tempBody.length + 1 > 50) break;
+                    if (Utility.bodyCost(tempBody.concat([part])) >= eLimit) break;
+                    let refIndex = refPartLimitsArray.indexOf(part);
+                    if (refIndex >= 0 && partCounts[refIndex] >= partLimits[refIndex]) continue
+                    partCounts[refIndex]++;
+                    tempBody.push(part);
+                }
+            }
+        }
+
+        // Sort tempBody
+        tempBody = _.sortBy(tempBody, function(p) {
+            switch (p) {
+                case TOUGH:
+                    return sortOrder && sortOrder.tough ? sortOrder.tough : 0;
+                case WORK:
+                    return sortOrder && sortOrder.work ? sortOrder.work : 1;
+                case ATTACK:
+                    return sortOrder && sortOrder.attack ? sortOrder.attack : 2;
+                case RANGED_ATTACK:
+                    return sortOrder && sortOrder.ranged_attack ? sortOrder.ranged_attack : 3;
+                case CARRY:
+                    return sortOrder && sortOrder.carry ? sortOrder.carry : 4;
+                case MOVE:
+                    return sortOrder && sortOrder.move ? sortOrder.move : 5;
+                case HEAL:
+                    return sortOrder && sortOrder.heal ? sortOrder.heal : 6;
+                case CLAIM:
+                    return sortOrder && sortOrder.claim ? sortOrder.claim : 7;
+            }
+        });
+
+        Logger.log(`Temp Body Length: ${tempBody.length}`, LogLevel.TRACE)
+        return tempBody
     }
 }

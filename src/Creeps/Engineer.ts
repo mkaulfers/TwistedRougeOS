@@ -4,8 +4,8 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/E
 
 export class Engineer extends Creep {
 
-    static baseBody = [CARRY, MOVE, MOVE, WORK]
-    static segment = [CARRY, MOVE, MOVE, WORK]
+    static baseBody = [CARRY, CARRY, MOVE, MOVE, WORK]
+    static segment = [CARRY, WORK, MOVE, MOVE]
 
     static engineerBuilding(creep: Creep) {
         let creepId = creep.id
@@ -350,11 +350,17 @@ export class Engineer extends Creep {
 
     }
 
-    static shouldSpawn(room: Room): boolean {
-        if (!(room.controller && room.controller.my && room.controller.level >= 2)) { return false }
-        if (room.constructionSites.length < 1 && room.localCreeps.engineers.length > 1) { return false }
-        if (room.localCreeps.engineers.length >= room.controller.level) { return false }
-        return true
+    static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
+        Utils.Logger.log("quantityWanted -> engineer.quantityWanted()", LogLevel.TRACE)
+        if (!(room.controller && room.controller.my && room.controller.level >= 2)) return 0;
+        let engineerCount = rolesNeeded.filter(x => x == Role.ENGINEER).length
+        if (rolesNeeded.filter(x => x == Role.HARVESTER).length == 0 &&
+            rolesNeeded.filter(x => x == Role.TRUCKER).length == 0) return 0;
+        if (min && min == true) return engineerCount < 1 ? 1 : 0;
+        if (room.constructionSites().length == 0 && room.find(FIND_STRUCTURES).length == 0 ) return 0;
+        if (room.constructionSites().length > 5) return engineerCount < 2 ? 2 - engineerCount : 0;
+        if (room.constructionSites().length > 10) return engineerCount < 3 ? 3 - engineerCount : 0;
+        if (room.find(FIND_STRUCTURES).length > 30) return engineerCount < 2 ? 2 - engineerCount : 0;
+        return engineerCount < 1 ? 1 : 0;
     }
-
 }
