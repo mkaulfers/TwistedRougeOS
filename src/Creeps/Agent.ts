@@ -4,6 +4,7 @@ import { DefenseStructuresDetail, HostileStructuresDetail, PlayerDetail, Storage
 import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
+import { moveTo } from "screeps-cartographer"
 import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
 
@@ -36,31 +37,42 @@ export class Agent extends Creep {
         let creepId = creep.id
 
         const agentTask = () => {
-            let creep = Game.getObjectById(creepId)
-            if (!creep) { return ProcessResult.FAILED }
-            let frontiers = Game.rooms[creep.memory.homeRoom].memory.frontiers
+            let agent = Game.getObjectById(creepId)
+            if (!agent) { return ProcessResult.FAILED }
+            let frontiers = Game.rooms[agent.memory.homeRoom].memory.frontiers
             if (!frontiers) { return ProcessResult.FAILED }
             if (!Memory.intelligence) { Memory.intelligence = [] }
 
-            if (creep.room.name != frontiers[0]) {
-                let targetFrontier = new RoomPosition(25, 25, frontiers[0])
-                creep.travel(targetFrontier)
-
-                if (frontiers[0] != creep.memory.homeRoom && !this.isRoomExplored(creep.room)) {
-                    let roomStatistics = this.generateRoomStatistics(creep.room)
+            let targetFrontier = new RoomPosition(25, 25, frontiers[0])
+            if (agent.room.name != frontiers[0]) {
+                agent.travel(targetFrontier)
+                if (frontiers[0] != agent.memory.homeRoom && !this.isRoomExplored(agent.room)) {
+                    let roomStatistics = this.generateRoomStatistics(agent.room)
                     Memory.intelligence.push(roomStatistics)
-                    frontiers.splice(frontiers.indexOf(creep.room.name), 1)
-                    Game.rooms[creep.memory.homeRoom].memory.frontiers = frontiers
+
+                    frontiers.splice(frontiers.indexOf(agent.room.name), 1)
+                    Game.rooms[agent.memory.homeRoom].memory.frontiers = frontiers
+                    let frontierAsCoords = Utils.Utility.roomNameToCoords(frontiers[0])
+                    let packedCoords = Utils.Utility.packPosition(frontierAsCoords)
+                    agent.memory.assignedPos = packedCoords
+
                 }
+            } else {
+                moveTo(agent, targetFrontier, {
+                    avoidCreeps: true,
+                    avoidObstacleStructures: true,
+                    avoidSourceKeepers: true,
+                    plainCost: 2,
+                    swampCost: 2,
+                    visualizePathStyle: {
+                        fill: 'transparent',
+                        stroke: '#fff',
+                        lineStyle: 'dashed',
+                        strokeWidth: .15,
+                        opacity: .2
+                    }
+                })
             }
-
-            if (creep.room.name == frontiers[0]) {
-                let roomStatistics = this.generateRoomStatistics(creep.room)
-                Memory.intelligence.push(roomStatistics)
-                frontiers.splice(0, 1)
-                Game.rooms[creep.memory.homeRoom].memory.frontiers = frontiers
-            }
-
             return ProcessResult.RUNNING
         }
 
