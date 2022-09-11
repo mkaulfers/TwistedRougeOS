@@ -1,6 +1,5 @@
 import { Logger } from './Logger';
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './Enums';
-import { Logger } from "./Logger";
 import { Coord } from "./RampartPlanner";
 
 interface IPrototype {

@@ -28,7 +28,7 @@ export class Harvester extends Creep {
                     }
                 }
             } else {
-                closestSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
+                closestSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos as number, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
             }
 
             let lowestEnergySpawn = Game.rooms[creep.room.name].find(FIND_MY_SPAWNS).sort((a, b) => a.store.energy - b.store.energy)[0]
@@ -68,7 +68,7 @@ export class Harvester extends Creep {
                     }
                 }
             } else {
-                closestSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
+                closestSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos as number, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
             }
 
             if (closestSource) {

@@ -40,7 +40,7 @@ export class Filler extends Creep {
                     return ProcessResult.FAILED
                 }
             } else {
-                let assignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name)
+                let assignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos as number, room.name)
                 if (creep.pos != assignedPos) {
                     creep.travel(assignedPos)
                     return ProcessResult.RUNNING
@@ -99,7 +99,7 @@ export class Filler extends Creep {
     }
 
     private static nearbyStructures(creep: Creep): AnyStoreStructure[] {
-        let creepAssignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos!, creep.memory.homeRoom)
+        let creepAssignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos! as number, creep.memory.homeRoom)
         let room = Game.rooms[creep.memory.homeRoom]
         let structures = room.lookForAtArea(
             LOOK_STRUCTURES,
