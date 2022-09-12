@@ -87,7 +87,7 @@ export default class Kernel {
                     tempQueueCpuCost += value.getAvgCpuUsed()
                 }
 
-                if (tempQueueCpuCost >  + (availBucket >= 500 ? 500 : availBucket)) {
+                if (tempQueueCpuCost >  availCPU + (availBucket >= 500 ? 500 : availBucket)) {
                     global.scheduler.pauseProcess(value.id)
                 } else {
                     global.scheduler.resumeProcess(value.id)
