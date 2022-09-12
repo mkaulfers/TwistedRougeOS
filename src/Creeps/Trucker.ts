@@ -167,9 +167,12 @@ export class Trucker extends Creep {
     }
 
     static dispatch(room: Room) {
-        let turrets = room.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
-        turrets = turrets.filter((t) => { return ('store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0) })
-        if (room.energyAvailable < room.energyCapacityAvailable || turrets.length > 0) {
+        let consider = room.find(FIND_MY_STRUCTURES);
+        consider = consider.filter((t) => {
+            if (!(t.structureType == STRUCTURE_TOWER || t.structureType == STRUCTURE_LAB)) return ('store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
+            return false;
+        });
+        if (room.energyAvailable < room.energyCapacityAvailable || consider.length > 0) {
             let truckers = room.localCreeps.truckers
             Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.TRACE)
             for (let trucker of truckers) {
