@@ -239,7 +239,9 @@ global.schedule = function(name, full) {
         for (const spawnSchedule of room.cache.spawnSchedules) {
             console.log(`Schedule for ${name}, ${spawnSchedule.spawnName}:`);
             for (const spawnOrder of spawnSchedule.schedule) {
-                console.log(`${spawnOrder.id}: ${Utility.bodyCost(spawnOrder.body)} energy, in ${spawnOrder.scheduleTick ? spawnOrder.scheduleTick - spawnSchedule.tick : `unknown`} ticks.`)
+                let timeTilSpawn = spawnOrder.scheduleTick !== undefined ? spawnOrder.scheduleTick - spawnSchedule.tick : `unknown`;
+                if (typeof(timeTilSpawn) == 'number' && timeTilSpawn < 0) timeTilSpawn = Math.abs(timeTilSpawn) + 1500;
+                console.log(`${spawnOrder.id}: ${Utility.bodyCost(spawnOrder.body)} energy, in ${timeTilSpawn} ticks.`);
             }
         }
         return `Short schedule for ${name} logged.`
