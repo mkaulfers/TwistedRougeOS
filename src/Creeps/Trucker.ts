@@ -169,7 +169,7 @@ export class Trucker extends Creep {
     static dispatch(room: Room) {
         let consider = room.find(FIND_MY_STRUCTURES);
         consider = consider.filter((t) => {
-            if (!(t.structureType == STRUCTURE_TOWER || t.structureType == STRUCTURE_LAB)) return ('store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
+            if ((t.structureType == STRUCTURE_TOWER || t.structureType == STRUCTURE_LAB)) return ('store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
             return false;
         });
         if (room.energyAvailable < room.energyCapacityAvailable || consider.length > 0) {
