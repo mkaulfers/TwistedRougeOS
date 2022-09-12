@@ -6,6 +6,7 @@ import { Logger } from "utils/Logger"
 export class Filler extends Creep {
     static baseBody = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE]
     static segment = [CARRY]
+    static partLimits = [12]
 
     static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
         Utils.Logger.log("quantityWanted -> filler.quantityWanted()", LogLevel.TRACE)
