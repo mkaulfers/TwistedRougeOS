@@ -219,6 +219,7 @@ export class Trucker extends Creep {
                     case STRUCTURE_SPAWN:
                     case STRUCTURE_POWER_SPAWN:
                     case STRUCTURE_EXTENSION:
+                    case STRUCTURE_LAB:
                         // Returns only targets with room for energy
                         if (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                             return s;
