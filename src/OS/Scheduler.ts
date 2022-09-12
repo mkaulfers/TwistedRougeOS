@@ -22,6 +22,7 @@ export default class Scheduler {
     pauseProcess(id: string) {
         let runningProcess = this.processQueue.get(id)
         if (!runningProcess) return
+        this.increaseProcessPriorityFor(runningProcess.id)
         this.pausedProcesses.set(runningProcess.id, runningProcess)
         this.processQueue.delete(id)
     }
@@ -34,6 +35,7 @@ export default class Scheduler {
     resumeProcess(id: string) {
         let pausedProcesses = this.pausedProcesses.get(id)
         if (!pausedProcesses) return
+        this.resetProcessPriorityFor(pausedProcesses.id)
         this.processQueue.set(pausedProcesses.id, pausedProcesses)
         this.pausedProcesses.delete(id)
     }
