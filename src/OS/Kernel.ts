@@ -9,7 +9,14 @@ export default class Kernel {
             let start = Game.cpu.getUsed()
             let result = value.run()
             let end = Game.cpu.getUsed()
+
             value.cpuUsedHistory.push(end - start)
+
+            //Locking the history to a max of 30 entries.
+            //Statistically this value is enough to get a realiable average that can be trusted.
+            if (value.cpuUsedHistory.length > 30) {
+                value.cpuUsedHistory.shift()
+            }
 
             switch (result) {
                 case ProcessResult.SUCCESS:
@@ -62,7 +69,31 @@ export default class Kernel {
             Object.values(ProcessPriority).indexOf(a[1].currentPriority) -
             Object.values(ProcessPriority).indexOf(b[1].currentPriority)
         ))
+
         global.scheduler.processQueue = queue
+
+        let availCPU = Game.cpu.limit
+        let availBucket = Game.cpu.bucket
+        let estimatedCPU = this.estimatedQueueCpuCost()
+
+        if (estimatedCPU > availCPU + (availBucket >= 500 ? 500 : availBucket)) {
+            let queueToRun: Map<string, Process> = new Map()
+
+            for (let [, value] of queue) {
+                queueToRun.set(value.id, value)
+                let tempQueueCpuCost = 0
+
+                for (let [, value] of queueToRun) {
+                    tempQueueCpuCost += value.getAvgCpuUsed()
+                }
+
+                if (tempQueueCpuCost >  availCPU + (availBucket >= 500 ? 500 : availBucket)) {
+                    global.scheduler.pauseProcess(value.id)
+                } else {
+                    global.scheduler.resumeProcess(value.id)
+                }
+            }
+        }
     }
 
     constructor() {}

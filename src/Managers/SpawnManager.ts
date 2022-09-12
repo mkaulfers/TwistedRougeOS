@@ -61,17 +61,17 @@ export default class SpawnManager {
                     room.cache.pauseSpawning && room.cache.pauseSpawning == true) emergency = true;
 
                 if (emergency === true) {
-                    Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, LogLevel.INFO);
+                    Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, LogLevel.DEBUG);
 
                     if (spawnSchedule.pausedTicks > 0 && room.localCreeps.truckers.length == 0) {
-                        Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers.`, LogLevel.ERROR);
-                        let body = [CARRY, CARRY, MOVE];
+                        let body: BodyPartConstant[] = [];
                         let segment = [CARRY, CARRY, MOVE];
-                        let modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(body));
+                        let modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
                         for (let i = 0; i < modifier; i++) {
                             body.push(...segment);
                         }
-                        Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 're.00', { memory: {role: 'trucker', working: false, homeRoom: room.name } })
+                        let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 're.00', { memory: {role: 'trucker', working: false, homeRoom: room.name } })
+                        Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, LogLevel.DEBUG);
                     }
 
                     spawnSchedule.pausedTicks++;

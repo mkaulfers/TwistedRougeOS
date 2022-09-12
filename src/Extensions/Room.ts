@@ -105,8 +105,7 @@ declare global {
 
         nextCreepToDie(): Creep | undefined;
         setFrontiers(room: Room): void
-        isFastFillerComplete(): boolean
-
+        areFastFillerExtensionsBuilt(): boolean
     }
 }
 
@@ -683,10 +682,10 @@ export default class Room_Extended extends Room {
         room.memory.frontiers = frontiers
     }
 
-    isFastFillerComplete(): boolean {
+    areFastFillerExtensionsBuilt(): boolean {
         let anchorPos = Utils.Utility.unpackPostionToRoom(this.memory.blueprint.anchor, this.name)
-        let results = this.lookAtArea(anchorPos.y - 2, anchorPos.x - 2, anchorPos.y + 2, anchorPos.x + 2, true).filter(x => x.structure?.structureType != STRUCTURE_ROAD)
-        if (results.length >= 16) {
+        let results = this.lookAtArea(anchorPos.y - 2, anchorPos.x - 2, anchorPos.y + 2, anchorPos.x + 2, true).filter(x => x.structure?.structureType == STRUCTURE_EXTENSION)
+        if (results.length >= 14) {
             return true
         }
         return false

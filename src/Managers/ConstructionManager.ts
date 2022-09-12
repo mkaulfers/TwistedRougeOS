@@ -148,7 +148,7 @@ export default class ConstructionManager {
                         for (let extension of extensions) {
                             let roomExtConstSites = room.constructionSites(STRUCTURE_EXTENSION)
                             let extensions = room.extensions()
-                            if (roomExtConstSites.length + extensions.length < room.maxExtensionsAvail()) {
+                            if (roomExtConstSites.length + extensions.length < room.maxExtensionsAvail() && room.areFastFillerExtensionsBuilt()) {
                                 Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(extension.stampPos, room.name), StampType.EXTENSIONS)
                             }
                         }
@@ -191,6 +191,9 @@ export default class ConstructionManager {
                         let fastFiller = blueprint.stamps.find(s => s.type === StampType.FAST_FILLER)
                         if (fastFiller) {
                             Utils.Logger.log(`Level ${controller.level}`, LogLevel.INFO)
+                            if (room.areFastFillerExtensionsBuilt()) {
+                                fastFillerStructuresSkipped.splice(fastFillerStructuresSkipped.indexOf(STRUCTURE_CONTAINER), 1)
+                            }
                             Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(fastFiller.stampPos, room.name), fastFiller.type as StampType, fastFillerStructuresSkipped)
                         }
                 }
