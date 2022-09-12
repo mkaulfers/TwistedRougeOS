@@ -45,7 +45,7 @@ export class Agent extends Creep {
 
             let targetFrontier = new RoomPosition(25, 25, frontiers[0])
             if (agent.room.name != frontiers[0]) {
-                agent.travel(targetFrontier)
+                agent.moveToDefault(targetFrontier)
                 if (frontiers[0] != agent.memory.homeRoom && !this.isRoomExplored(agent.room)) {
                     let roomStatistics = this.generateRoomStatistics(agent.room)
                     Memory.intelligence.push(roomStatistics)

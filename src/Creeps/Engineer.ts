@@ -232,7 +232,7 @@ export class Engineer extends Creep {
                         creep.room.find(FIND_DROPPED_RESOURCES),
                         creep.room.find(FIND_TOMBSTONES),
                         creep.room.find(FIND_STRUCTURES));
-                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK, STRUCTURE_STORAGE]})
 
                     let priorityTargets = potentialTargets.filter(function(t) {
                         (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
