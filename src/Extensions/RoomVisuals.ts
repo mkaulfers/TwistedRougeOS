@@ -18,9 +18,7 @@ declare global {
 
 export default class RoomVisuals_Extended extends RoomVisual {
     structure(x: number, y: number, type: string, opts?: { opacity?: number }): RoomVisual {
-        opts = Object.assign({
-          opacity: 1
-        },opts)
+        if (!opts) opts = { opacity: 1 };
         switch(type){
           case STRUCTURE_FACTORY: {
             const outline = [
@@ -428,7 +426,8 @@ export default class RoomVisuals_Extended extends RoomVisual {
     }
 
     connectRoads(opts: {color?: string, opacity?: number}): RoomVisual | undefined {
-        let color = opts?.color || colors.road || 'white'
+        if (!opts) opts = { opacity: 1, color: colors.road };
+        let color = opts.color || colors.road || 'white'
         if(!this.roads) return
         this.roads.forEach(r=>{
           for(let i=1;i<=4;i++){

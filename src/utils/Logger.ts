@@ -8,5 +8,4 @@ export class Logger {
             console.log(`${level} ${message}`)
         }
     }
-
 }

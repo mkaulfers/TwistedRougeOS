@@ -62,7 +62,7 @@ declare global {
     var Cache: {
         rooms: {[key: string]: RoomCache},
         creeps: {[key: string]: CreepCache},
-        visualToggles: {[key: string]: boolean},
+        cmd: {[key: string]: any},
     }
 }
 
@@ -101,14 +101,21 @@ export default class DataManager {
                 // Add required properties of Cache here
                 rooms: {},
                 creeps: {},
-                visualToggles: {
+                cmd: {
                     roomPlanning: false,
                     distanceTransform: false,
                     pathfinding: false,
                     worldRoomScoring: false,
                     worldRemotes: false,
-                    worldPathfinding: false
-                },
+                    worldPathfinding: false,
+
+                    destroyCreeps: true,
+                    destroyCreepsInRoom: true,
+                    destroyStructures: true,
+                    destroyStructuresInRoom: true,
+                    destroyCSites: true,
+                    destroyCSitesInRoom: true,
+                }
             };
             for (const roomName in Game.rooms) {
                 if (!global.Cache.rooms[roomName]) {
@@ -125,6 +132,29 @@ export default class DataManager {
                         // Add required properties of the creep's cache here
 
                     };
+                }
+            }
+
+            // Reset destruction command confirmations
+            let checks = [
+                global.Cache.cmd.destroyCreeps,
+                global.Cache.cmd.destroyCreepsInRoom,
+                global.Cache.cmd.destroyStructures,
+                global.Cache.cmd.destroyStructuresInRoom,
+                global.Cache.cmd.destroyCSites,
+                global.Cache.cmd.destroyCSitesInRoom,
+            ]
+            if (_.any(checks, (c) => c == false)) {
+                if (!global.Cache.cmd.destroyResetTick) {
+                    global.Cache.cmd.destroyResetTick = Game.time + 10;
+                } else if (Game.time == global.Cache.cmd.destroyResetTick) {
+                    global.Cache.cmd.destroyCreeps = true;
+                    global.Cache.cmd.destroyCreepsInRoom = true;
+                    global.Cache.cmd.destroyStructures = true;
+                    global.Cache.cmd.destroyStructuresInRoom = true;
+                    global.Cache.cmd.destroyCSites = true;
+                    global.Cache.cmd.destroyCSitesInRoom = true;
+                    delete global.Cache.cmd.destroyResetTick;
                 }
             }
 
