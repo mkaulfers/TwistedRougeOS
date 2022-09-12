@@ -240,7 +240,7 @@ global.schedule = function(name, full) {
             console.log(`Schedule for ${name}, ${spawnSchedule.spawnName}:`);
             for (const spawnOrder of spawnSchedule.schedule) {
                 let timeTilSpawn = spawnOrder.scheduleTick !== undefined ? spawnOrder.scheduleTick - spawnSchedule.tick : `unknown`;
-                if (typeof(timeTilSpawn) == 'number' && timeTilSpawn < 0) timeTilSpawn = Math.abs(timeTilSpawn) + 1500;
+                if (typeof(timeTilSpawn) == 'number' && timeTilSpawn < 0) timeTilSpawn = 1500 + timeTilSpawn;
                 console.log(`${spawnOrder.id}: ${Utility.bodyCost(spawnOrder.body)} energy, in ${timeTilSpawn} ticks.`);
             }
         }
