@@ -42,7 +42,7 @@ export class Trucker extends Creep {
                 // Runs give and returns running or incomplete based on return value
                 var result = creep.give(target, RESOURCE_ENERGY);
                 if (result === OK) {
-                    if (creep.pos.getRangeTo(target) == 1 || target.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                    if (creep.store.energy > 0 && creep.pos.getRangeTo(target) == 1 || target.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                         this.storageTruckerWorkingTargeting(creep);
                         let newTarget = Game.getObjectById(creep.memory.target);
                         if (target.id !== creep.memory.target && newTarget && creep.pos.getRangeTo(newTarget) > 1) creep.moveToDefault(newTarget);
