@@ -265,7 +265,7 @@ export class Trucker extends Creep {
         let priorityTargets = potentialTargets.filter(function (t) {
             return (('store' in t && t.store.energy > creep.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep.store.getFreeCapacity()))
         });
-        console.log(priorityTargets.length)
+
         if (priorityTargets.length > 1) {
             let i = priorityTargets.findIndex((t) => 'structureType' in t && t.structureType == STRUCTURE_STORAGE);
             if (i >= -1) priorityTargets.splice(i,1);
