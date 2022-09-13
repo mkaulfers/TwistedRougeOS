@@ -51,7 +51,6 @@ declare global {
         };
 
         isSpawning(role: Role): boolean
-        spawnCreep(role: Role, spawn: StructureSpawn, memory?: CreepMemory): void
         getAvailableSpawn(): StructureSpawn | undefined
 
         // n WORK bodies in the room, on harvesters, x 2 per tick.
@@ -385,32 +384,6 @@ export default class Room_Extended extends Room {
             }
         }
         return false
-    }
-
-    spawnCreep(role: Role, spawn: StructureSpawn, memory?: CreepMemory) {
-        Utils.Logger.log("Spawn -> spawnCreep()", LogLevel.TRACE)
-        let body = Utils.Utility.getBodyFor(this, Roles[role].baseBody, Roles[role].segment)
-        let name = Managers.SpawnManager.genNameFor(role)
-
-        let sources = spawn.room.sources
-        let assignableSource: Source | undefined = undefined
-        for (let source of sources) {
-            if (!source.isHarvestingAtMaxEfficiency) {
-                assignableSource = source
-                break
-            }
-        }
-
-        spawn.spawnCreep(
-            body,
-            name, {
-            memory: {
-                role: memory ? memory.role : role,
-                working: memory ? memory.working : false,
-                target: memory ? memory.target : undefined,
-                homeRoom: memory ? memory.homeRoom : this.name
-            }
-        })
     }
 
     lowestSpawn(): StructureSpawn | undefined {
