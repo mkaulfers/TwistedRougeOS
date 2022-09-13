@@ -91,7 +91,8 @@ export default class SpawnManager {
                 if (emergency === false) {
                     // Handle Spawning
                     if (spawnOrder) {
-                        Game.spawns[spawnSchedule.spawnName].spawnCreep(spawnOrder.body, this.genNameFor(spawnOrder.id), { memory: spawnOrder.memory })
+                        let name = spawnOrder.id + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false);
+                        Game.spawns[spawnSchedule.spawnName].spawnCreep(spawnOrder.body, name, { memory: spawnOrder.memory });
                     }
 
                     spawnSchedule.tick >= 1500 ? spawnSchedule.tick = 0 : spawnSchedule.tick++;
@@ -120,7 +121,7 @@ export default class SpawnManager {
     static genSpawnOrders(room: Room, minimum?: boolean): SpawnOrder[] {
         Utils.Logger.log(`SpawnManager -> genSpawnOrders(${room.name}) with minimum: ${minimum}`, LogLevel.TRACE)
 
-        // Build array of CreepRoles in prio order
+        // Build array of CreepRoles in priority
         let rolesNeeded: Role[] = [];
 
         for (let allFound = false; allFound == false;) {
@@ -163,15 +164,6 @@ export default class SpawnManager {
         }
 
         return spawnOrders;
-    }
-
-
-
-    /** Generates a name: XXXYY_ZZZZ, X being the role, Y being the count position in the spawn schedule, and Z being game time */
-    static genNameFor(id: string, spawnScheduleNumber?: number) {
-        // let stringSSN = spawnScheduleNumber ? spawnScheduleNumber.toString().length < 2 ? '0' + spawnScheduleNumber.toString() : spawnScheduleNumber.toString() : '00';
-        // return Utils.Utility.truncateString(role) + stringSSN + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false)
-        return id + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false)
     }
 
 }
