@@ -4,19 +4,21 @@ import { Utils } from "utils/Index"
 export default class SpawnSchedule {
     roomName: string
     spawnName: string
+    /** Position in the schedule. A number from 0 to 1500. */
     tick: number
+    /** Number of ticks schedule has been halted. Used for tracking and triggering special circumstances to mitigate room-crash situations. */
     pausedTicks: number
-    freeSpaces: [number, number][] // [tick, freeTickCount][]
+    /** Tracker for unused space in the schedule. Each tuple is [tick, freeTickCount]. Example: [10, 350]. On tick 10 in the schedule, there is 350 ticks of free space. */
+    freeSpaces: [number, number][]
+    /** Number representing total quantity of ticks the spawn will be in use for the duration of the schedule. */
     usedSpace: number
-    limiter: number // Limits total amount of the schedule that is used.
+    /** Number between 0.0 and 1.0 that limits the total amount of schedule used. Example: 0.8. 80% of the schedule's ticks are free to be used for spawning.*/
+    limiter: number
+    /** The actual schedule. Contains all SpawnOrders required, with all information required but the final name.*/
     schedule: SpawnOrder[]
+    /** Used by the Spawn Manager to know when to rebuild the whole schedule. */
     needsScheduled: boolean;
 
-    /**
-     * How to create a new spawn schedule. Can also recreate an existing schedule.
-     * @param roomName Name of room.
-     * @param spawnName Name of spawn.
-     */
     constructor(roomName: string, spawnName: string, opts?: {tick: number, pausedTicks: number, schedule: SpawnOrder[], freeSpaces: [number, number][], usedSpace: number}) {
         this.roomName = roomName;
         this.spawnName = spawnName;
@@ -40,7 +42,6 @@ export default class SpawnSchedule {
     add(spawnOrders: SpawnOrder[], opts?: {force?: boolean}): SpawnOrder[] | undefined {
         // TODO: Modify to handle gaps between spawnOrders
 
-        // TODO: Modify to handle suggested scheduleTicks
         let externalSpawnOrders = [...spawnOrders];
         for (const spawnOrder of spawnOrders) {
             // Already exists?
@@ -126,9 +127,9 @@ export default class SpawnSchedule {
     /**
      * Reschedules existing schedule based on priority.
      */
-    reschedule(): void {
+    // reschedule(): void {
 
-    }
+    // }
 
     /**
      * Resets the schedule without having to reinitialize the class.
@@ -143,9 +144,9 @@ export default class SpawnSchedule {
     }
 
     /**
-     *
+     * Cancels prespawns, forces all as tightly as possible to allow for more spawning.
      */
-    shift(): void {
+    // shift(): void {
 
-    }
+    // }
 }
