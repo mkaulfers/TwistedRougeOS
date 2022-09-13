@@ -104,6 +104,7 @@ export class Trucker extends Creep {
                 if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                     // Targets scientists, sorted by how much energy they have in them
                     let potentialTargets: Creep[] = creep.room.localCreeps.scientists;
+                    potentialTargets.push(...creep.room.localCreeps.engineers);
                     potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, order: 'asc', rNeed: true });
                     let potTarget = creep.pos.findClosestByRange(potentialTargets);
 
