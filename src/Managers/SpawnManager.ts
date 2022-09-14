@@ -18,7 +18,7 @@ export default class SpawnManager {
             if (!room.cache.spawnSchedules) room.cache.spawnSchedules = [];
             let spawnSchedules = room.cache.spawnSchedules;
 
-            // For each spawn ensure we have a schedule
+            // Ensure we have a schedule for each spawn
             let rebuild = false;
             if (spawnSchedules.length !== spawns.length) {
                 for (const spawn of spawns) {
@@ -27,21 +27,22 @@ export default class SpawnManager {
                     rebuild = true;
                 }
             }
-            // New Spawns? Rebuild schedule
+
+            // Rebuild schedule when needed
             if (room.cache.spawnSchedules.length !== spawns.length || rebuild == true || _.any(spawnSchedules, (s) => s.needsScheduled == true)) {
+                // Reset conditional so as to not rebuild again next tick.
                 spawnSchedules.forEach(function(s) { s.reset(); s.needsScheduled = false });
 
+                // Schedule minimum needed creeps
                 let minSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, true);
-                Utils.Logger.log(`minSpawnOrders: ${JSON.stringify(minSpawnOrders)}`, LogLevel.INFO)
-
 
                 for (let spawnSchedule of spawnSchedules) {
                     if (spawnSchedule.isFull() == true || !minSpawnOrders || minSpawnOrders.length == 0) continue;
                     minSpawnOrders = spawnSchedule.add(minSpawnOrders);
                 }
+                // Schedule all non-essential creeps if essential were handled fully.
                 if (!minSpawnOrders || minSpawnOrders.length == 0) {
                     let extraSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room);
-                    Utils.Logger.log(`extraSpawnOrders: ${JSON.stringify(extraSpawnOrders)}`, LogLevel.INFO)
 
                     for (let spawnSchedule of spawnSchedules) {
                         if (spawnSchedule.isFull() == true || !extraSpawnOrders || extraSpawnOrders.length == 0) continue;
@@ -54,15 +55,18 @@ export default class SpawnManager {
             for (let spawnSchedule of spawnSchedules) {
                 let spawnOrder: SpawnOrder | undefined = spawnSchedule.schedule.find(o => o.scheduleTick == spawnSchedule.tick);
 
-                // Handle Emergencies
+                // Identify Emergencies
                 let emergency = false;
                 if (Game.spawns[spawnSchedule.spawnName].spawning && spawnOrder ||
                     spawnOrder && room.energyAvailable < Utils.Utility.bodyCost(spawnOrder.body) ||
                     room.cache.pauseSpawning && room.cache.pauseSpawning == true) emergency = true;
 
+                // TODO: Improve emergency handling.
+                // Handle Emergencies
                 if (emergency === true) {
                     Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, LogLevel.DEBUG);
 
+                    // Handle Restarting if energy available
                     if (spawnSchedule.pausedTicks > 0 && room.localCreeps.truckers.length == 0) {
                         let body: BodyPartConstant[] = [];
                         let segment = [CARRY, CARRY, MOVE];
@@ -74,20 +78,26 @@ export default class SpawnManager {
                         Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, LogLevel.DEBUG);
                     }
 
+                    // TODO: Handle Restarting if energy NOT available.
+
                     spawnSchedule.pausedTicks++;
 
-                    // Is there anything else to do in an emergency? Don't think so, but...
                 } else if (emergency === false && spawnSchedule.pausedTicks !== 0) {
                     // TODO: Make emergency handling better
+                    // Trigger emergency end actions
                     if (spawnSchedule.pausedTicks > 100) {
                         spawnSchedule.reset();
                     }
                     spawnSchedule.pausedTicks = 0;
                 }
 
-                Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} tick: ${spawnSchedule.tick}`, LogLevel.INFO)
-                let nextOrder = spawnSchedule.schedule.find((o) => o.scheduleTick && o.scheduleTick > spawnSchedule.tick);
-                Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id} in ${nextOrder && nextOrder.scheduleTick ? nextOrder.scheduleTick - spawnSchedule.tick : spawnSchedule.schedule[0].scheduleTick! - spawnSchedule.tick} ticks.`, LogLevel.INFO)
+                // Generic Data logging, if you want it.
+                if (Utils.Logger.devLogLevel == LogLevel.INFO || Utils.Logger.devLogLevel == LogLevel.ALL) {
+                    Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} tick: ${spawnSchedule.tick}`, LogLevel.INFO)
+                    let nextOrder = spawnSchedule.schedule.find((o) => o.scheduleTick && o.scheduleTick > spawnSchedule.tick);
+                    Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id} in ${nextOrder && nextOrder.scheduleTick ? nextOrder.scheduleTick - spawnSchedule.tick : 1500 + spawnSchedule.schedule[0].scheduleTick! - spawnSchedule.tick} ticks.`, LogLevel.INFO)
+                }
+
                 if (emergency === false) {
                     // Handle Spawning
                     if (spawnOrder) {
@@ -95,6 +105,7 @@ export default class SpawnManager {
                         Game.spawns[spawnSchedule.spawnName].spawnCreep(spawnOrder.body, name, { memory: spawnOrder.memory });
                     }
 
+                    // Increment tick, reseting to 0 when 1500 is reached.
                     spawnSchedule.tick >= 1500 ? spawnSchedule.tick = 0 : spawnSchedule.tick++;
                 }
 
@@ -124,6 +135,7 @@ export default class SpawnManager {
         // Build array of CreepRoles in priority
         let rolesNeeded: Role[] = [];
 
+        // Repeatedly runs through .quantityWanted() until all return 0;
         for (let allFound = false; allFound == false;) {
             allFound = true;
             for (const role of Object.values(Role)) {
@@ -134,7 +146,6 @@ export default class SpawnManager {
                 }
             }
         }
-
         Utils.Logger.log(`rolesNeeded for ${minimum ? minimum : false}: ${JSON.stringify(rolesNeeded)}`, LogLevel.INFO)
 
         // Build each SpawnOrder
@@ -148,6 +159,7 @@ export default class SpawnManager {
                 Utils.Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
                 continue;
             }
+            // TODO: Reconsider if SpawnOrder should really have creep memory stored within
             let spawnOrder: SpawnOrder = {
                 id: roleName + (roleCount.toString().length < 2 ? `0` + roleCount.toString() : roleCount.toString()),
                 body: body,
@@ -165,5 +177,4 @@ export default class SpawnManager {
 
         return spawnOrders;
     }
-
 }
