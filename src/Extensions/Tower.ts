@@ -1,4 +1,4 @@
-import { Logger } from '../utils/Logger';
+import { Utils } from 'utils/Index';
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 declare global {
@@ -12,7 +12,7 @@ declare global {
 
 export default class Tower_Extended extends StructureTower {
     damage(posOrX: RoomPosition | number, y?: number): number {
-        Logger.log("Tower -> damage()", LogLevel.TRACE);
+        Utils.Logger.log("Tower -> damage()", LogLevel.TRACE);
         let pos: RoomPosition;
         if (typeof posOrX === 'number') {
             if (!y) return ERR_INVALID_ARGS;

@@ -1,19 +1,25 @@
-import { Logger } from '../utils/Logger';
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
+import { Utils } from 'utils/Index';
 
 declare global {
     interface StructureController {
-        isSigned(): boolean;
+        isSigned: boolean;
     }
 }
 
 export default class Controller_Extended extends StructureController {
-    isSigned(): boolean {
-        Logger.log("Controller -> isSigned()", LogLevel.TRACE)
 
-        let sign = this.sign;
-        let spawn = Game.spawns[_.keys(Game.spawns)[0]]
-        if (!sign || sign.username !== spawn.owner.username) return false;
-        return true;
+    _isSigned: boolean | undefined
+    get isSigned() {
+        Utils.Logger.log("Controller -> isSigned", LogLevel.TRACE);
+        if (this._isSigned) {
+            return this._isSigned
+        } else {
+            let sign = this.sign;
+            let spawn = Object.values(Game.spawns)[0]
+            if (!sign || sign.username !== spawn.owner.username) this._isSigned = false;
+            this._isSigned = true;
+        }
+        return this._isSigned;
     }
 }

@@ -1,7 +1,7 @@
 import 'ts-polyfill/lib/es2019-array';
 import { Logger } from '../utils/Logger';
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
-import { moveTo } from 'screeps-cartographer';
+import { moveTo, MoveOpts, MoveTarget } from 'screeps-cartographer';
 
 declare global {
     interface Creep {
@@ -9,23 +9,24 @@ declare global {
          * A shorthand to global.cache.creeps[creep.name]. You can use it for quick access the creep’s specific cache data object.
          */
         cache: CreepCache
-        travel(pos: RoomPosition): number
+
+        // Action Wrappers
+        destroy(target?: Structure | Creep): number
+        firstaid(target: Creep): number
         getOffExit(): number
-        moveToDefault(pos: RoomPosition): number
-        take(target: AnyStoreStructure | Resource | Tombstone, resource: ResourceConstant, quantity?: number): number
         give(target: AnyStoreStructure | Creep, resource: ResourceConstant, quantity?: number): number
         mine(target: Source | Mineral): number
-        work(target: Structure | ConstructionSite): number
-        praise(target: StructureController): number
-        firstaid(target: Creep): number
-        destroy(target?: Structure | Creep): number
+        /** Non-Civilian pathing defaults */
+        moveToDefault(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number
         nMRController(target: string): number
-        isBoosted(): boolean               // Placeholder
-        upgradeEnergyConsumptionPerTick(): number
-        buildEnergyConsumptionPerTick(): number
-        repairEnergyConsumptionPerTick(): number
-        dismantleEnergyConsumptionPerTick(): number
+        praise(target: StructureController): number
+        take(target: AnyStoreStructure | Resource | Tombstone, resource: ResourceConstant, quantity?: number): number
+        /** Civilian pathing defaults */
+        travel(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number
+        work(target: Structure | ConstructionSite): number
 
+        // Other
+        isBoosted(): boolean // Placeholder
     }
 }
 
@@ -35,208 +36,6 @@ export default class Creep_Extended extends Creep {
     }
     set cache(value) {
         global.Cache.creeps[this.name] = value;
-    }
-
-    travel(pos: RoomPosition): number {
-        Logger.log("Creep -> travel()", LogLevel.TRACE)
-
-        let result: number;
-        if (pos.roomName === this.room.name) {
-            result = moveTo(this, pos, {
-                visualizePathStyle: {
-                    fill: 'transparent',
-                    stroke: '#fff',
-                    lineStyle: 'dashed',
-                    strokeWidth: .15,
-                    opacity: .2
-                }
-            })
-        } else {
-            let route = Game.map.findRoute(this.room.name, pos.roomName);
-            if (route == ERR_NO_PATH || !route || !route[0]) {
-                result = ERR_NO_PATH;
-            } else {
-                let goto = this.pos.findClosestByRange(route[0].exit);
-                if (!goto) {
-                    result = ERR_NO_PATH;
-                } else {
-                    result = (this).moveToDefault(goto);
-                }
-            }
-        }
-        this.getOffExit();
-
-        switch (result) {
-            case OK: case ERR_BUSY: case ERR_TIRED:
-                return OK;
-            case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_PATH: case ERR_NOT_FOUND: case ERR_NO_BODYPART:
-                Logger.log(`${this.name} recieved result ${result} from Travel with args (${JSON.stringify(pos)}).`, LogLevel.ERROR);
-                return result;
-        }
-
-        return OK;
-    }
-
-    moveToDefault(pos: RoomPosition): number {
-        Logger.log("Creep -> moveToDefault()", LogLevel.TRACE)
-
-        // Visualization for fun, will remove long term.
-        return moveTo(this, pos, {
-            visualizePathStyle: {
-                fill: 'transparent',
-                stroke: '#fff',
-                lineStyle: 'dashed',
-                strokeWidth: .15,
-                opacity: .2
-            }
-        });
-    }
-
-    getOffExit(): number {
-        Logger.log("Creep -> getOffExit()", LogLevel.TRACE)
-
-        let exits = [0, 49];
-        switch (true) {
-            case (this.pos.x === 0):
-                this.move(RIGHT);
-                break;
-            case (this.pos.x === 49):
-                this.move(LEFT);
-                break;
-            case (this.pos.y === 0):
-                this.move(BOTTOM);
-                break;
-            case (this.pos.y === 49):
-                this.move(TOP);
-                break;
-        }
-        return OK;
-    }
-
-    take(target: AnyStoreStructure | Resource | Tombstone, resource: ResourceConstant, quantity?: number): number {
-        Logger.log("Creep -> take()", LogLevel.TRACE)
-
-        let result: number;
-        if ('store' in target) {
-            result = this.withdraw(target, resource, quantity);
-        } else {
-            result = this.pickup(target);
-        }
-
-        switch (result) {
-            case OK: case ERR_BUSY:
-                return OK;
-            case ERR_NOT_IN_RANGE:
-                return this.travel(target.pos);
-            case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
-                Logger.log(`${this.name} recieved result ${result} from Take with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
-                return result;
-        }
-
-        return OK;
-    }
-
-    give(target: AnyStoreStructure | Creep, resource: ResourceConstant, quantity?: number): number {
-        Logger.log("Creep -> give()", LogLevel.TRACE)
-
-        let result: number = this.transfer(target, resource, quantity);
-
-        switch (result) {
-            case OK: case ERR_BUSY:
-                return OK;
-            case ERR_NOT_IN_RANGE:
-                return this.travel(target.pos);
-            case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
-                // Logger.log(`${this.name} recieved result ${result} from Give with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
-                return result;
-        }
-        return OK;
-    }
-
-    mine(target: Source | Mineral): number {
-        Logger.log("Creep -> give()", LogLevel.TRACE)
-
-        let result: number = this.harvest(target);
-
-        switch (result) {
-            case OK: case ERR_BUSY: case ERR_TIRED:
-                return OK;
-            case ERR_NOT_IN_RANGE:
-                return this.travel(target.pos);
-            case ERR_NOT_OWNER: case ERR_NOT_FOUND: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-                Logger.log(`${this.name} recieved result ${result} from Mine with args (${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
-                return result;
-        }
-        return OK;
-    }
-
-    work(target: Structure | ConstructionSite): number {
-        Logger.log("Creep -> work()", LogLevel.TRACE)
-
-        let result: number;
-        if ('remove' in target) {
-            result = this.build(target);
-        } else {
-            result = this.repair(target);
-        }
-
-        switch (result) {
-            case OK: case ERR_BUSY:
-                return OK;
-            case ERR_NOT_IN_RANGE:
-                return this.travel(target.pos);
-            case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-                Logger.log(`${this.name} recieved result ${result} from Work with args (${target.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
-                return result;
-        }
-        return OK;
-    }
-
-    praise(target: StructureController): number {
-        Logger.log("Creep -> praise()", LogLevel.TRACE)
-
-        let result: number = this.upgradeController(target);
-
-        if (!target.isSigned()) {
-            let text = 'Signs are meant to be signed, right?'
-            if (this.signController(target, text) == ERR_NOT_IN_RANGE) this.travel(target.pos);
-        }
-
-        switch (result) {
-            case OK: case ERR_BUSY:
-                return OK;
-            case ERR_NOT_IN_RANGE: case ERR_NOT_ENOUGH_ENERGY:
-                if (!this.pos.inRangeTo(target, 3)) {
-                    return this.travel(target.pos);
-                }
-                return result;
-            case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-                Logger.log(`${this.name} recieved result ${result} from Praise with args (${target.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
-                return result;
-        }
-        return OK;
-    }
-
-    firstaid(target: Creep): number {
-        Logger.log("Creep -> firstaid()", LogLevel.TRACE)
-
-        let result: number;
-        if (this.pos.getRangeTo(target) < 2) {
-            result = this.heal(target);
-        } else {
-            result = this.rangedHeal(target);
-        }
-
-        switch (result) {
-            case OK: case ERR_BUSY:
-                return OK;
-            case ERR_NOT_IN_RANGE:
-                return this.travel(target.pos);
-            case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-                Logger.log(`${this.name} recieved result ${result} from Firstaid with args (${target.name}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
-                return result;
-        }
-        return OK;
     }
 
     destroy(target?: Structure | Creep): number {
@@ -274,7 +73,7 @@ export default class Creep_Extended extends Creep {
                     Logger.log(`${this.name} recieved result ERR_NOT_IN_RANGE from Firstaid without an UNDEFINED target.`, LogLevel.FATAL);
                     return ERR_INVALID_TARGET;
                 }
-                return this.travel(target.pos);
+                return this.moveToDefault(target.pos);
             case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
                 if (target && 'fatigue' in target) {
                     Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target.name}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
@@ -288,6 +87,115 @@ export default class Creep_Extended extends Creep {
         return OK;
     }
 
+    firstaid(target: Creep): number {
+        Logger.log("Creep -> firstaid()", LogLevel.TRACE)
+
+        let result: number;
+        if (this.pos.getRangeTo(target) < 2) {
+            result = this.heal(target);
+        } else {
+            result = this.rangedHeal(target);
+        }
+
+        switch (result) {
+            case OK: case ERR_BUSY:
+                return OK;
+            case ERR_NOT_IN_RANGE:
+                return this.moveToDefault(target.pos);
+            case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
+                Logger.log(`${this.name} recieved result ${result} from Firstaid with args (${target.name}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
+                return result;
+        }
+        return OK;
+    }
+
+    getOffExit(): number {
+        Logger.log("Creep -> getOffExit()", LogLevel.TRACE)
+
+        let exits = [0, 49];
+        switch (true) {
+            case (this.pos.x === 0):
+                this.move(RIGHT);
+                break;
+            case (this.pos.x === 49):
+                this.move(LEFT);
+                break;
+            case (this.pos.y === 0):
+                this.move(BOTTOM);
+                break;
+            case (this.pos.y === 49):
+                this.move(TOP);
+                break;
+        }
+        return OK;
+    }
+
+    give(target: AnyStoreStructure | Creep, resource: ResourceConstant, quantity?: number): number {
+        Logger.log("Creep -> give()", LogLevel.TRACE)
+
+        let result: number = this.transfer(target, resource, quantity);
+
+        switch (result) {
+            case OK: case ERR_BUSY:
+                return OK;
+            case ERR_NOT_IN_RANGE:
+                return this.travel(target.pos);
+            case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
+                // Logger.log(`${this.name} recieved result ${result} from Give with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
+                return result;
+        }
+        return OK;
+    }
+
+    mine(target: Source | Mineral): number {
+        Logger.log("Creep -> give()", LogLevel.TRACE)
+
+        let result: number = this.harvest(target);
+
+        switch (result) {
+            case OK: case ERR_BUSY: case ERR_TIRED:
+                return OK;
+            case ERR_NOT_IN_RANGE:
+                return this.travel(target.pos);
+            case ERR_NOT_OWNER: case ERR_NOT_FOUND: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
+                Logger.log(`${this.name} recieved result ${result} from Mine with args (${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
+                return result;
+        }
+        return OK;
+    }
+
+    moveToDefault(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number {
+        Logger.log("Creep -> moveToDefault()", LogLevel.TRACE)
+        if (!opts) opts = {}
+        if (!fallbackOpts) fallbackOpts = {};
+
+        // Apply provided opts over default opts
+        let defaultOpts: MoveOpts = {
+            visualizePathStyle: {
+                fill: 'transparent',
+                stroke: '#fff',
+                lineStyle: 'dashed',
+                strokeWidth: .15,
+                opacity: .2
+            },
+        };
+        opts = Object.assign(defaultOpts, opts)
+
+        let defaultFallbackOpts: MoveOpts = {
+            visualizePathStyle: {
+                fill: 'transparent',
+                stroke: '#f00',
+                lineStyle: 'dashed',
+                strokeWidth: .15,
+                opacity: .2
+            },
+            avoidCreeps: true,
+        };
+        fallbackOpts = Object.assign(defaultFallbackOpts, fallbackOpts)
+
+        return moveTo(this, targets, opts, fallbackOpts);
+    }
+
     nMRController(target: string): number {
         Logger.log("Creep -> nMRController()", LogLevel.TRACE)
 
@@ -299,7 +207,7 @@ export default class Creep_Extended extends Creep {
             var controller = Game.rooms[target].controller;
 
             if (controller) {
-                if (!controller.isSigned()) {
+                if (!controller.isSigned) {
                     let text = 'Signs are meant to be signed, right?'
                     if (this.signController(controller, text) == ERR_NOT_IN_RANGE) this.travel(controller.pos);
                 }
@@ -335,25 +243,111 @@ export default class Creep_Extended extends Creep {
         return OK;
     }
 
+    praise(target: StructureController): number {
+        Logger.log("Creep -> praise()", LogLevel.TRACE)
+
+        let result: number = this.upgradeController(target);
+
+        if (!target.isSigned) {
+            let text = 'Signs are meant to be signed, right?'
+            if (this.signController(target, text) == ERR_NOT_IN_RANGE) this.travel(target.pos);
+        }
+
+        switch (result) {
+            case OK: case ERR_BUSY:
+                return OK;
+            case ERR_NOT_IN_RANGE: case ERR_NOT_ENOUGH_ENERGY:
+                if (!this.pos.inRangeTo(target, 3)) {
+                    return this.travel(target.pos);
+                }
+                return result;
+            case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
+                Logger.log(`${this.name} recieved result ${result} from Praise with args (${target.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
+                return result;
+        }
+        return OK;
+    }
+
+    take(target: AnyStoreStructure | Resource | Tombstone, resource: ResourceConstant, quantity?: number): number {
+        Logger.log("Creep -> take()", LogLevel.TRACE)
+
+        let result: number;
+        if ('store' in target) {
+            result = this.withdraw(target, resource, quantity);
+        } else {
+            result = this.pickup(target);
+        }
+
+        switch (result) {
+            case OK: case ERR_BUSY:
+                return OK;
+            case ERR_NOT_IN_RANGE:
+                return this.travel(target.pos);
+            case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
+                Logger.log(`${this.name} recieved result ${result} from Take with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
+                return result;
+        }
+
+        return OK;
+    }
+
+    travel(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number {
+        Logger.log("Creep -> travel()", LogLevel.TRACE)
+
+        // TODO: Add hostile creep avoidance
+
+        // TODO: Add under siege pathing modification
+
+        // TODO: Tie to intel
+        const hostileRooms: string[] = [];
+
+        // Apply civilian creep defaults
+        let defaultOpts: MoveOpts = {
+            avoidSourceKeepers: true,
+            routeCallback: (room: string) => {
+                if (hostileRooms.includes(room)) {
+                  return Infinity;
+                }
+                return undefined;
+              }
+        };
+        opts = Object.assign(defaultOpts, opts)
+
+        let defaultFallbackOpts: MoveOpts = {
+
+        };
+        fallbackOpts = Object.assign(Object.assign(defaultFallbackOpts, defaultOpts), fallbackOpts)
+
+        return this.moveToDefault(targets, opts, fallbackOpts);
+    }
+
+    work(target: Structure | ConstructionSite): number {
+        Logger.log("Creep -> work()", LogLevel.TRACE)
+
+        let result: number;
+        if ('remove' in target) {
+            result = this.build(target);
+        } else {
+            result = this.repair(target);
+        }
+
+        switch (result) {
+            case OK: case ERR_BUSY:
+                return OK;
+            case ERR_NOT_IN_RANGE:
+                return this.travel(target.pos);
+            case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
+                Logger.log(`${this.name} recieved result ${result} from Work with args (${target.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
+                return result;
+        }
+        return OK;
+    }
+
+    private _isBoosted: boolean | undefined;
     isBoosted(): boolean {
         Logger.log("Creep -> isBoosted()", LogLevel.TRACE)
         Logger.log(`${this.name} -> isBoosted(). IsBoosted is currently a placeholder.`, LogLevel.ERROR);
-        return false;
-    }
-
-    upgradeEnergyConsumptionPerTick(): number {
-        return this.getActiveBodyparts(WORK)
-    }
-
-    buildEnergyConsumptionPerTick(): number {
-        return this.getActiveBodyparts(WORK) * 5
-    }
-
-    repairEnergyConsumptionPerTick(): number {
-        return this.getActiveBodyparts(WORK)
-    }
-
-    dismantleEnergyConsumptionPerTick(): number {
-        return this.getActiveBodyparts(WORK) * -0.25
+        if (this._isBoosted === undefined) this._isBoosted = false;
+        return this._isBoosted;
     }
 }

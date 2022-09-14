@@ -1,23 +1,143 @@
-import { Logger } from '../utils/Logger';
+import { LogLevel } from 'utils/Enums';
+import { Utils } from 'utils/Index';
 
 declare global {
     interface RoomVisual {
+        animatedPosition(x: number, y: number, opts?: {color?: string, opacity?: number, radius?: number, frames?: number}): RoomVisual;
+        connectRoads(opts?: {color?: string, opacity?: number}): RoomVisual | undefined;
+        costMatrix(costMatrix: CostMatrix): RoomVisual;
+        resource(type: string, x: number, y: number, size: number): number;
+        speech(text: string, x: number, y: number, opts?: {background?: string, textcolor?: string, textstyle?: boolean, textsize?: number, textfont?: string, opacity?: number}): RoomVisual;
         structure(x: number, y: number, type: string, opts?: { opacity?: number }): RoomVisual;
         roads: [number, number][];
-        connectRoads(opts?: {color?: string, opacity?: number}): RoomVisual | undefined;
-        speech(text: string, x: number, y: number, opts?: {background?: string, textcolor?: string, textstyle?: boolean, textsize?: number, textfont?: string, opacity?: number}): RoomVisual;
-        animatedPosition(x: number, y: number, opts?: {color?: string, opacity?: number, radius?: number, frames?: number}): RoomVisual;
         test(): RoomVisual;
-        resource(type: string, x: number, y: number, size: number): number;
+        _compound(type: string, x: number, y: number, size: number): void;
         _fluid(type: string, x: number, y: number, size: number): void;
         _mineral(type: string, x: number, y: number, size: number): void;
-        _compound(type: string, x: number, y: number, size: number): void;
-        costMatrix(costMatrix: CostMatrix): RoomVisual;
     }
 }
 
 export default class RoomVisuals_Extended extends RoomVisual {
+    animatedPosition(x: number, y: number, opts: {color?: string, opacity?: number, radius?: number, frames?: number}): RoomVisual {
+        Utils.Logger.log("RoomVisual -> animatedPosition()", LogLevel.TRACE);
+
+        let color = !!opts.color ? opts.color : 'blue'
+        let opacity = !!opts.opacity ? opts.opacity : 0.5
+        let radius = !!opts.radius ? opts.radius : 0.75
+        let frames = !!opts.frames ? opts.frames : 6
+
+
+        let angle = (Game.time % frames * 90 / frames) * (Math.PI / 180);
+        let s = Math.sin(angle);
+        let c = Math.cos(angle);
+
+        let sizeMod = Math.abs(Game.time % frames - frames / 2) / 10;
+        radius += radius * sizeMod;
+
+        let points: [number, number][] = [
+          rotate(0, -radius, s, c, x, y),
+          rotate(radius, 0, s, c, x, y),
+          rotate(0, radius, s, c, x, y),
+          rotate(-radius, 0, s, c, x, y),
+          rotate(0, -radius, s, c, x, y),
+        ];
+
+        this.poly(points, {stroke: color, opacity: opacity});
+
+        return this;
+    }
+
+    connectRoads(opts: {color?: string, opacity?: number}): RoomVisual | undefined {
+        Utils.Logger.log("RoomVisual -> connectRoads()", LogLevel.TRACE);
+        if (!opts) opts = { opacity: 1, color: colors.road };
+        let color = opts.color || colors.road || 'white'
+        if(!this.roads) return
+        this.roads.forEach(r=>{
+          for(let i=1;i<=4;i++){
+            let d = dirs[i]
+            let c = [r[0]+d[0],r[1]+d[1]]
+            let rd = _.some(this.roads,r=>r[0] == c[0] && r[1] == c[1])
+            if(rd){
+              this.line(r[0],r[1],c[0],c[1],{
+                color: color,
+                width: 0.15,
+                opacity: opts.opacity || 1
+              })
+            }
+          }
+        })
+
+        return this;
+    }
+
+    costMatrix(costMatrix: CostMatrix): RoomVisual {
+        Utils.Logger.log("RoomVisual -> costMatrix()", LogLevel.TRACE);
+        for (let x = 0; x < 50; x++) {
+            for (let y = 0; y < 50; y++) {
+                this.text(`${costMatrix.get(x,y)}`, x,y, {font: 0.5})
+            }
+        }
+        return this;
+    }
+
+    resource(type: string, x: number, y: number, size: number): number {
+        Utils.Logger.log("RoomVisual -> resource()", LogLevel.TRACE);
+        if (type == RESOURCE_ENERGY || type == RESOURCE_POWER)
+            this._fluid(type, x, y, size)
+        else if (MINERALS.includes(type))
+            this._mineral(type, x, y, size)
+        else if (ResourceColors[type] != undefined)
+            this._compound(type, x, y, size)
+        // else if (global.SYMBOLS && SYMBOLS.includes(type))
+        //   this._symbol(type, x, y, size)
+        else
+            return ERR_INVALID_ARGS
+        return OK;
+    }
+
+    speech(text: string, x: number, y: number, opts: {background?: string, textcolor?: string, textstyle?: boolean, textsize?: number, textfont?: string, opacity?: number}): RoomVisual {
+        Utils.Logger.log("RoomVisual -> speech()", LogLevel.TRACE);
+        var background = !!opts.background ? opts.background : colors.speechBackground
+        var textcolor = !!opts.textcolor ? opts.textcolor : colors.speechText
+        var textstyle = !!opts.textstyle ? opts.textstyle : false
+        var textsize = !!opts.textsize ? opts.textsize : speechSize
+        var textfont = !!opts.textfont ? opts.textfont : speechFont
+        var opacity = !!opts.opacity ? opts.opacity : 1
+
+        var fontstring = ''
+        if(textstyle) {
+          fontstring = textstyle + ' '
+        }
+        fontstring += textsize + ' ' + textfont
+
+        let pointer: [number, number][] = [
+          [-0.2, -0.8],
+          [ 0.2, -0.8],
+          [ 0,   -0.3]
+        ]
+        pointer = relPoly(x,y,pointer)
+        pointer.push(pointer[0])
+
+        this.poly(pointer,{
+          fill: background,
+          stroke: background,
+          opacity: opacity,
+          strokeWidth: 0.0
+        })
+
+        this.text(text, x, y-1, {
+          color: textcolor,
+          backgroundColor: background,
+          backgroundPadding: 0.1,
+          opacity: opacity,
+          font: fontstring
+        })
+
+        return this;
+    }
+
     structure(x: number, y: number, type: string, opts?: { opacity?: number }): RoomVisual {
+        Utils.Logger.log("RoomVisual -> structure()", LogLevel.TRACE);
         if (!opts) opts = { opacity: 1 };
         switch(type){
           case STRUCTURE_FACTORY: {
@@ -425,97 +545,8 @@ export default class RoomVisuals_Extended extends RoomVisual {
         return this;
     }
 
-    connectRoads(opts: {color?: string, opacity?: number}): RoomVisual | undefined {
-        if (!opts) opts = { opacity: 1, color: colors.road };
-        let color = opts.color || colors.road || 'white'
-        if(!this.roads) return
-        this.roads.forEach(r=>{
-          for(let i=1;i<=4;i++){
-            let d = dirs[i]
-            let c = [r[0]+d[0],r[1]+d[1]]
-            let rd = _.some(this.roads,r=>r[0] == c[0] && r[1] == c[1])
-            if(rd){
-              this.line(r[0],r[1],c[0],c[1],{
-                color: color,
-                width: 0.15,
-                opacity: opts.opacity || 1
-              })
-            }
-          }
-        })
-
-        return this;
-    }
-
-    speech(text: string, x: number, y: number, opts: {background?: string, textcolor?: string, textstyle?: boolean, textsize?: number, textfont?: string, opacity?: number}): RoomVisual {
-        var background = !!opts.background ? opts.background : colors.speechBackground
-        var textcolor = !!opts.textcolor ? opts.textcolor : colors.speechText
-        var textstyle = !!opts.textstyle ? opts.textstyle : false
-        var textsize = !!opts.textsize ? opts.textsize : speechSize
-        var textfont = !!opts.textfont ? opts.textfont : speechFont
-        var opacity = !!opts.opacity ? opts.opacity : 1
-
-        var fontstring = ''
-        if(textstyle) {
-          fontstring = textstyle + ' '
-        }
-        fontstring += textsize + ' ' + textfont
-
-        let pointer: [number, number][] = [
-          [-0.2, -0.8],
-          [ 0.2, -0.8],
-          [ 0,   -0.3]
-        ]
-        pointer = relPoly(x,y,pointer)
-        pointer.push(pointer[0])
-
-        this.poly(pointer,{
-          fill: background,
-          stroke: background,
-          opacity: opacity,
-          strokeWidth: 0.0
-        })
-
-        this.text(text, x, y-1, {
-          color: textcolor,
-          backgroundColor: background,
-          backgroundPadding: 0.1,
-          opacity: opacity,
-          font: fontstring
-        })
-
-        return this;
-    }
-
-    animatedPosition(x: number, y: number, opts: {color?: string, opacity?: number, radius?: number, frames?: number}): RoomVisual {
-
-        let color = !!opts.color ? opts.color : 'blue'
-        let opacity = !!opts.opacity ? opts.opacity : 0.5
-        let radius = !!opts.radius ? opts.radius : 0.75
-        let frames = !!opts.frames ? opts.frames : 6
-
-
-        let angle = (Game.time % frames * 90 / frames) * (Math.PI / 180);
-        let s = Math.sin(angle);
-        let c = Math.cos(angle);
-
-        let sizeMod = Math.abs(Game.time % frames - frames / 2) / 10;
-        radius += radius * sizeMod;
-
-        let points: [number, number][] = [
-          rotate(0, -radius, s, c, x, y),
-          rotate(radius, 0, s, c, x, y),
-          rotate(0, radius, s, c, x, y),
-          rotate(-radius, 0, s, c, x, y),
-          rotate(0, -radius, s, c, x, y),
-        ];
-
-        this.poly(points, {stroke: color, opacity: opacity});
-
-        return this;
-    }
-
     test() {
+        Utils.Logger.log("RoomVisual -> test()", LogLevel.TRACE);
         let demopos = [19,24]
         this.clear()
         this.structure(demopos[0]+0,demopos[1]+0,STRUCTURE_LAB)
@@ -539,21 +570,20 @@ export default class RoomVisuals_Extended extends RoomVisual {
         return this;
     }
 
-    resource(type: string, x: number, y: number, size: number): number {
-        if (type == RESOURCE_ENERGY || type == RESOURCE_POWER)
-            this._fluid(type, x, y, size)
-        else if (MINERALS.includes(type))
-            this._mineral(type, x, y, size)
-        else if (ResourceColors[type] != undefined)
-            this._compound(type, x, y, size)
-        // else if (global.SYMBOLS && SYMBOLS.includes(type))
-        //   this._symbol(type, x, y, size)
-        else
-            return ERR_INVALID_ARGS
-        return OK;
+    _compound(type: string, x: number, y: number, size: number): void {
+        Utils.Logger.log("RoomVisual -> _compound()", LogLevel.TRACE);
+        let label = type.replace("2", '₂');
+
+        this.text(label, x, y, {
+            font: "bold "+(size*1)+" arial",
+            color: ResourceColors[type][1],
+            backgroundColor: ResourceColors[type][0],
+            backgroundPadding: 0.3*size,
+        })
     }
 
     _fluid(type: string, x: number, y: number, size: number): void {
+        Utils.Logger.log("RoomVisual -> _fluid()", LogLevel.TRACE);
         this.circle(x, y, {
             radius: size,
             fill: ResourceColors[type][0],
@@ -568,6 +598,7 @@ export default class RoomVisuals_Extended extends RoomVisual {
     }
 
     _mineral(type: string, x: number, y: number, size: number): void {
+        Utils.Logger.log("RoomVisual -> _mineral()", LogLevel.TRACE);
         this.circle(x, y, {
             radius: size,
             fill: ResourceColors[type][0],
@@ -585,26 +616,6 @@ export default class RoomVisuals_Extended extends RoomVisual {
             backgroundPadding: 0,
         })
     }
-
-    _compound(type: string, x: number, y: number, size: number): void {
-        let label = type.replace("2", '₂');
-
-        this.text(label, x, y, {
-            font: "bold "+(size*1)+" arial",
-            color: ResourceColors[type][1],
-            backgroundColor: ResourceColors[type][0],
-            backgroundPadding: 0.3*size,
-        })
-    }
-
-    costMatrix(costMatrix: CostMatrix): RoomVisual {
-        for (let x = 0; x < 50; x++) {
-            for (let y = 0; y < 50; y++) {
-                this.text(`${costMatrix.get(x,y)}`, x,y, {font: 0.5})
-            }
-        }
-        return this;
-    }
 }
 
 const colors = {
@@ -618,34 +629,15 @@ const colors = {
     speechText: '#000000',
     speechBackground: '#2ccf3b'
 }
-const factoryLevelGaps = calculateFactoryLevelGapsPoly();
-
-const speechSize = 0.5
-const speechFont = 'Times New Roman'
-function calculateFactoryLevelGapsPoly() {
-    let x = -0.08;
-    let y = -0.52;
-    let result = [];
-
-    let gapAngle = 16 * (Math.PI / 180);
-    let c1 = Math.cos(gapAngle);
-    let s1 = Math.sin(gapAngle);
-
-    let angle = 72 * (Math.PI / 180);
-    let c2 = Math.cos(angle);
-    let s2 = Math.sin(angle);
-
-    for (let i = 0; i < 5; ++i) {
-        result.push([0.0, 0.0]);
-        result.push([x, y]);
-        result.push([x * c1 - y * s1, x * s1 + y * c1]);
-        let tmpX = x * c2 - y * s2;
-        y = x * s2 + y * c2;
-        x = tmpX;
-    }
-    return result;
-}
-
+const ColorSets = {
+    white:  ["#ffffff", "#4c4c4c"],
+    grey:   ["#b4b4b4", "#4c4c4c"],
+    red:    ["#ff7b7b", "#592121"],
+    yellow: ["#fdd388", "#5d4c2e"],
+    green:  ["#00f4a2", "#236144"],
+    blue:   ["#50d7f9", "#006181"],
+    purple: ["#a071ff", "#371383"],
+};
 const dirs = [
     [],
     [0, -1],
@@ -657,32 +649,16 @@ const dirs = [
     [-1, 0],
     [-1, -1]
 ]
-
-function rotate(x: number, y: number, s: number, c: number, px: number, py: number): [number, number] {
-    let xDelta = x * c - y * s;
-    let yDelta = x * s + y * c;
-    return [ px + xDelta, py + yDelta ];
-}
-
-
-function relPoly(x: number,y: number, poly: [number, number][]): [number, number][] {
-    return poly.map(p=>{
-      p[0] += x
-      p[1] += y
-      return p
-    })
-}
-
-/// #region RESOURCE BADGES
-const ColorSets = {
-    white:  ["#ffffff", "#4c4c4c"],
-    grey:   ["#b4b4b4", "#4c4c4c"],
-    red:    ["#ff7b7b", "#592121"],
-    yellow: ["#fdd388", "#5d4c2e"],
-    green:  ["#00f4a2", "#236144"],
-    blue:   ["#50d7f9", "#006181"],
-    purple: ["#a071ff", "#371383"],
-};
+const factoryLevelGaps = calculateFactoryLevelGapsPoly();
+const MINERALS: string[] = [
+    RESOURCE_CATALYST,
+    RESOURCE_HYDROGEN,
+    RESOURCE_OXYGEN,
+    RESOURCE_LEMERGIUM,
+    RESOURCE_UTRIUM,
+    RESOURCE_ZYNTHIUM,
+    RESOURCE_KEANIUM
+]
 const ResourceColors: {[key: string]: string[]} = {
     [RESOURCE_ENERGY]:    ColorSets.yellow,
     [RESOURCE_POWER]:     ColorSets.red,
@@ -733,17 +709,8 @@ const ResourceColors: {[key: string]: string[]} = {
     [RESOURCE_CATALYZED_GHODIUM_ACID]:        ColorSets.white,
     [RESOURCE_CATALYZED_GHODIUM_ALKALIDE]:    ColorSets.white,
 };
-
-const MINERALS: string[] = [
-    RESOURCE_CATALYST,
-    RESOURCE_HYDROGEN,
-    RESOURCE_OXYGEN,
-    RESOURCE_LEMERGIUM,
-    RESOURCE_UTRIUM,
-    RESOURCE_ZYNTHIUM,
-    RESOURCE_KEANIUM
-]
-
+const speechSize = 0.5
+const speechFont = 'Times New Roman'
 //   if (global.SYMBOLS) {
 //     const SYMBOL_MAP = {
 //       [RESOURCE_SYMBOL_ALEPH]: '𐤀',
@@ -821,3 +788,44 @@ const MINERALS: string[] = [
 //       return this
 //     }
 //   }
+
+function calculateFactoryLevelGapsPoly() {
+    Utils.Logger.log("RoomVisual -> calculateFactoryLevelGapsPoly()", LogLevel.TRACE);
+    let x = -0.08;
+    let y = -0.52;
+    let result = [];
+
+    let gapAngle = 16 * (Math.PI / 180);
+    let c1 = Math.cos(gapAngle);
+    let s1 = Math.sin(gapAngle);
+
+    let angle = 72 * (Math.PI / 180);
+    let c2 = Math.cos(angle);
+    let s2 = Math.sin(angle);
+
+    for (let i = 0; i < 5; ++i) {
+        result.push([0.0, 0.0]);
+        result.push([x, y]);
+        result.push([x * c1 - y * s1, x * s1 + y * c1]);
+        let tmpX = x * c2 - y * s2;
+        y = x * s2 + y * c2;
+        x = tmpX;
+    }
+    return result;
+}
+
+function relPoly(x: number,y: number, poly: [number, number][]): [number, number][] {
+    Utils.Logger.log("RoomVisual -> relPoly()", LogLevel.TRACE);
+    return poly.map(p=>{
+      p[0] += x
+      p[1] += y
+      return p
+    })
+}
+
+function rotate(x: number, y: number, s: number, c: number, px: number, py: number): [number, number] {
+    Utils.Logger.log("RoomVisual -> rotate()", LogLevel.TRACE);
+    let xDelta = x * c - y * s;
+    let yDelta = x * s + y * c;
+    return [ px + xDelta, py + yDelta ];
+}
