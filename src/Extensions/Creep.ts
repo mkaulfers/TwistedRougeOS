@@ -133,13 +133,12 @@ export default class Creep_Extended extends Creep {
     give(target: AnyStoreStructure | Creep, resource: ResourceConstant, quantity?: number): number {
         Logger.log("Creep -> give()", LogLevel.TRACE)
 
+        this.travel(target.pos);
         let result: number = this.transfer(target, resource, quantity);
 
         switch (result) {
-            case OK: case ERR_BUSY:
+            case OK: case ERR_BUSY: case ERR_NOT_IN_RANGE:
                 return OK;
-            case ERR_NOT_IN_RANGE:
-                return this.travel(target.pos);
             case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
                 // Logger.log(`${this.name} recieved result ${result} from Give with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
                 return result;
@@ -150,13 +149,12 @@ export default class Creep_Extended extends Creep {
     mine(target: Source | Mineral): number {
         Logger.log("Creep -> give()", LogLevel.TRACE)
 
+        this.travel(target.pos);
         let result: number = this.harvest(target);
 
         switch (result) {
-            case OK: case ERR_BUSY: case ERR_TIRED:
+            case OK: case ERR_BUSY: case ERR_TIRED: case ERR_NOT_IN_RANGE:
                 return OK;
-            case ERR_NOT_IN_RANGE:
-                return this.travel(target.pos);
             case ERR_NOT_OWNER: case ERR_NOT_FOUND: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
                 Logger.log(`${this.name} recieved result ${result} from Mine with args (${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
                 return result;
@@ -246,6 +244,7 @@ export default class Creep_Extended extends Creep {
     praise(target: StructureController): number {
         Logger.log("Creep -> praise()", LogLevel.TRACE)
 
+        this.travel({pos: target.pos, range: 3});
         let result: number = this.upgradeController(target);
 
         if (!target.isSigned) {
@@ -254,14 +253,9 @@ export default class Creep_Extended extends Creep {
         }
 
         switch (result) {
-            case OK: case ERR_BUSY:
+            case OK: case ERR_BUSY: case ERR_NOT_IN_RANGE:
                 return OK;
-            case ERR_NOT_IN_RANGE: case ERR_NOT_ENOUGH_ENERGY:
-                if (!this.pos.inRangeTo(target, 3)) {
-                    return this.travel(target.pos);
-                }
-                return result;
-            case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
+            case ERR_NOT_ENOUGH_ENERGY: case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
                 Logger.log(`${this.name} recieved result ${result} from Praise with args (${target.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
                 return result;
         }
@@ -271,6 +265,7 @@ export default class Creep_Extended extends Creep {
     take(target: AnyStoreStructure | Resource | Tombstone, resource: ResourceConstant, quantity?: number): number {
         Logger.log("Creep -> take()", LogLevel.TRACE)
 
+        this.travel(target.pos);
         let result: number;
         if ('store' in target) {
             result = this.withdraw(target, resource, quantity);
@@ -279,10 +274,8 @@ export default class Creep_Extended extends Creep {
         }
 
         switch (result) {
-            case OK: case ERR_BUSY:
+            case OK: case ERR_BUSY: case ERR_NOT_IN_RANGE:
                 return OK;
-            case ERR_NOT_IN_RANGE:
-                return this.travel(target.pos);
             case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
                 Logger.log(`${this.name} recieved result ${result} from Take with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
                 return result;
@@ -323,7 +316,7 @@ export default class Creep_Extended extends Creep {
 
     work(target: Structure | ConstructionSite): number {
         Logger.log("Creep -> work()", LogLevel.TRACE)
-
+        this.travel({pos: target.pos, range: 3});
         let result: number;
         if ('remove' in target) {
             result = this.build(target);
@@ -332,10 +325,8 @@ export default class Creep_Extended extends Creep {
         }
 
         switch (result) {
-            case OK: case ERR_BUSY:
+            case OK: case ERR_BUSY: case ERR_NOT_IN_RANGE:
                 return OK;
-            case ERR_NOT_IN_RANGE:
-                return this.travel(target.pos);
             case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
                 Logger.log(`${this.name} recieved result ${result} from Work with args (${target.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
                 return result;
