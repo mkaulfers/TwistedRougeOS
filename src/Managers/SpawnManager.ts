@@ -18,42 +18,15 @@ export default class SpawnManager {
             if (!room.cache.spawnSchedules) room.cache.spawnSchedules = [];
             let spawnSchedules = room.cache.spawnSchedules;
 
-            // TODO: Split
             // Ensure we have a schedule for each spawn
-            let rebuild = false;
-            if (spawnSchedules.length !== spawns.length) {
-                for (const spawn of spawns) {
-                    if (spawnSchedules && spawnSchedules.findIndex(s => s.spawnName === spawn.name) >= 0) continue;
-                    spawnSchedules.push(new SpawnSchedule(room.name, spawn.name));
-                    rebuild = true;
-                }
-            }
+            let rebuild = this.shouldRebuild(spawnSchedules, spawns);
 
-            // TODO: Split
             // Rebuild schedule when needed
-            if (room.cache.spawnSchedules.length !== spawns.length || rebuild == true || _.any(spawnSchedules, (s) => s.needsScheduled == true)) {
-                // Reset conditional so as to not rebuild again next tick.
-                spawnSchedules.forEach(function(s) { s.reset(); s.needsScheduled = false });
-
-                // Schedule minimum needed creeps
-                let minSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, true);
-
-                // TODO: Split
-                for (let spawnSchedule of spawnSchedules) {
-                    if (spawnSchedule.isFull() == true || !minSpawnOrders || minSpawnOrders.length == 0) continue;
-                    minSpawnOrders = spawnSchedule.add(minSpawnOrders);
-                }
-                // Schedule all non-essential creeps if essential were handled fully.
-                if (!minSpawnOrders || minSpawnOrders.length == 0) {
-                    let extraSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room);
-
-                    // TODO: Split
-                    for (let spawnSchedule of spawnSchedules) {
-                        if (spawnSchedule.isFull() == true || !extraSpawnOrders || extraSpawnOrders.length == 0) continue;
-                        extraSpawnOrders = spawnSchedule.add(extraSpawnOrders);
-                    }
-                }
+            if (room.cache.spawnSchedules.length !== spawns.length || rebuild == true || _.any(room.cache.spawnSchedules, (s) => s.needsScheduled == true)) {
+                this.buildSchedule(room, spawnSchedules);
             }
+            if (rebuild == true) spawnSchedules = room.cache.spawnSchedules;
+
 
             // Emergencies and SpawnChecks
             for (let spawnSchedule of spawnSchedules) {
@@ -71,6 +44,7 @@ export default class SpawnManager {
                 if (emergency === true) {
                     Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, LogLevel.DEBUG);
 
+                    // TODO: Don't trigger in early ticks.
                     // Handle Restarting if energy available
                     if (spawnSchedule.pausedTicks > 0 && room.localCreeps.truckers.length == 0) {
                         let body: BodyPartConstant[] = [];
@@ -182,5 +156,41 @@ export default class SpawnManager {
         }
 
         return spawnOrders;
+    }
+
+    private static shouldRebuild(spawnSchedules: SpawnSchedule[], spawns: StructureSpawn[]): boolean {
+        if (spawnSchedules.length !== spawns.length) {
+            for (const spawn of spawns) {
+                if (spawnSchedules && spawnSchedules.findIndex(s => s.spawnName === spawn.name) >= 0) continue;
+                spawnSchedules.push(new SpawnSchedule(spawn.room.name, spawn.name));
+            }
+            spawns[0].room.cache.spawnSchedules = spawnSchedules;
+            return true;
+        }
+        return false;
+    }
+
+    private static buildSchedule(room: Room, spawnSchedules: SpawnSchedule[]): void {
+        // Reset conditional so as to not rebuild again next tick.
+        spawnSchedules.forEach(function(s) { s.reset(); s.needsScheduled = false });
+
+        // Schedule minimum needed creeps
+        let minSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, true);
+
+        // TODO: Split
+        for (let spawnSchedule of spawnSchedules) {
+            if (spawnSchedule.isFull() == true || !minSpawnOrders || minSpawnOrders.length == 0) continue;
+            minSpawnOrders = spawnSchedule.add(minSpawnOrders);
+        }
+        // Schedule all non-essential creeps if essential were handled fully.
+        if (!minSpawnOrders || minSpawnOrders.length == 0) {
+            let extraSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room);
+
+            // TODO: Split
+            for (let spawnSchedule of spawnSchedules) {
+                if (spawnSchedule.isFull() == true || !extraSpawnOrders || extraSpawnOrders.length == 0) continue;
+                extraSpawnOrders = spawnSchedule.add(extraSpawnOrders);
+            }
+        }
     }
 }
