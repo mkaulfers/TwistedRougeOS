@@ -18,6 +18,7 @@ export default class SpawnManager {
             if (!room.cache.spawnSchedules) room.cache.spawnSchedules = [];
             let spawnSchedules = room.cache.spawnSchedules;
 
+            // TODO: Split
             // Ensure we have a schedule for each spawn
             let rebuild = false;
             if (spawnSchedules.length !== spawns.length) {
@@ -28,6 +29,7 @@ export default class SpawnManager {
                 }
             }
 
+            // TODO: Split
             // Rebuild schedule when needed
             if (room.cache.spawnSchedules.length !== spawns.length || rebuild == true || _.any(spawnSchedules, (s) => s.needsScheduled == true)) {
                 // Reset conditional so as to not rebuild again next tick.
@@ -36,6 +38,7 @@ export default class SpawnManager {
                 // Schedule minimum needed creeps
                 let minSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, true);
 
+                // TODO: Split
                 for (let spawnSchedule of spawnSchedules) {
                     if (spawnSchedule.isFull() == true || !minSpawnOrders || minSpawnOrders.length == 0) continue;
                     minSpawnOrders = spawnSchedule.add(minSpawnOrders);
@@ -44,6 +47,7 @@ export default class SpawnManager {
                 if (!minSpawnOrders || minSpawnOrders.length == 0) {
                     let extraSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room);
 
+                    // TODO: Split
                     for (let spawnSchedule of spawnSchedules) {
                         if (spawnSchedule.isFull() == true || !extraSpawnOrders || extraSpawnOrders.length == 0) continue;
                         extraSpawnOrders = spawnSchedule.add(extraSpawnOrders);
@@ -61,6 +65,7 @@ export default class SpawnManager {
                     spawnOrder && room.energyAvailable < Utils.Utility.bodyCost(spawnOrder.body) ||
                     room.cache.pauseSpawning && room.cache.pauseSpawning == true) emergency = true;
 
+                // TODO: Split
                 // TODO: Improve emergency handling.
                 // Handle Emergencies
                 if (emergency === true) {
@@ -98,6 +103,7 @@ export default class SpawnManager {
                     Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id} in ${nextOrder && nextOrder.scheduleTick ? nextOrder.scheduleTick - spawnSchedule.tick : 1500 + spawnSchedule.schedule[0].scheduleTick! - spawnSchedule.tick} ticks.`, LogLevel.INFO)
                 }
 
+                // TODO: Split
                 if (emergency === false) {
                     // Handle Spawning
                     if (spawnOrder) {
@@ -129,7 +135,7 @@ export default class SpawnManager {
      * @param room The room to consider.
      * @param minimum Limits SpawnOrder generation to just ones considered required for room functionality.
      */
-    static genSpawnOrders(room: Room, minimum?: boolean): SpawnOrder[] {
+    private static genSpawnOrders(room: Room, minimum?: boolean): SpawnOrder[] {
         Utils.Logger.log(`SpawnManager -> genSpawnOrders(${room.name}) with minimum: ${minimum}`, LogLevel.TRACE)
 
         // Build array of CreepRoles in priority

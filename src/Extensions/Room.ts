@@ -94,6 +94,7 @@ declare global {
         extensions(): StructureExtension[];
         constructionSites(isBuilding?: BuildableStructureConstant): ConstructionSite[];
         minerals(): Mineral[];
+        // TODO: Change to getter
         spawns(): StructureSpawn[];
         observer(): StructureObserver | undefined;
 
