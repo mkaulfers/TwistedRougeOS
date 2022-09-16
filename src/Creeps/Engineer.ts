@@ -114,7 +114,7 @@ export class Engineer extends Creep {
                 if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                     let potentialTargets: AnyStructure[] = creep.room.find(FIND_STRUCTURES);
                     potentialTargets = _.filter(potentialTargets, function(t) {
-                        if ((t.structureType == STRUCTURE_WALL || t.structureType == STRUCTURE_RAMPART) && t.hits <= (creep!.room.rampartHPTarget() * 0.75)) {
+                        if ((t.structureType == STRUCTURE_WALL || t.structureType == STRUCTURE_RAMPART) && t.hits <= (creep!.room.rampartHPTarget * 0.75)) {
                             return t;
                         } else if (t.structureType !== STRUCTURE_WALL && t.structureType !== STRUCTURE_RAMPART && t.structureType !== STRUCTURE_CONTROLLER){
                             return t;
@@ -280,7 +280,7 @@ export class Engineer extends Creep {
     static dispatch(room: Room) {
         Utils.Logger.log("CreepDispatch -> engineer.dispatch()", LogLevel.TRACE)
 
-        let engineers = room.localCreeps.engineers
+        let engineers = room.localCreeps.engineer
 
         let cSites: ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
         cSites = Utils.Utility.organizeTargets(cSites, { hits: true, order: 'asc' })
@@ -309,12 +309,12 @@ export class Engineer extends Creep {
 
         let eRSites = Array.prototype.concat(
             _.filter(rSites, (r) => (r.hits <= (r.hitsMax / 2) )),
-            _.filter(uSites, (r) => (r.hits <= (room.rampartHPTarget() * 0.5) ))
+            _.filter(uSites, (r) => (r.hits <= (room.rampartHPTarget * 0.5) ))
         );
 
         let RepairedERSites = Array.prototype.concat(
             _.filter(rSites, (r) => (r.hits <= (r.hitsMax / 1.5) )),
-            _.filter(uSites, (r) => (r.hits <= (room.rampartHPTarget() * 0.75) ))
+            _.filter(uSites, (r) => (r.hits <= (room.rampartHPTarget * 0.75) ))
         );
 
         for (let engineer of engineers) {

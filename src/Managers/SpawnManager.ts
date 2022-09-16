@@ -14,7 +14,7 @@ export default class SpawnManager {
 
             let room = Game.rooms[roomId]
             Utils.Logger.log(`SpawnManager -> ${room.name}_spawn_monitor`, LogLevel.TRACE)
-            let spawns = room.spawns();
+            let spawns = room.spawns;
             if (!room.cache.spawnSchedules) room.cache.spawnSchedules = [];
 
             // Ensure we have a schedule for each spawn
@@ -168,7 +168,7 @@ export default class SpawnManager {
             Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, LogLevel.DEBUG);
 
             // Handle Restarting if energy available
-            if (spawnSchedule.pausedTicks > 0 && room.localCreeps.truckers.length == 0 && room.controller && room.controller.level > 2) {
+            if (spawnSchedule.pausedTicks > 0 && room.localCreeps.trucker.length == 0 && room.controller && room.controller.level > 2) {
                 let body: BodyPartConstant[] = [];
                 let segment = [CARRY, CARRY, MOVE];
                 let modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));

@@ -37,7 +37,7 @@ export class Scientist extends Creep {
     }
 
     static dispatch(room: Room) {
-        let scientists = room.localCreeps.scientists
+        let scientists = room.localCreeps.scientist
         for (let scientist of scientists) {
             if (!scientist.memory.task) {
                 global.scheduler.swapProcess(scientist, Task.SCIENTIST_UPGRADING)

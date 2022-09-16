@@ -103,8 +103,8 @@ export class Trucker extends Creep {
                 // Determines new target
                 if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                     // Targets scientists, sorted by how much energy they have in them
-                    let potentialTargets: Creep[] = creep.room.localCreeps.scientists;
-                    potentialTargets.push(...creep.room.localCreeps.engineers);
+                    let potentialTargets: Creep[] = creep.room.localCreeps.scientist;
+                    potentialTargets.push(...creep.room.localCreeps.engineer);
                     potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, order: 'asc', rNeed: true });
                     let potTarget = creep.pos.findClosestByRange(potentialTargets);
 
@@ -174,7 +174,7 @@ export class Trucker extends Creep {
             return false;
         });
         if (room.energyAvailable < room.energyCapacityAvailable || consider.length > 0) {
-            let truckers = room.localCreeps.truckers
+            let truckers = room.localCreeps.trucker
             Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.TRACE)
             for (let trucker of truckers) {
                 if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_SCIENTIST) {
@@ -183,7 +183,7 @@ export class Trucker extends Creep {
                 }
             }
         } else {
-            let truckers = room.localCreeps.truckers
+            let truckers = room.localCreeps.trucker
             if (!(truckers.length > 0)) return;
             Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.TRACE)
 
@@ -206,8 +206,8 @@ export class Trucker extends Creep {
         if (min && min == true) return truckerCount < 1 ? 1 : 0;
 
         // Utils.Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.INFO)  TODO: Remove dead function
-        Utils.Logger.log(`Demand to Meet: ${room.sources.length * 10 * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.INFO)
-        let shouldBe = Math.ceil((room.sources.length * 10 * room.averageDistanceFromSourcesToStructures() * this.carryModifier) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == CARRY).length * 50));
+        Utils.Logger.log(`Demand to Meet: ${room.sources.length * 10 * (room.averageDistanceFromSourcesToStructures * this.carryModifier)}`, LogLevel.INFO)
+        let shouldBe = Math.ceil((room.sources.length * 10 * room.averageDistanceFromSourcesToStructures * this.carryModifier) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == CARRY).length * 50));
         if (shouldBe < 2) shouldBe = 2;
         return truckerCount < shouldBe ? shouldBe - truckerCount : 0;
     }

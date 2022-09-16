@@ -5,6 +5,9 @@ import Roles from '../Creeps/Index'
 
 import { Role, LogLevel } from '../utils/Enums'
 
+type CreepFind = {[key in Role | 'all' | 'unknown']: Creep[]};
+type LooseCreepFind = {[key in Role | 'all' | 'unknown']?: Creep[]};
+
 declare global {
     interface Room {
         /**
@@ -41,32 +44,11 @@ declare global {
         towers: StructureTower[];
         walls: StructureWall[];
 
-        localCreeps: {
-            all: Creep[],
-            harvesters: Creep[],
-            scientists: Creep[],
-            truckers: Creep[],
-            engineers: Creep[],
-            fillers: Creep[],
-            agents: Creep[],
-            networkHarvesters: Creep[],
-            networkHaulers: Creep[],
-            networkEngineers: Creep[]
-        };
-        stationedCreeps: {
-            all: Creep[]
-            harvesters: Creep[],
-            scientists: Creep[],
-            truckers: Creep[],
-            engineers: Creep[],
-            fillers: Creep[],
-            agents: Creep[],
-            networkHarvesters: Creep[],
-            networkHaulers: Creep[],
-            networkEngineers: Creep[]
-        };
+        localCreeps: CreepFind;
+        stationedCreeps: CreepFind;
 
         /* Custom Getters */
+        getAvailableSpawn: StructureSpawn | undefined
         nextCreepToDie: Creep | undefined;
         lowestExtension: StructureExtension | undefined
         lowestScientist: Creep | undefined
@@ -81,7 +63,7 @@ declare global {
         /* Other Calculations and Checks */
         areFastFillerExtensionsBuilt: boolean;
         /** Gets the distance from sources to each storage capable structure in the room. */
-        averageDistanceFromSourcesToStructures: number;getAvailableSpawn: StructureSpawn | undefined
+        averageDistanceFromSourcesToStructures: number;
         isSpawning(role: Role): boolean
         maxExtensionsAvail: number;
         maxLabsAvail: number;
@@ -239,193 +221,69 @@ export default class Room_Extended extends Room {
         return walls ? walls as StructureWall[] : [];
     }
 
-    private _localCreeps: {
-        all: Creep[],
-        harvesters: Creep[],
-        scientists: Creep[],
-        truckers: Creep[],
-        engineers: Creep[],
-        fillers: Creep[],
-        agents: Creep[],
-        networkHarvesters: Creep[],
-        networkHaulers: Creep[],
-        networkEngineers: Creep[]
-    } | undefined
+    private _localCreeps: CreepFind | undefined;
+    get localCreeps() {
+        if (!this._localCreeps) {
+            let setup: LooseCreepFind = {};
+            setup['all'] = [];
+            setup['unknown'] = [];
+            for (const role of Object.values(Role)) setup[role] = [];
 
-    get localCreeps(): {
-        all: Creep[],
-        harvesters: Creep[],
-        scientists: Creep[],
-        truckers: Creep[],
-        engineers: Creep[],
-        fillers: Creep[],
-        agents: Creep[],
-        networkHarvesters: Creep[],
-        networkHaulers: Creep[],
-        networkEngineers: Creep[]
-    } {
-        if (this._localCreeps) { return this._localCreeps }
-        let all: Creep[] = []
-        let harvesters: Creep[] = []
-        let scientists: Creep[] = []
-        let truckers: Creep[] = []
-        let engineers: Creep[] = []
-        let fillers: Creep[] = []
-        let agents: Creep[] = []
-        let networkHarvesters: Creep[] = []
-        let networkHaulers: Creep[] = []
-        let networkEngineers: Creep[] = []
+            this._localCreeps = setup as CreepFind;
 
-        for (let creep of this.find(FIND_MY_CREEPS)) {
-            all.push(creep)
-            switch (creep.memory.role) {
-                case Role.HARVESTER:
-                    harvesters.push(creep)
-                    break
-                case Role.SCIENTIST:
-                    scientists.push(creep)
-                    break
-                case Role.TRUCKER:
-                    truckers.push(creep)
-                    break
-                case Role.ENGINEER:
-                    engineers.push(creep)
-                    break
-                case Role.FILLER:
-                    fillers.push(creep)
-                    break
-                case Role.AGENT:
-                    agents.push(creep)
-                    break
-                case Role.NETWORK_HARVESTER:
-                    networkHarvesters.push(creep)
-                    break
-                case Role.NETWORK_HAULER:
-                    networkHaulers.push(creep)
-                    break
-                case Role.NETWORK_ENGINEER:
-                    networkEngineers.push(creep)
-                    break
+            for (const creep of this.find(FIND_MY_CREEPS)) {
+                const role = creep.memory.role;
+                if (!role || !(Object.values(Role).includes(role as Role))) {
+                    this._localCreeps.unknown.push(creep);
+                } else {
+                    this._localCreeps[role as Role].push(creep);
+                }
+                this._localCreeps.all.push(creep);
             }
         }
 
-        this._localCreeps = {
-            all: all,
-            harvesters: harvesters,
-            scientists: scientists,
-            truckers: truckers,
-            engineers: engineers,
-            fillers: fillers,
-            agents: agents,
-            networkHarvesters: networkHarvesters,
-            networkHaulers: networkHaulers,
-            networkEngineers: networkEngineers
-        }
-
-        return this._localCreeps
+        return this._localCreeps;
     }
 
-    private _stationedCreeps: {
-        all: Creep[],
-        harvesters: Creep[],
-        scientists: Creep[],
-        truckers: Creep[],
-        engineers: Creep[],
-        fillers: Creep[],
-        agents: Creep[],
-        networkHarvesters: Creep[],
-        networkHaulers: Creep[]
-        networkEngineers: Creep[]
-    } | undefined
+    private _stationedCreeps: CreepFind | undefined;
+    get stationedCreeps() {
+        if (!this._stationedCreeps) {
+            let setup: LooseCreepFind = {};
+            setup['all'] = [];
+            setup['unknown'] = [];
+            for (const role of Object.values(Role)) setup[role] = [];
 
-    get stationedCreeps(): {
-        all: Creep[],
-        harvesters: Creep[],
-        scientists: Creep[],
-        truckers: Creep[],
-        engineers: Creep[],
-        fillers: Creep[],
-        agents: Creep[],
-        networkHarvesters: Creep[],
-        networkHaulers: Creep[],
-        networkEngineers: Creep[]
-    } {
-        if (this._stationedCreeps) { return this._stationedCreeps }
-        let all: Creep[] = []
-        let harvesters: Creep[] = []
-        let scientists: Creep[] = []
-        let truckers: Creep[] = []
-        let engineers: Creep[] = []
-        let fillers: Creep[] = []
-        let agents: Creep[] = []
-        let networkHarvesters: Creep[] = []
-        let networkHaulers: Creep[] = []
-        let networkEngineers: Creep[] = []
+            this._stationedCreeps = setup as CreepFind;
 
-        for (let name in Memory.creeps) {
-            let creep = Game.creeps[name]
-            if (creep && creep.memory.homeRoom === this.name) {
-                all.push(creep)
-                switch (creep.memory.role) {
-                    case Role.HARVESTER:
-                        harvesters.push(creep)
-                        break
-                    case Role.SCIENTIST:
-                        scientists.push(creep)
-                        break
-                    case Role.TRUCKER:
-                        truckers.push(creep)
-                        break
-                    case Role.ENGINEER:
-                        engineers.push(creep)
-                        break
-                    case Role.FILLER:
-                        fillers.push(creep)
-                        break
-                    case Role.AGENT:
-                        agents.push(creep)
-                        break
-                    case Role.NETWORK_HARVESTER:
-                        networkHarvesters.push(creep)
-                        break
-                    case Role.NETWORK_HAULER:
-                        networkHaulers.push(creep)
-                        break
-                    case Role.NETWORK_ENGINEER:
-                        networkEngineers.push(creep)
-                        break
+            for (const creep of Object.values(Game.creeps)) {
+                if (creep.memory.homeRoom !== this.name) continue;
+                const role = creep.memory.role;
+                if (!role || !(Object.values(Role).includes(role as Role))) {
+                    this._stationedCreeps.unknown.push(creep);
+                } else {
+                    this._stationedCreeps[role as Role].push(creep);
                 }
+                this._stationedCreeps.all.push(creep);
             }
         }
 
-        this._stationedCreeps = {
-            all: all,
-            harvesters: harvesters,
-            scientists: scientists,
-            truckers: truckers,
-            engineers: engineers,
-            fillers: fillers,
-            agents: agents,
-            networkHarvesters: networkHarvesters,
-            networkHaulers: networkHaulers,
-            networkEngineers: networkEngineers
-        }
-
-        return this._stationedCreeps
+        return this._stationedCreeps;
     }
 
     /*
     Custom Getters
     */
 
+    private _availableSpawn: StructureSpawn | undefined;
     get getAvailableSpawn() {
-        let spawns = this.find(FIND_MY_SPAWNS)
-        for (let spawn of spawns) {
-            if (spawn.spawning == null) {
-                return spawn
+        if (!this._availableSpawn) {
+            for (const spawn of this.spawns) {
+                if (spawn.spawning === null) {
+                    return this._availableSpawn = spawn;
+                }
             }
         }
-        return undefined
+        return this._availableSpawn;
     }
 
     get nextCreepToDie() {
@@ -456,7 +314,7 @@ export default class Room_Extended extends Room {
     }
 
     get lowestScientist() {
-        let scientists = this.localCreeps.scientists
+        let scientists = this.localCreeps.scientist
         let lowestScientist = undefined
         for (let scientist of scientists) {
             if (!lowestScientist) { lowestScientist = scientist }

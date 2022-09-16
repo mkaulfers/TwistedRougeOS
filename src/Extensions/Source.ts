@@ -23,7 +23,7 @@ export default class Source_Extended extends Source {
     assignablePosition(): RoomPosition {
         Utils.Logger.log("Source -> assignablePosition()", LogLevel.TRACE);
         let validPositions = this.validPositions
-        let assignedPositions = this.room.localCreeps.harvesters.map(x => x.memory.assignedPos)
+        let assignedPositions = this.room.localCreeps.harvester.map(x => x.memory.assignedPos)
         let unassignedPositions = validPositions.filter(x => !assignedPositions.includes(Utils.Utility.packPosition(x)))
         // Logger.log(`Source ${this.id} has ${unassignedPositions.length} unassigned positions.`, LogLevel.DEBUG)
         return unassignedPositions[0]
@@ -35,7 +35,7 @@ export default class Source_Extended extends Source {
         if (this._isHarvestingAtMaxEfficiency) {
             return this._isHarvestingAtMaxEfficiency;
         } else {
-            let harvesters = this.room.localCreeps.harvesters
+            let harvesters = this.room.localCreeps.harvester
             let harvestersAssignedHere: Creep[] = []
 
             for (let harvester of harvesters) {
