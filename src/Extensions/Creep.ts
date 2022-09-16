@@ -288,6 +288,8 @@ export default class Creep_Extended extends Creep {
 
         // TODO: Add under siege pathing modification
 
+        // TODO: Add Portal Avoidance
+
         // TODO: Tie to intel
         const hostileRooms: string[] = [];
 

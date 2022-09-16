@@ -18,17 +18,28 @@ declare global {
          * @Returns Constructions sites in the room.
          * */
         constructionSites(ofType?: BuildableStructureConstant): ConstructionSite[];
+        structures(ofType?: StructureConstant): Structure[];
+
+        containers: StructureContainer[];
         extensions: StructureExtension[];
         extractor: StructureExtractor | undefined;
+        factory: StructureFactory | undefined;
+        invaderCores: StructureInvaderCore[];
+        keeperLair: StructureKeeperLair[];
         mineral: Mineral | undefined;
         nuker: StructureNuker | undefined;
         labs: StructureLab[];
         links: StructureLink[];
         observer: StructureObserver | undefined;
+        portals: StructurePortal[];
+        powerBank: StructurePowerBank | undefined;
+        powerSpawn: StructurePowerSpawn | undefined;
+        ramparts: StructureRampart[];
+        roads: StructureRoad[];
         sources: Source[];
         spawns: StructureSpawn[];
-        /** A room's towers, as found within the last 100 ticks || last time one died. */
         towers: StructureTower[];
+        walls: StructureWall[];
 
         localCreeps: {
             all: Creep[],
@@ -98,7 +109,7 @@ export default class Room_Extended extends Room {
         if (!this._constructionSites) {
             this._constructionSites = {};
             this._constructionSites['all'] = [];
-            for (const site of this.find(FIND_MY_CONSTRUCTION_SITES)) {
+            for (const site of this.find(FIND_CONSTRUCTION_SITES)) {
                 if (!this._constructionSites[site.structureType]) this._constructionSites[site.structureType] = [];
                 this._constructionSites[site.structureType].push(site);
                 this._constructionSites['all'].push(site);
@@ -111,15 +122,47 @@ export default class Room_Extended extends Room {
         return this._constructionSites['all']
     }
 
-    // TODO: Rewrite so one find & filter
-    private _extensions: StructureExtension[] | undefined;
+    private _structures: {[key: string]: Structure[]} | undefined;
+    structures(ofType?: BuildableStructureConstant) {
+        if (!this._structures) {
+            this._structures = {};
+            this._structures['all'] = [];
+            for (const site of this.find(FIND_STRUCTURES)) {
+                if (!this._structures[site.structureType]) this._structures[site.structureType] = [];
+                this._structures[site.structureType].push(site);
+                this._structures['all'].push(site);
+            }
+        }
+
+        if (ofType) {
+            return this._structures[ofType] ? this._structures[ofType] : [];
+        }
+        return this._structures['all']
+    }
+
+    get containers() {
+        return [];
+    }
+
     get extensions() {
-        if (!this._extensions) this._extensions = this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_EXTENSION) as StructureExtension[]
-        return this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_EXTENSION) as StructureExtension[]
+        let extensions = this.structures(STRUCTURE_EXTENSION);
+        return extensions ? extensions as StructureExtension[] : [];
     }
 
     get extractor() {
         return undefined;
+    }
+
+    get factory() {
+        return undefined;
+    }
+
+    get invaderCores() {
+        return [];
+    }
+
+    get keeperLair() {
+        return [];
     }
 
     get minerals() {
@@ -143,7 +186,23 @@ export default class Room_Extended extends Room {
         return observers[0] ? observers[0] : undefined;
     }
 
-    _sources: Source[] | undefined
+    get portals() {
+        return [];
+    }
+
+    get powerBank() {
+        return undefined;
+    }
+
+    get powerSpawn() {
+        return undefined;
+    }
+
+    get roads() {
+        return [];
+    }
+
+    private _sources: Source[] | undefined
     get sources() {
         if (this._sources) { return this._sources }
         return this._sources = this.find(FIND_SOURCES)
@@ -186,7 +245,11 @@ export default class Room_Extended extends Room {
         }
     }
 
-    _localCreeps: {
+    get walls() {
+        return [];
+    }
+
+    private _localCreeps: {
         all: Creep[],
         harvesters: Creep[],
         scientists: Creep[],
@@ -272,7 +335,7 @@ export default class Room_Extended extends Room {
         return this._localCreeps
     }
 
-    _stationedCreeps: {
+    private _stationedCreeps: {
         all: Creep[],
         harvesters: Creep[],
         scientists: Creep[],
