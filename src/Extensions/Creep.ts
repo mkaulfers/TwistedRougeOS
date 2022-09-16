@@ -109,6 +109,7 @@ export default class Creep_Extended extends Creep {
         return OK;
     }
 
+    // TODO: Rewrite to use cartographer
     getOffExit(): number {
         Logger.log("Creep -> getOffExit()", LogLevel.TRACE)
 
@@ -194,28 +195,28 @@ export default class Creep_Extended extends Creep {
         return moveTo(this, targets, opts, fallbackOpts);
     }
 
-    nMRController(target: string): number {
+    nMRController(roomName: string): number {
         Logger.log("Creep -> nMRController()", LogLevel.TRACE)
 
-        let result: number;
+        let result: number = OK;
 
-        if (this.room.name !== target) {
-            result = this.travel(new RoomPosition(25, 25, target));
-        } else {
-            var controller = Game.rooms[target].controller;
-
+        if (this.room.name == roomName) {
+            let controller: StructureController | undefined = undefined;
+            controller = Game.rooms[roomName].controller;
             if (controller) {
+                this.travel({pos: controller.pos, range: 3});
                 if (!controller.isSigned) {
                     let text = 'Signs are meant to be signed, right?'
-                    if (this.signController(controller, text) == ERR_NOT_IN_RANGE) this.travel(controller.pos);
+                    if (this.signController(controller, text) == ERR_NOT_IN_RANGE) this.travel({pos: controller.pos, range: 1});
                 }
 
-                if (Memory.rooms[this.memory.homeRoom].claim == target) {
+                if (Memory.rooms[this.memory.homeRoom].claim == roomName) {
                     result = this.claimController(controller)
                     if (result == ERR_INVALID_TARGET) {
                         result = this.attackController(controller);
                     }
-                } else if (controller.owner && controller.owner.username !== this.owner.username) {
+                } else if ((controller.owner && controller.owner.username !== this.owner.username) ||
+                    controller.reservation && controller.reservation.username !== this.owner.username) {
                     result = this.attackController(controller);
                 } else {
                     result = this.reserveController(controller);
@@ -223,19 +224,15 @@ export default class Creep_Extended extends Creep {
             } else {
                 result = ERR_INVALID_TARGET;
             }
+        } else {
+            this.travel({pos: new RoomPosition(25, 25, roomName), range: 20});
         }
 
         switch (result) {
-            case OK: case ERR_BUSY:
+            case OK: case ERR_BUSY: case ERR_NOT_IN_RANGE:
                 return OK;
-            case ERR_NOT_IN_RANGE:
-                if (!controller) {
-                    Logger.log(`${this.name} recieved result ${result} from nMRController with args (${target}), but controller failed to exist.`, LogLevel.ERROR);
-                    return ERR_INVALID_TARGET;
-                }
-                return this.travel(controller.pos);
             case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_FULL: case ERR_NO_BODYPART: case ERR_GCL_NOT_ENOUGH:
-                Logger.log(`${this.name} recieved result ${result} from nMRController with args (${target}).`, LogLevel.ERROR);
+                Logger.log(`${this.name} recieved result ${result} from nMRController with args (${roomName}).`, LogLevel.ERROR);
                 return result;
         }
         return OK;

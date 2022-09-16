@@ -11,18 +11,24 @@ declare global {
          * A shorthand to global.cache.rooms[room.name]. You can use it for quick access the room's specific cache data object.
          */
         cache: RoomCache
+
+        /* Game Object Getters */
         /**
-         * We should only call this once per creep we are adding to the queue.
-         * When it is called, it will add the creep to the scheduler, which will process it
-         * when it's ready. However we need to make sure that it's not called again for the same creep.
-         * @param role  role to spawn
-        */
-        scheduleSpawn(role: Role): void
-        /**
-         * Returns a boolean value indicating whether a role should be spawned.
-         * @param role checks to see if provided role should be spawned.
-         */
-        scheduleTasks(): void
+         * @param isBuilding Filters returned cSites to just the Structure Type given.
+         * @Returns Constructions sites in the room.
+         * */
+        constructionSites(ofType?: BuildableStructureConstant): ConstructionSite[];
+        extensions: StructureExtension[];
+        extractor: StructureExtractor | undefined;
+        mineral: Mineral | undefined;
+        nuker: StructureNuker | undefined;
+        labs: StructureLab[];
+        links: StructureLink[];
+        observer: StructureObserver | undefined;
+        sources: Source[];
+        spawns: StructureSpawn[];
+        /** A room's towers, as found within the last 100 ticks || last time one died. */
+        towers: StructureTower[];
 
         localCreeps: {
             all: Creep[],
@@ -36,7 +42,6 @@ declare global {
             networkHaulers: Creep[],
             networkEngineers: Creep[]
         };
-
         stationedCreeps: {
             all: Creep[]
             harvesters: Creep[],
@@ -50,66 +55,36 @@ declare global {
             networkEngineers: Creep[]
         };
 
-        isSpawning(role: Role): boolean
-        getAvailableSpawn(): StructureSpawn | undefined
+        /* Custom Getters */
+        nextCreepToDie: Creep | undefined;
+        lowestExtension: StructureExtension | undefined
+        lowestScientist: Creep | undefined
+        lowestSpawn: StructureSpawn | undefined
+        lowestTower: StructureTower | undefined
 
-        // n WORK bodies in the room, on harvesters, x 2 per tick.
-        currentHarvesterWorkPotential(): number
-
-        // n WORK bodies in the room, x 1 per tick.
-        scientistEnergyConsumption(): number
-
-        // n WORK bodies in the room, x 1 per tick.
-        engineerEnergyConsumption(): number
-
-        // n CARRY bodies in the room, on truckers, x 50.
-        truckersCarryCapacity(): number
-
-        // Gets the distance from sources to each storage capable structure in the room.
-        // Spawn, Extension, Tower, Storage, Link, PowerSpawn, Nuker, Labs, Factory, etc..
-        averageDistanceFromSourcesToStructures(): number
-
-        sources: Source[]
-        lowestSpawn(): StructureSpawn | undefined
-        lowestExtension(): StructureExtension | undefined
-        lowestTower(): StructureTower | undefined
-        lowestScientist(): Creep | undefined
-
-        isSpawnDemandMet(): { met: boolean, demand: number }
-        isScientistDemandMet(): { met: boolean, demand: number }
-        scientistsWorkCapacity(): number
-        /**
-         * Returns target goal for rampart HP in the room
-        */
-        rampartHPTarget(): number
-        updateCostMatrix(): void
-        /**
-         * A room's towers, as found within the last 100 ticks || last time one died.
-         */
-        towers(): StructureTower[];
-        labs(): StructureLab[];
-        links(): StructureLink[];
-        nuker(): StructureNuker;
-        extractor(): StructureExtractor;
-        extensions(): StructureExtension[];
-        constructionSites(isBuilding?: BuildableStructureConstant): ConstructionSite[];
-        minerals(): Mineral[];
-        // TODO: Change to getter
-        spawns(): StructureSpawn[];
-        observer(): StructureObserver | undefined;
-
-
-        maxExtensionsAvail(): number;
-        maxTowersAvail(): number;
-        maxLabsAvail(): number;
-
-        nextCreepToDie(): Creep | undefined;
+        /* Other Functions */
+        scheduleTasks(): void
         setFrontiers(room: Room): void
-        areFastFillerExtensionsBuilt(): boolean
+        updateCostMatrix(): void
+
+        /* Other Calculations and Checks */
+        areFastFillerExtensionsBuilt: boolean;
+        /** Gets the distance from sources to each storage capable structure in the room. */
+        averageDistanceFromSourcesToStructures: number;getAvailableSpawn: StructureSpawn | undefined
+        isSpawning(role: Role): boolean
+        maxExtensionsAvail: number;
+        maxLabsAvail: number;
+        maxTowersAvail: number;
+        /** Returns target goal for rampart HP in the room */
+        rampartHPTarget: number;
     }
 }
 
 export default class Room_Extended extends Room {
+
+    /*
+    Game Object Getters
+    */
     get cache() {
         return global.Cache.rooms[this.name] = global.Cache.rooms[this.name] || {};
     }
@@ -118,15 +93,97 @@ export default class Room_Extended extends Room {
         global.Cache.rooms[this.name] = value;
     }
 
-    scheduleTasks() {
-        Utils.Logger.log("Room -> setupTasks()", LogLevel.TRACE)
-        Managers.UtilityManager.schedulePixelSale()
-        Managers.ThreatManager.scheduleThreatMonitor(this)
-        Managers.CreepManager.scheduleCreepTask(this)
-        Managers.SpawnManager.scheduleSpawnMonitor(this)
-        Managers.CreepManager.scheduleRoomTaskMonitor(this)
-        Managers.LinkManager.schedule(this);
-        Managers.ConstructionManager.scheduleConstructionMonitor(this)
+    private _constructionSites: {[key: string]: ConstructionSite[]} | undefined;
+    constructionSites(ofType?: BuildableStructureConstant) {
+        if (!this._constructionSites) {
+            this._constructionSites = {};
+            this._constructionSites['all'] = [];
+            for (const site of this.find(FIND_MY_CONSTRUCTION_SITES)) {
+                if (!this._constructionSites[site.structureType]) this._constructionSites[site.structureType] = [];
+                this._constructionSites[site.structureType].push(site);
+                this._constructionSites['all'].push(site);
+            }
+        }
+
+        if (ofType) {
+            return this._constructionSites[ofType] ? this._constructionSites[ofType] : [];
+        }
+        return this._constructionSites['all']
+    }
+
+    // TODO: Rewrite so one find & filter
+    private _extensions: StructureExtension[] | undefined;
+    get extensions() {
+        if (!this._extensions) this._extensions = this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_EXTENSION) as StructureExtension[]
+        return this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_EXTENSION) as StructureExtension[]
+    }
+
+    get extractor() {
+        return undefined;
+    }
+
+    get minerals() {
+        return this.find(FIND_MINERALS);
+    }
+
+    get nuker() {
+        return undefined;
+    }
+
+    get labs() {
+        return this.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LAB } }) as StructureLab[]
+    }
+
+    get links() {
+        return [];
+    }
+
+    get observer() {
+        let observers: StructureObserver[] = this.find(FIND_STRUCTURES, { filter: { StructureType: STRUCTURE_OBSERVER } });
+        return observers[0] ? observers[0] : undefined;
+    }
+
+    _sources: Source[] | undefined
+    get sources() {
+        if (this._sources) { return this._sources }
+        return this._sources = this.find(FIND_SOURCES)
+    }
+
+    get spawns() {
+        let mySpawns = this.find(FIND_MY_SPAWNS);
+        if (mySpawns) {
+            return mySpawns;
+        } else {
+            return this.find(FIND_HOSTILE_SPAWNS);
+        }
+    }
+
+    get towers() {
+        if (!this.cache.towers || Game.time % 100 == 0) {
+            let towers: StructureTower[] = this.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
+            if (towers.length == 0) return [];
+            let towerIds: Id<StructureTower>[] = [];
+            towers.forEach((t) => towerIds.push(t.id as Id<StructureTower>));
+
+            this.cache.towers = towerIds;
+            return towers;
+        } else {
+            let towers: StructureTower[] = [];
+            let recalc = false;
+
+            for (let tid of this.cache.towers) {
+                let tower = Game.getObjectById(tid);
+                if (tower == null) {
+                    recalc = true;
+                    continue;
+                }
+                towers.push(tower);
+            }
+
+            if (recalc == true) this.cache.towers = [];
+            if (towers.length == 0) return [];
+            return towers;
+        }
     }
 
     _localCreeps: {
@@ -304,13 +361,11 @@ export default class Room_Extended extends Room {
         return this._stationedCreeps
     }
 
-    _sources: Source[] | undefined
-    get sources() {
-        if (this._sources) { return this._sources }
-        return this._sources = this.find(FIND_SOURCES)
-    }
+    /*
+    Custom Getters
+    */
 
-    getAvailableSpawn(): StructureSpawn | undefined {
+    get getAvailableSpawn() {
         let spawns = this.find(FIND_MY_SPAWNS)
         for (let spawn of spawns) {
             if (spawn.spawning == null) {
@@ -320,140 +375,7 @@ export default class Room_Extended extends Room {
         return undefined
     }
 
-    currentHarvesterWorkPotential(): number {
-        let harvesters = this.localCreeps.harvesters
-        let harvestersPotential = 0
-        for (let harvester of harvesters) {
-            harvestersPotential += harvester.getActiveBodyparts(WORK) * 2
-        }
-
-        if (harvestersPotential > this.sources.length * 10) {
-            harvestersPotential = this.sources.length * 10
-        }
-
-        return harvestersPotential
-    }
-
-    truckersCarryCapacity(): number {
-        let truckers = this.localCreeps.truckers
-        let truckersCapacity = 0
-        for (let trucker of truckers) {
-            truckersCapacity += trucker.getActiveBodyparts(CARRY) * 50
-        }
-        return truckersCapacity
-    }
-
-    _averageDistanceFromSourcesToStructures: number | undefined = undefined
-    averageDistanceFromSourcesToStructures(): number {
-        if (!this._averageDistanceFromSourcesToStructures || Game.time % 1500 == 0) {
-            let sources = this.sources
-            let structures = this.find(FIND_STRUCTURES)
-            structures.filter((s) => { return ('store' in s) });
-            let distance = 0
-            for (let source of sources) {
-                for (let structure of structures) {
-                    distance += source.pos.getRangeTo(structure)
-                }
-            }
-            this._averageDistanceFromSourcesToStructures = distance / (sources.length * structures.length)
-        }
-        return this._averageDistanceFromSourcesToStructures
-    }
-
-    shouldPreSpawn(spawn: StructureSpawn): Creep | undefined {
-        let creep = this.nextCreepToDie()
-        let creepToSpawn: Creep | undefined
-        if (creep && creep.ticksToLive) {
-            let distFromSpawnToCreep = spawn.pos.getRangeTo(creep)
-            // TODO: Fix
-            //let totalTickCost = Managers.SpawnManager.getBodyFor(this, creep.memory.role as Role).length * 3 + distFromSpawnToCreep
-            // if (creep.ticksToLive * 1.02 <= totalTickCost) {
-            //     creepToSpawn = creep
-            // }
-        }
-        return creepToSpawn
-    }
-
-    isSpawning(role: Role): boolean {
-        let subString = role.substring(0, 3)
-        let spawns = this.find(FIND_MY_SPAWNS)
-        for (let spawn of spawns) {
-
-            let spawningName = spawn.name.substring(0, 3)
-            if (spawningName == subString) {
-                return true
-            }
-        }
-        return false
-    }
-
-    lowestSpawn(): StructureSpawn | undefined {
-        let spawns = this.find(FIND_MY_SPAWNS)
-        let lowestSpawn = undefined
-        for (let spawn of spawns) {
-            if (!lowestSpawn) { lowestSpawn = spawn }
-            if (spawn.store.energy < lowestSpawn.store.energy) {
-                lowestSpawn = spawn
-            }
-        }
-        return lowestSpawn
-    }
-
-    lowestExtension(): StructureExtension | undefined {
-        let extensions = this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_EXTENSION) as StructureExtension[]
-        let lowestExtension = undefined
-        for (let extension of extensions) {
-            if (!lowestExtension) { lowestExtension = extension }
-            if (extension.store.energy < lowestExtension.store.energy) {
-                lowestExtension = extension
-            }
-        }
-        return lowestExtension
-    }
-
-    lowestTower(): StructureTower | undefined {
-        let towers = this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_TOWER) as StructureTower[]
-        let lowestTower = undefined
-        for (let tower of towers) {
-            if (!lowestTower) { lowestTower = tower }
-            if (tower.store.energy < lowestTower.store.energy) {
-                lowestTower = tower
-            }
-        }
-        return lowestTower
-    }
-
-    scientistEnergyConsumption(): number {
-        let scientists = this.localCreeps.scientists
-        let scientistEnergyConsumption = 0
-        for (let scientist of scientists) {
-            scientistEnergyConsumption += scientist.getActiveBodyparts(WORK)
-        }
-        return scientistEnergyConsumption
-    }
-
-    engineerEnergyConsumption(): number {
-        let engineers = this.localCreeps.engineers
-        let engineerEnergyConsumption = 0
-        for (let engineer of engineers) {
-            engineerEnergyConsumption += engineer.getActiveBodyparts(WORK)
-        }
-        return engineerEnergyConsumption * 5
-    }
-
-    lowestScientist(): Creep | undefined {
-        let scientists = this.localCreeps.scientists
-        let lowestScientist = undefined
-        for (let scientist of scientists) {
-            if (!lowestScientist) { lowestScientist = scientist }
-            if (scientist.store.energy < lowestScientist.store.energy) {
-                lowestScientist = scientist
-            }
-        }
-        return lowestScientist
-    }
-
-    nextCreepToDie(): Creep | undefined {
+    get nextCreepToDie() {
         let creeps = this.localCreeps.all
         let nextCreepToDie: Creep | undefined = undefined
         for (let creep of creeps) {
@@ -468,164 +390,67 @@ export default class Room_Extended extends Room {
         return nextCreepToDie
     }
 
-    scientistsWorkCapacity(): number {
-        let scientists = this.localCreeps.scientists
-        let scientistsWorkCapacity = 0
-        for (let scientist of scientists) {
-            scientistsWorkCapacity += scientist.getActiveBodyparts(WORK)
-        }
-        return scientistsWorkCapacity
-    }
-
-
-    updateCostMatrix() {
-        let costMatrix = Utils.Utility.distanceTransform(this.name)
-        this.memory.costMatrix = JSON.stringify(costMatrix.serialize())
-    }
-
-    constructionSites(ofType?: BuildableStructureConstant): ConstructionSite[] {
-        if (ofType) {
-            return this.find(FIND_MY_CONSTRUCTION_SITES).filter(x => x.structureType == ofType)
-        }
-        return this.find(FIND_MY_CONSTRUCTION_SITES)
-    }
-
-    extensions(): StructureExtension[] {
-        return this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_EXTENSION) as StructureExtension[]
-    }
-
-    towers() {
-        if (!this.cache.towers || Game.time % 100 == 0) {
-            let towers: StructureTower[] = this.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
-            if (towers.length == 0) return [];
-            let towerIds: Id<StructureTower>[] = [];
-            towers.forEach((t) => towerIds.push(t.id as Id<StructureTower>));
-
-            this.cache.towers = towerIds;
-            return towers;
-        } else {
-            let towers: StructureTower[] = [];
-            let recalc = false;
-
-            for (let tid of this.cache.towers) {
-                let tower = Game.getObjectById(tid);
-                if (tower == null) {
-                    recalc = true;
-                    continue;
-                }
-                towers.push(tower);
+    get lowestExtension() {
+        let extensions = this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_EXTENSION) as StructureExtension[]
+        let lowestExtension = undefined
+        for (let extension of extensions) {
+            if (!lowestExtension) { lowestExtension = extension }
+            if (extension.store.energy < lowestExtension.store.energy) {
+                lowestExtension = extension
             }
-
-            if (recalc == true) this.cache.towers = [];
-            if (towers.length == 0) return [];
-            return towers;
         }
+        return lowestExtension
     }
 
-    labs() {
-        return this.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LAB } }) as StructureLab[]
-    }
-
-    minerals() {
-        return this.find(FIND_MINERALS)
-    }
-
-    spawns() {
-        let mySpawns = this.find(FIND_MY_SPAWNS);
-        if (mySpawns) {
-            return mySpawns;
-        } else {
-            return this.find(FIND_HOSTILE_SPAWNS);
+    get lowestScientist() {
+        let scientists = this.localCreeps.scientists
+        let lowestScientist = undefined
+        for (let scientist of scientists) {
+            if (!lowestScientist) { lowestScientist = scientist }
+            if (scientist.store.energy < lowestScientist.store.energy) {
+                lowestScientist = scientist
+            }
         }
+        return lowestScientist
     }
 
-    observer() {
-        let observers: StructureObserver[] = this.find(FIND_STRUCTURES, { filter: { StructureType: STRUCTURE_OBSERVER } });
-        return observers[0] ? observers[0] : undefined;
-    }
-    rampartHPTarget(): number {
-        if (!this.controller) return 0;
-        switch (this.controller.level) {
-            case 1:
-            case 2:
-            case 3:
-                return 100000;
-            case 4:
-                return 500000;
-            case 5:
-                return 1000000;
-            case 6:
-                return 5000000;
-            case 7:
-            case 8:
-                return 10000000;
+    get lowestSpawn() {
+        let spawns = this.find(FIND_MY_SPAWNS)
+        let lowestSpawn = undefined
+        for (let spawn of spawns) {
+            if (!lowestSpawn) { lowestSpawn = spawn }
+            if (spawn.store.energy < lowestSpawn.store.energy) {
+                lowestSpawn = spawn
+            }
         }
-        return 0;
+        return lowestSpawn
     }
 
-    maxExtensionsAvail(): number {
-        let controller = this.controller
-        if (!controller) return 0
-        switch (controller.level) {
-            case 1:
-                return 0;
-            case 2:
-                return 5;
-            case 3:
-                return 10;
-            case 4:
-                return 20;
-            case 5:
-                return 30;
-            case 6:
-                return 40;
-            case 7:
-                return 50;
-            case 8:
-                return 60;
+    get lowestTower() {
+        let towers = this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_TOWER) as StructureTower[]
+        let lowestTower = undefined
+        for (let tower of towers) {
+            if (!lowestTower) { lowestTower = tower }
+            if (tower.store.energy < lowestTower.store.energy) {
+                lowestTower = tower
+            }
         }
-        return 0
+        return lowestTower
     }
 
-    maxTowersAvail(): number {
-        let controller = this.controller
-        if (!controller) return 0
-        switch (controller.level) {
-            case 1:
-            case 2:
-                return 0;
-            case 3:
-            case 4:
-                return 1;
-            case 5:
-            case 6:
-                return 2;
-            case 7:
-                return 3;
-            case 8:
-                return 6;
-        }
-        return 0
-    }
+    /*
+    Other Functions
+    */
 
-    maxLabsAvail(): number {
-        let controller = this.controller
-        if (!controller) return 0
-        switch (controller.level) {
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-                return 0;
-            case 6:
-                return 3;
-            case 7:
-                return 6;
-            case 8:
-                return 10;
-        }
-        return 0
+    scheduleTasks() {
+        Utils.Logger.log("Room -> setupTasks()", LogLevel.TRACE)
+        Managers.UtilityManager.schedulePixelSale()
+        Managers.ThreatManager.scheduleThreatMonitor(this)
+        Managers.CreepManager.scheduleCreepTask(this)
+        Managers.SpawnManager.scheduleSpawnMonitor(this)
+        Managers.CreepManager.scheduleRoomTaskMonitor(this)
+        Managers.LinkManager.schedule(this);
+        Managers.ConstructionManager.scheduleConstructionMonitor(this)
     }
 
     setFrontiers(room: Room) {
@@ -653,7 +478,33 @@ export default class Room_Extended extends Room {
         room.memory.frontiers = frontiers
     }
 
-    areFastFillerExtensionsBuilt(): boolean {
+    updateCostMatrix() {
+        let costMatrix = Utils.Utility.distanceTransform(this.name)
+        this.memory.costMatrix = JSON.stringify(costMatrix.serialize())
+    }
+
+    /*
+    Other Calculations and Checks
+    */
+
+    _averageDistanceFromSourcesToStructures: number | undefined = undefined
+    get averageDistanceFromSourcesToStructures(): number {
+        if (!this._averageDistanceFromSourcesToStructures || Game.time % 1500 == 0) {
+            let sources = this.sources
+            let structures = this.find(FIND_STRUCTURES)
+            structures.filter((s) => { return ('store' in s) });
+            let distance = 0
+            for (let source of sources) {
+                for (let structure of structures) {
+                    distance += source.pos.getRangeTo(structure)
+                }
+            }
+            this._averageDistanceFromSourcesToStructures = distance / (sources.length * structures.length)
+        }
+        return this._averageDistanceFromSourcesToStructures
+    }
+
+    get areFastFillerExtensionsBuilt(): boolean {
         let anchorPos = Utils.Utility.unpackPostionToRoom(this.memory.blueprint.anchor, this.name)
         let results = this.lookAtArea(anchorPos.y - 2, anchorPos.x - 2, anchorPos.y + 2, anchorPos.x + 2, true).filter(x => x.structure?.structureType == STRUCTURE_EXTENSION)
         if (results.length >= 14) {
@@ -661,4 +512,104 @@ export default class Room_Extended extends Room {
         }
         return false
     }
+
+    isSpawning(role: Role): boolean {
+        let subString = role.substring(0, 3)
+        let spawns = this.find(FIND_MY_SPAWNS)
+        for (let spawn of spawns) {
+
+            let spawningName = spawn.name.substring(0, 3)
+            if (spawningName == subString) {
+                return true
+            }
+        }
+        return false
+    }
+
+    get maxExtensionsAvail(): number {
+        let controller = this.controller
+        if (!controller) return 0
+        switch (controller.level) {
+            case 1:
+                return 0;
+            case 2:
+                return 5;
+            case 3:
+                return 10;
+            case 4:
+                return 20;
+            case 5:
+                return 30;
+            case 6:
+                return 40;
+            case 7:
+                return 50;
+            case 8:
+                return 60;
+        }
+        return 0
+    }
+
+    get maxLabsAvail(): number {
+        let controller = this.controller
+        if (!controller) return 0
+        switch (controller.level) {
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+            case 5:
+                return 0;
+            case 6:
+                return 3;
+            case 7:
+                return 6;
+            case 8:
+                return 10;
+        }
+        return 0
+    }
+
+    get maxTowersAvail(): number {
+        let controller = this.controller
+        if (!controller) return 0
+        switch (controller.level) {
+            case 1:
+            case 2:
+                return 0;
+            case 3:
+            case 4:
+                return 1;
+            case 5:
+            case 6:
+                return 2;
+            case 7:
+                return 3;
+            case 8:
+                return 6;
+        }
+        return 0
+    }
+
+    get rampartHPTarget() {
+        if (!this.controller) return 0;
+        switch (this.controller.level) {
+            case 1:
+            case 2:
+            case 3:
+                return 100000;
+            case 4:
+                return 500000;
+            case 5:
+                return 1000000;
+            case 6:
+                return 5000000;
+            case 7:
+            case 8:
+                return 10000000;
+        }
+        return 0;
+    }
+
+
 }

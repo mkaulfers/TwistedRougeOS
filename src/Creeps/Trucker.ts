@@ -205,7 +205,7 @@ export class Trucker extends Creep {
         let truckerCount = rolesNeeded.filter(x => x == Role.TRUCKER).length
         if (min && min == true) return truckerCount < 1 ? 1 : 0;
 
-        Utils.Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.INFO)
+        // Utils.Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.INFO)  TODO: Remove dead function
         Utils.Logger.log(`Demand to Meet: ${room.sources.length * 10 * (room.averageDistanceFromSourcesToStructures() * this.carryModifier)}`, LogLevel.INFO)
         let shouldBe = Math.ceil((room.sources.length * 10 * room.averageDistanceFromSourcesToStructures() * this.carryModifier) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == CARRY).length * 50));
         if (shouldBe < 2) shouldBe = 2;
