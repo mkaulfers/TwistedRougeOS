@@ -14,7 +14,7 @@ declare global {
 
         /* Game Object Getters */
         /**
-         * @param isBuilding Filters returned cSites to just the Structure Type given.
+         * @param ofType Filters returned cSites to just the Structure Type given.
          * @Returns Constructions sites in the room.
          * */
         constructionSites(ofType?: BuildableStructureConstant): ConstructionSite[];
@@ -25,7 +25,7 @@ declare global {
         extractor: StructureExtractor | undefined;
         factory: StructureFactory | undefined;
         invaderCores: StructureInvaderCore[];
-        keeperLair: StructureKeeperLair[];
+        keeperLairs: StructureKeeperLair[];
         mineral: Mineral | undefined;
         nuker: StructureNuker | undefined;
         labs: StructureLab[];
@@ -123,7 +123,7 @@ export default class Room_Extended extends Room {
     }
 
     private _structures: {[key: string]: Structure[]} | undefined;
-    structures(ofType?: BuildableStructureConstant) {
+    structures(ofType?: StructureConstant) {
         if (!this._structures) {
             this._structures = {};
             this._structures['all'] = [];
@@ -141,112 +141,102 @@ export default class Room_Extended extends Room {
     }
 
     get containers() {
-        return [];
+        const containers = this.structures(STRUCTURE_CONTAINER);
+        return containers ? containers as StructureContainer[] : [];
     }
 
     get extensions() {
-        let extensions = this.structures(STRUCTURE_EXTENSION);
+        const extensions = this.structures(STRUCTURE_EXTENSION);
         return extensions ? extensions as StructureExtension[] : [];
     }
 
     get extractor() {
-        return undefined;
+        const extractors = this.structures(STRUCTURE_EXTRACTOR);
+        return extractors[0] !== undefined ? extractors[0] as StructureExtractor : undefined;
     }
 
     get factory() {
-        return undefined;
+        const factories = this.structures(STRUCTURE_FACTORY);
+        return factories[0] !== undefined ? factories[0] as StructureFactory : undefined;
     }
 
     get invaderCores() {
-        return [];
+        const invaderCores = this.structures(STRUCTURE_EXTENSION);
+        return invaderCores ? invaderCores as StructureInvaderCore[] : [];
     }
 
-    get keeperLair() {
-        return [];
+    get keeperLairs() {
+        const keeperLairs = this.structures(STRUCTURE_EXTENSION);
+        return keeperLairs ? keeperLairs as StructureKeeperLair[] : [];
     }
 
-    get minerals() {
-        return this.find(FIND_MINERALS);
+    private _mineral: Mineral | undefined;
+    get mineral() {
+        if (this._mineral) return this._mineral;
+        let minerals = this.find(FIND_MINERALS);
+        return this._mineral = minerals[0] !== undefined ? minerals[0] : undefined;
     }
 
     get nuker() {
-        return undefined;
+        const nukers = this.structures(STRUCTURE_NUKER);
+        return nukers[0] !== undefined ? nukers[0] as StructureNuker : undefined;
     }
 
     get labs() {
-        return this.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LAB } }) as StructureLab[]
+        const labs = this.structures(STRUCTURE_LAB);
+        return labs ? labs as StructureLab[] : [];
     }
 
     get links() {
-        return [];
+        const links = this.structures(STRUCTURE_LINK);
+        return links ? links as StructureLink[] : [];
     }
 
     get observer() {
-        let observers: StructureObserver[] = this.find(FIND_STRUCTURES, { filter: { StructureType: STRUCTURE_OBSERVER } });
-        return observers[0] ? observers[0] : undefined;
+        const observers = this.structures(STRUCTURE_OBSERVER);
+        return observers[0] !== undefined ? observers[0] as StructureObserver : undefined;
     }
 
     get portals() {
-        return [];
+        const portals = this.structures(STRUCTURE_PORTAL);
+        return portals ? portals as StructurePortal[] : [];
     }
 
     get powerBank() {
-        return undefined;
+        const powerBanks = this.structures(STRUCTURE_POWER_BANK);
+        return powerBanks[0] !== undefined ? powerBanks[0] as StructurePowerBank : undefined;
     }
 
     get powerSpawn() {
-        return undefined;
+        const powerSpawns = this.structures(STRUCTURE_POWER_SPAWN);
+        return powerSpawns[0] !== undefined ? powerSpawns[0] as StructurePowerSpawn : undefined;
     }
 
     get roads() {
-        return [];
+        const roads = this.structures(STRUCTURE_ROAD);
+        return roads ? roads as StructureRoad[] : [];
     }
 
     private _sources: Source[] | undefined
     get sources() {
-        if (this._sources) { return this._sources }
-        return this._sources = this.find(FIND_SOURCES)
+        if (this._sources) return this._sources;
+        let sources = this.find(FIND_SOURCES);
+        return this._sources = sources ? sources as Source[] : [];
     }
 
     get spawns() {
-        let mySpawns = this.find(FIND_MY_SPAWNS);
-        if (mySpawns) {
-            return mySpawns;
-        } else {
-            return this.find(FIND_HOSTILE_SPAWNS);
-        }
+        const spawns = this.structures(STRUCTURE_SPAWN);
+        return spawns ? spawns as StructureSpawn[] : [];
     }
 
     get towers() {
-        if (!this.cache.towers || Game.time % 100 == 0) {
-            let towers: StructureTower[] = this.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
-            if (towers.length == 0) return [];
-            let towerIds: Id<StructureTower>[] = [];
-            towers.forEach((t) => towerIds.push(t.id as Id<StructureTower>));
-
-            this.cache.towers = towerIds;
-            return towers;
-        } else {
-            let towers: StructureTower[] = [];
-            let recalc = false;
-
-            for (let tid of this.cache.towers) {
-                let tower = Game.getObjectById(tid);
-                if (tower == null) {
-                    recalc = true;
-                    continue;
-                }
-                towers.push(tower);
-            }
-
-            if (recalc == true) this.cache.towers = [];
-            if (towers.length == 0) return [];
-            return towers;
-        }
+        const towers = this.structures(STRUCTURE_TOWER);
+        return towers ? towers as StructureTower[] : [];
     }
 
     get walls() {
-        return [];
+        const walls = this.structures(STRUCTURE_WALL);
+        return walls ? walls as StructureWall[] : [];
     }
 
     private _localCreeps: {
@@ -673,6 +663,4 @@ export default class Room_Extended extends Room {
         }
         return 0;
     }
-
-
 }
