@@ -371,11 +371,11 @@ export default class Room_Extended extends Room {
     Other Calculations and Checks
     */
 
-    _averageDistanceFromSourcesToStructures: number | undefined = undefined
+    private _averageDistanceFromSourcesToStructures: number | undefined = undefined
     get averageDistanceFromSourcesToStructures(): number {
         if (!this._averageDistanceFromSourcesToStructures || Game.time % 1500 == 0) {
             let sources = this.sources
-            let structures = this.find(FIND_STRUCTURES)
+            let structures = this.structures();
             structures.filter((s) => { return ('store' in s) });
             let distance = 0
             for (let source of sources) {
@@ -388,13 +388,17 @@ export default class Room_Extended extends Room {
         return this._averageDistanceFromSourcesToStructures
     }
 
-    get areFastFillerExtensionsBuilt(): boolean {
-        let anchorPos = Utils.Utility.unpackPostionToRoom(this.memory.blueprint.anchor, this.name)
-        let results = this.lookAtArea(anchorPos.y - 2, anchorPos.x - 2, anchorPos.y + 2, anchorPos.x + 2, true).filter(x => x.structure?.structureType == STRUCTURE_EXTENSION)
-        if (results.length >= 14) {
-            return true
+    private _areFastFillerExtensionsBuilt: boolean | undefined;
+    get areFastFillerExtensionsBuilt() {
+        if (!this._areFastFillerExtensionsBuilt) {
+            let anchorPos = Utils.Utility.unpackPostionToRoom(this.memory.blueprint.anchor, this.name)
+            let results = this.lookAtArea(anchorPos.y - 2, anchorPos.x - 2, anchorPos.y + 2, anchorPos.x + 2, true).filter(x => x.structure?.structureType == STRUCTURE_EXTENSION)
+            if (results.length >= 14) {
+                this._areFastFillerExtensionsBuilt = true;
+            }
+            this._areFastFillerExtensionsBuilt = false;
         }
-        return false
+        return this._areFastFillerExtensionsBuilt;
     }
 
     isSpawning(role: Role): boolean {
@@ -410,88 +414,134 @@ export default class Room_Extended extends Room {
         return false
     }
 
+    private _maxExtensionsAvail: number | undefined;
     get maxExtensionsAvail(): number {
-        let controller = this.controller
-        if (!controller) return 0
-        switch (controller.level) {
-            case 1:
-                return 0;
-            case 2:
-                return 5;
-            case 3:
-                return 10;
-            case 4:
-                return 20;
-            case 5:
-                return 30;
-            case 6:
-                return 40;
-            case 7:
-                return 50;
-            case 8:
-                return 60;
+        if (!this._maxExtensionsAvail) {
+            let controller = this.controller
+            if (!controller) return 0;
+            switch (controller.level) {
+                case 1:
+                    this._maxExtensionsAvail = 0;
+                    break;
+                case 2:
+                    this._maxExtensionsAvail = 5;
+                    break;
+                case 3:
+                    this._maxExtensionsAvail = 10;
+                    break;
+                case 4:
+                    this._maxExtensionsAvail = 20;
+                    break;
+                case 5:
+                    this._maxExtensionsAvail = 30;
+                    break;
+                case 6:
+                    this._maxExtensionsAvail = 40;
+                    break;
+                case 7:
+                    this._maxExtensionsAvail = 50;
+                    break;
+                case 8:
+                    this._maxExtensionsAvail = 60;
+                    break;
+                default:
+                    this._maxExtensionsAvail = 0;
+                    break;
+            }
         }
-        return 0
+        return this._maxExtensionsAvail;
     }
 
+    private _maxLabsAvail: number | undefined;
     get maxLabsAvail(): number {
-        let controller = this.controller
-        if (!controller) return 0
-        switch (controller.level) {
-            case 1:
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-                return 0;
-            case 6:
-                return 3;
-            case 7:
-                return 6;
-            case 8:
-                return 10;
+        if (!this._maxLabsAvail) {
+            let controller = this.controller
+            if (!controller) return 0
+            switch (controller.level) {
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                    this._maxLabsAvail = 0;
+                    break;
+                case 6:
+                    this._maxLabsAvail = 3;
+                    break;
+                case 7:
+                    this._maxLabsAvail = 6;
+                    break;
+                case 8:
+                    this._maxLabsAvail = 10;
+                    break;
+                default:
+                    this._maxLabsAvail = 0;
+                    break;
+            }
         }
-        return 0
+        return this._maxLabsAvail;
     }
 
+    private _maxTowersAvail: number | undefined;
     get maxTowersAvail(): number {
-        let controller = this.controller
-        if (!controller) return 0
-        switch (controller.level) {
-            case 1:
-            case 2:
-                return 0;
-            case 3:
-            case 4:
-                return 1;
-            case 5:
-            case 6:
-                return 2;
-            case 7:
-                return 3;
-            case 8:
-                return 6;
+        if (!this._maxTowersAvail) {
+            let controller = this.controller
+            if (!controller) return 0
+            switch (controller.level) {
+                case 1:
+                case 2:
+                    this._maxTowersAvail = 0;
+                    break;
+                case 3:
+                case 4:
+                    this._maxTowersAvail = 1;
+                    break;
+                case 5:
+                case 6:
+                    this._maxTowersAvail = 2;
+                    break;
+                case 7:
+                    this._maxTowersAvail = 3;
+                    break;
+                case 8:
+                    this._maxTowersAvail = 6;
+                    break;
+                default:
+                    this._maxTowersAvail = 0;
+                    break;
+            }
         }
-        return 0
+        return this._maxTowersAvail;
     }
 
+    _rampartHPTarget: number | undefined;
     get rampartHPTarget() {
-        if (!this.controller) return 0;
-        switch (this.controller.level) {
-            case 1:
-            case 2:
-            case 3:
-                return 100000;
-            case 4:
-                return 500000;
-            case 5:
-                return 1000000;
-            case 6:
-                return 5000000;
-            case 7:
-            case 8:
-                return 10000000;
+        if (!this._rampartHPTarget) {
+            if (!this.controller) return 0;
+            switch (this.controller.level) {
+                case 1:
+                case 2:
+                case 3:
+                    this._rampartHPTarget = 100000;
+                    break;
+                case 4:
+                    this._rampartHPTarget = 500000;
+                    break;
+                case 5:
+                    this._rampartHPTarget = 1000000;
+                    break;
+                case 6:
+                    this._rampartHPTarget = 5000000;
+                    break;
+                case 7:
+                case 8:
+                    this._rampartHPTarget = 10000000;
+                    break;
+                default:
+                    this._rampartHPTarget = 0;
+                    break;
+            }
         }
-        return 0;
+        return this._rampartHPTarget;
     }
 }
