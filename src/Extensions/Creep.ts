@@ -150,7 +150,7 @@ export default class Creep_Extended extends Creep {
     mine(target: Source | Mineral): number {
         Logger.log("Creep -> give()", LogLevel.TRACE)
 
-        this.travel(target.pos);
+        this.travel(target.pos, { avoidCreeps: true });
         let result: number = this.harvest(target);
 
         switch (result) {
