@@ -278,75 +278,48 @@ export default class Room_Extended extends Room {
     get getAvailableSpawn() {
         if (!this._availableSpawn) {
             for (const spawn of this.spawns) {
-                if (spawn.spawning === null) {
-                    return this._availableSpawn = spawn;
-                }
+                if (spawn.spawning === null) return this._availableSpawn = spawn;
             }
         }
         return this._availableSpawn;
     }
 
+    private _nextCreepToDie: Creep | undefined;
     get nextCreepToDie() {
-        let creeps = this.localCreeps.all
-        let nextCreepToDie: Creep | undefined = undefined
-        for (let creep of creeps) {
-            if (!nextCreepToDie) { nextCreepToDie = creep }
-            if (creep.ticksToLive && nextCreepToDie.ticksToLive) {
-                if (creep.ticksToLive < nextCreepToDie.ticksToLive) {
-                    nextCreepToDie = creep
-                }
+        if (!this._nextCreepToDie) {
+            for (const creep of this.stationedCreeps.all) {
+                const gonnaLive = creep.ticksToLive ? creep.ticksToLive : 1500;
+                const willLive = this._nextCreepToDie && this._nextCreepToDie.ticksToLive ? this._nextCreepToDie.ticksToLive : 1500;
+                if (gonnaLive < willLive) this._nextCreepToDie = creep;
             }
         }
-        Logger.log(`Next Creep To Die: ${nextCreepToDie ? nextCreepToDie.name : "None"}`, LogLevel.INFO)
-        return nextCreepToDie
+        return this._nextCreepToDie;
     }
 
+    private _lowestExtension: StructureExtension | undefined;
     get lowestExtension() {
-        let extensions = this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_EXTENSION) as StructureExtension[]
-        let lowestExtension = undefined
-        for (let extension of extensions) {
-            if (!lowestExtension) { lowestExtension = extension }
-            if (extension.store.energy < lowestExtension.store.energy) {
-                lowestExtension = extension
-            }
+        if (this._lowestExtension) {
+            for (const extension of this.extensions) if (extension.store.energy < (this._lowestExtension && this._lowestExtension.store.energy ? this._lowestExtension.store.energy : 200)) this._lowestExtension = extension;
         }
-        return lowestExtension
+        return this._lowestExtension;
     }
 
+    private _lowestScientist: Creep | undefined;
     get lowestScientist() {
-        let scientists = this.localCreeps.scientist
-        let lowestScientist = undefined
-        for (let scientist of scientists) {
-            if (!lowestScientist) { lowestScientist = scientist }
-            if (scientist.store.energy < lowestScientist.store.energy) {
-                lowestScientist = scientist
-            }
-        }
-        return lowestScientist
+        for (const scientist of this.localCreeps.scientist) if (scientist.store.energy < (this._lowestScientist && this._lowestScientist.store.energy ? this._lowestScientist.store.energy : 10000)) this._lowestScientist = scientist;
+        return this._lowestScientist;
     }
 
+    private _lowestSpawn: StructureSpawn | undefined;
     get lowestSpawn() {
-        let spawns = this.find(FIND_MY_SPAWNS)
-        let lowestSpawn = undefined
-        for (let spawn of spawns) {
-            if (!lowestSpawn) { lowestSpawn = spawn }
-            if (spawn.store.energy < lowestSpawn.store.energy) {
-                lowestSpawn = spawn
-            }
-        }
-        return lowestSpawn
+        for (const spawn of this.spawns) if (spawn.store.energy < (this._lowestSpawn && this._lowestSpawn.store.energy ? this._lowestSpawn.store.energy : 200)) this._lowestSpawn = spawn;
+        return this._lowestSpawn;
     }
 
+    private _lowestTower: StructureTower | undefined;
     get lowestTower() {
-        let towers = this.find(FIND_MY_STRUCTURES).filter(x => x.structureType == STRUCTURE_TOWER) as StructureTower[]
-        let lowestTower = undefined
-        for (let tower of towers) {
-            if (!lowestTower) { lowestTower = tower }
-            if (tower.store.energy < lowestTower.store.energy) {
-                lowestTower = tower
-            }
-        }
-        return lowestTower
+        for (const tower of this.towers) if (tower.store.energy < (this._lowestTower && this._lowestTower.store.energy ? this._lowestTower.store.energy : 200)) this._lowestTower = tower;
+        return this._lowestTower;
     }
 
     /*
