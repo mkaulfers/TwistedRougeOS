@@ -253,52 +253,6 @@ function generateNewPlan(room: Room) {
     }
 }
 
-/**
-* @Deprecated Notice - Use floodFillSearch() instead.
- * DO NOT CHANGE THIS CODE
- * @Reference https://stackoverflow.com/questions/3706219/algorithm-for-iterating-over-an-outward-spiral-on-a-discrete-2d-grid-from-the-or
- * @param startPosition - Searching starts from this position, going in a spiral, clockwise.
- * @param size - The size of the item to fit into a space.
- *             - If the size is odd, the item will be centered on the startPosition.
- *             - If the size is 4, the item will be centered on top-left corner of the center square.
- *             - DO NOT PASS AN EVEN NUMBER GREATER THAN 4.
- * @param plannedPositions - Required to simulate the next positions for addition to the blueprint.
- * @returns - A position that your stamp will fit into.
- */
-function spiralSearch(startPosition: RoomPosition, structure: StampType, plannedPositions: RoomPosition[]): RoomPosition | undefined {
-    let deltaX = 1;
-    let deltaY = 0;
-
-    let segmentLength = 1;
-
-    let x = 0;
-    let y = 0;
-    let segmentPassed = 0;
-
-    for (let k = 0; k < 1500; ++k) {
-        x += deltaX;
-        y += deltaY;
-        ++segmentPassed;
-
-        if (doesStampFitAtPosition(startPosition.x + x, startPosition.y + y, Game.rooms[startPosition.roomName], structure, plannedPositions)) {
-            return new RoomPosition(startPosition.x + x, startPosition.y + y, startPosition.roomName)
-        }
-
-        if (segmentPassed == segmentLength) {
-            segmentPassed = 0;
-            let buffer = deltaX
-            deltaX = -deltaY;
-            deltaY = buffer;
-
-            if (deltaY == 0) {
-                ++segmentLength;
-            }
-        }
-    }
-
-    return undefined
-}
-
 function getValidPositionAroundPosition(position: PathStep | RoomPosition, room: Room, roadPositions: PathStep[] | RoomPosition[]): RoomPosition {
     //Get a position around the provided position that is not a wall or a road fromRoadPositions.
     let range = 2
@@ -562,6 +516,8 @@ function generateBluePrintAnchor(room: Room, positions: RoomPosition[] = []): Ro
 }
 
 function generateRoomCostMatrix(room: Room) {
+    if (!room.memory) return
+    if (!room.memory.blueprint) return
     if (room.memory.costMatrix && room.memory.blueprint.anchor != 0) { return }
 
     let costMatrix: CostMatrix | undefined = undefined

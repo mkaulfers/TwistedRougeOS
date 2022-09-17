@@ -1,5 +1,6 @@
 import { LogLevel } from "utils/Enums"
 import { Utils } from "utils/Index"
+import { Logger } from "utils/Logger"
 
 export default class SpawnSchedule {
     roomName: string

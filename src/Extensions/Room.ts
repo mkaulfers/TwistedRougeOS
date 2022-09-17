@@ -5,8 +5,8 @@ import Roles from '../Creeps/Index'
 
 import { Role, LogLevel } from '../utils/Enums'
 
-type CreepFind = {[key in Role | 'all' | 'unknown']: Creep[]};
-type LooseCreepFind = {[key in Role | 'all' | 'unknown']?: Creep[]};
+type CreepFind = { [key in Role | 'all' | 'unknown']: Creep[] };
+type LooseCreepFind = { [key in Role | 'all' | 'unknown']?: Creep[] };
 
 declare global {
     interface Room {
@@ -86,7 +86,7 @@ export default class Room_Extended extends Room {
         global.Cache.rooms[this.name] = value;
     }
 
-    private _constructionSites: {[key: string]: ConstructionSite[]} | undefined;
+    private _constructionSites: { [key: string]: ConstructionSite[] } | undefined;
     constructionSites(ofType?: BuildableStructureConstant) {
         if (!this._constructionSites) {
             this._constructionSites = {};
@@ -104,7 +104,7 @@ export default class Room_Extended extends Room {
         return this._constructionSites['all']
     }
 
-    private _structures: {[key: string]: Structure[]} | undefined;
+    private _structures: { [key: string]: Structure[] } | undefined;
     structures(ofType?: StructureConstant) {
         if (!this._structures) {
             this._structures = {};
@@ -340,24 +340,38 @@ export default class Room_Extended extends Room {
     setFrontiers(room: Room) {
         let frontiers: string[] = []
         let currentRoomGlobalPos = Utils.Utility.roomNameToCoords(this.name)
-        for (let wx = currentRoomGlobalPos.wx - 10; wx <= currentRoomGlobalPos.wx + 10; wx++) {
-            for (let wy = currentRoomGlobalPos.wy - 10; wy <= currentRoomGlobalPos.wy + 10; wy++) {
-                let prospectFrontier = Utils.Utility.roomNameFromCoords(wx, wy)
-                let result = Game.map.describeExits(prospectFrontier)
-                if (result != null && Game.map.getRoomStatus(prospectFrontier).status == Game.map.getRoomStatus(room.name).status) {
-                    frontiers.push(prospectFrontier)
+
+        let deltaX = 1;
+        let deltaY = 0;
+        let segmentLength = 1;
+
+        let x = 0;
+        let y = 0;
+        let segmentPassed = 0;
+
+        for (let k = 0; k < 120; ++k) {
+            x += deltaX;
+            y += deltaY;
+            ++segmentPassed;
+
+            Logger.log(`WX: ${currentRoomGlobalPos.wx + x} WY: ${currentRoomGlobalPos.wy + y}`, LogLevel.DEBUG)
+            let prospectFrontier = Utils.Utility.roomNameFromCoords(currentRoomGlobalPos.wx + x, currentRoomGlobalPos.wy + y)
+            let result = Game.map.describeExits(prospectFrontier)
+            if (result != null && Game.map.getRoomStatus(prospectFrontier).status == Game.map.getRoomStatus(room.name).status) {
+                frontiers.push(prospectFrontier)
+            }
+
+            if (segmentPassed == segmentLength) {
+                segmentPassed = 0;
+                let temp = deltaX;
+                deltaX = -deltaY;
+                deltaY = temp;
+
+                if (deltaY == 0) {
+                    ++segmentLength;
                 }
             }
         }
-
-        frontiers = _.sortByOrder(frontiers, (roomName: string) => {
-            let roomGlobalPos = Utils.Utility.roomNameToCoords(roomName)
-            let dx = roomGlobalPos.wx - currentRoomGlobalPos.wx
-            let dy = roomGlobalPos.wy - currentRoomGlobalPos.wy
-            return Math.abs(dx) + Math.abs(dy)
-        }, 'asc')
-
-        frontiers.splice(0, 1)
 
         room.memory.frontiers = frontiers
     }
@@ -391,7 +405,7 @@ export default class Room_Extended extends Room {
     private _areFastFillerExtensionsBuilt: boolean | undefined;
     get areFastFillerExtensionsBuilt() {
         if (!this._areFastFillerExtensionsBuilt) {
-            let anchorPos = Utils.Utility.unpackPostionToRoom(this.memory.blueprint.anchor, this.name)
+            let anchorPos = Utils.Utility.unpackPostionToRoom(this.memory.blueprint!.anchor, this.name)
             let results = this.lookAtArea(anchorPos.y - 2, anchorPos.x - 2, anchorPos.y + 2, anchorPos.x + 2, true).filter(x => x.structure?.structureType == STRUCTURE_EXTENSION)
             if (results.length >= 14) {
                 this._areFastFillerExtensionsBuilt = true;
