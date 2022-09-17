@@ -32,6 +32,10 @@ declare global {
                 completed: boolean
             }[]
         }
+        rclZero?: number
+        rclThree?: number
+        rclFour?: number
+        rclFive?: number
     }
 
     interface Memory {
@@ -122,6 +126,16 @@ export default class DataManager {
                         links: {},
                     };
                 }
+
+                // Temporary RCL tick tracker
+                let room = Game.rooms[roomName];
+                if (room.controller && room.controller.my) {
+                    if (room.controller.level == 1 && !room.memory.rclZero) room.memory.rclZero = Game.time;
+                    if (room.controller.level == 3 && !room.memory.rclThree) room.memory.rclThree = Game.time;
+                    if (room.controller.level == 4 && !room.memory.rclFour) room.memory.rclFour = Game.time;
+                    if (room.controller.level == 5 && !room.memory.rclFive) room.memory.rclFive = Game.time;
+                }
+
             }
             for (const name in Game.creeps) {
                 if (!global.Cache.creeps[name]) {
