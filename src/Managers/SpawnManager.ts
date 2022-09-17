@@ -83,9 +83,11 @@ export default class SpawnManager {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
+                    console.log(`roles ${role} being considered`)
                     let count: number = Roles[role].quantityWanted(room, rolesNeeded, minimum);
                     if (count > 0) allFound = false;
-                    for (let i = 0; i < count; i++) rolesNeeded.push(role);
+                    for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
+                    console.log(`rolesNeeded for ${minimum ? minimum : false}: ${JSON.stringify(rolesNeeded)}`)
                 }
             }
         }

@@ -179,10 +179,11 @@ export class Utility {
 
     /**
      * Generates a body for a creep taking into account factors such as maximum cost, supportable cost given income, etc.
+     * @param override Overrides energy income body cost limitations.
      * @param sortOrder Sort order override, in ascending order numerically.
      * Defaults to TOUGH, WORK, ATTACK, RANGED_ATTACK, CARRY, MOVE, HEAL, and CLAIM with values ranging from 0-7 respectively.
      */
-     static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], sortOrder?: {[key in BodyPartConstant]?: number}): BodyPartConstant[] {
+     static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], override?: boolean, sortOrder?: {[key in BodyPartConstant]?: number}): BodyPartConstant[] {
         Logger.log("SpawnManager -> getBodyFor()", LogLevel.TRACE)
 
         let tempBody = baseBody;
@@ -217,9 +218,16 @@ export class Utility {
         }
 
         // Determine energy limit for body generation
-        // TODO: Modify max energy expenditure calculations to allow for income compensation
-        let eLimit = room.energyCapacityAvailable;
+        // Current limit: No single creep consumes more than a 20th of our income.
+        let eLimit: number;
+        if (!override) {
+            let roomIncome = (room.energyIncome * 1500)
+            eLimit = roomIncome == 0 ? 300 : (room.energyCapacityAvailable > (roomIncome / 20)) ? roomIncome / 20 : room.energyCapacityAvailable;
+        } else {
+            eLimit = room.energyCapacityAvailable;
+        }
 
+        //room.energyCapacityAvailable
         // Expand tempBody to correct size given limits
         let baseCost = Utility.bodyCost(tempBody)
         if (baseCost > eLimit) return [];

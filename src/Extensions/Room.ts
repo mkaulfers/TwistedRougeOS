@@ -64,6 +64,8 @@ declare global {
         areFastFillerExtensionsBuilt: boolean;
         /** Gets the distance from sources to each storage capable structure in the room. */
         averageDistanceFromSourcesToStructures: number;
+        /** Returns a per tick energy income */
+        energyIncome: number;
         isSpawning(role: Role): boolean
         maxExtensionsAvail: number;
         maxLabsAvail: number;
@@ -400,6 +402,18 @@ export default class Room_Extended extends Room {
         }
         return this._areFastFillerExtensionsBuilt;
     }
+
+    // TODO: Modify to consider Power Creep Effects
+    // TODO: Modify to consider operational remotes only
+    private _energyIncome: number | undefined;
+    get energyIncome() {
+        if (!this._energyIncome) {
+            this._energyIncome = 0;
+            for (const source of this.sources) if (source.isHarvestingAtMaxEfficiency) this._energyIncome += 10;
+        }
+        return this._energyIncome;
+    }
+
 
     isSpawning(role: Role): boolean {
         let subString = role.substring(0, 3)
