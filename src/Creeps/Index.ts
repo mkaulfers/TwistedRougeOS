@@ -12,7 +12,7 @@ var Roles: {[key in Role]?: any} = {
     engineer: Engineer,
     filler: Filler,
     scientist: Scientist,
-    agent: Agent
+    agent: Agent,
 }
 
 export default Roles;

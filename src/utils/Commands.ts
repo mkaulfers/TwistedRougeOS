@@ -26,6 +26,7 @@ declare global {
 
             function setLogLevel(level: string): string;
             function schedule(name: string, full?: boolean): string;
+            function reschedule(name: string): string;
 
 }
 
@@ -47,20 +48,22 @@ global.help = function(cmd) {
             return `'toggleWorldPathfindingVisual' is a toggle for seeing a room's confirmed exits on the world map, should the data exist.`;
         case 'destroyCreeps':
             return `'destroyCreeps' is a confirmation required command for killing all creeps under one's control.`;
-        case 'destroyCreepsInRoom': case 'destroyCreepsInRoom(roomName)':
-            return `'destroyCreepsInRoom' is a confirmation required command for killing all creeps for a specific room under one's control.`;
+        case 'destroyCreepsInRoom': case 'destroyCreepsInRoom()':
+            return `'destroyCreepsInRoom(roomName)' is a confirmation required command for killing all creeps for a specific room under one's control.`;
         case 'destroyStructures':
             return `'destroyStructures' is a confirmation required command for destroying all structures under one's control.`;
-        case 'destroyStructuresInRoom': case 'destroyStructuresInRoom(roomName)':
-            return `'destroyStructuresInRoom' is a confirmation required command for destroying all structures for a specific room under one's control.`;
+        case 'destroyStructuresInRoom': case 'destroyStructuresInRoom()':
+            return `'destroyStructuresInRoom(roomName)' is a confirmation required command for destroying all structures for a specific room under one's control.`;
         case 'destroyCSites':
             return `'destroyCSites' is a confirmation required command for destroying all cSites under one's control.`;
-        case 'destroyCSitesInRoom': case 'destroyCSitesInRoom(roomName)':
-            return `'destroyCSitesInRoom' is a confirmation required command for destroying all cSites for a specific room under one's control.`;
-        case 'setLogLevel':
+        case 'destroyCSitesInRoom': case 'destroyCSitesInRoom()':
+            return `'destroyCSitesInRoom(roomName)' is a confirmation required command for destroying all cSites for a specific room under one's control.`;
+        case 'setLogLevel': case 'setLogLevel()':
             return `'setLogLevel(level)' is a command to change the current log level. Please use actual keys for the LogLevel enum.`;
-        case 'schedule': case 'schedule(roomName, full?)':
-            return `'schedule()' is a viewer for the room's spawn schedule. 'roomName' is the room's name, 'full' is an optional boolean for if you want the whole schedule object.`;
+        case 'schedule': case 'schedule()':
+            return `'schedule(roomName, full?)' is a viewer for the room's spawn schedule. 'roomName' is the room's name, 'full' is an optional boolean for if you want the whole schedule object.`;
+        case 'reschedule': case 'reschedule()':
+            return `'schedule(roomName)' will force a room's spawn schedule to regenerate itself.. 'roomName' is the room's name.`;
         default:
             response = `${cmd} either has no help text or isn't a function. \n Accepted values are:
             'toggleRoomPlanVisual'
@@ -76,7 +79,8 @@ global.help = function(cmd) {
             'destroyCSites'
             'destroyCSitesInRoom'
             'setLogLevel'
-            'schedule'`
+            'schedule'
+            'reschedule'`
             return response;
     }
 }
@@ -240,10 +244,19 @@ global.schedule = function(name, full) {
             console.log(`Schedule for ${name}, ${spawnSchedule.spawnName}:`);
             for (const spawnOrder of spawnSchedule.schedule) {
                 let timeTilSpawn = spawnOrder.scheduleTick !== undefined ? spawnOrder.scheduleTick - spawnSchedule.tick : `unknown`;
-                if (typeof(timeTilSpawn) == 'number' && timeTilSpawn < 0) timeTilSpawn = Math.abs(timeTilSpawn) + 1500;
-                console.log(`${spawnOrder.id}: ${Utility.bodyCost(spawnOrder.body)} energy, in ${timeTilSpawn} ticks.`);
+                if (typeof(timeTilSpawn) == 'number' && timeTilSpawn < 0) timeTilSpawn = 1500 + timeTilSpawn;
+                console.log(`${spawnOrder.id}: ${Utility.bodyCost(spawnOrder.body)} energy, in ${timeTilSpawn} ticks, or tick ${typeof(timeTilSpawn) == 'number' ? Game.time + timeTilSpawn : timeTilSpawn}.`);
             }
         }
         return `Short schedule for ${name} logged.`
     }
+}
+
+global.reschedule = function(name) {
+    let room = Game.rooms[name];
+    if (!room) return `The chosen room is not one of ours.`
+    if (!room.cache.spawnSchedules) return `Schedule for ${name} not found.`
+
+    for (const spawnSchedule of room.cache.spawnSchedules) spawnSchedule.reset();
+    return `${room.name}'s spawn schedule reset.`;
 }

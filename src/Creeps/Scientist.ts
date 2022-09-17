@@ -37,7 +37,7 @@ export class Scientist extends Creep {
     }
 
     static dispatch(room: Room) {
-        let scientists = room.localCreeps.scientists
+        let scientists = room.localCreeps.scientist
         for (let scientist of scientists) {
             if (!scientist.memory.task) {
                 global.scheduler.swapProcess(scientist, Task.SCIENTIST_UPGRADING)
@@ -55,6 +55,7 @@ export class Scientist extends Creep {
         // TODO: Modify to return correct amount to consume energy, limited by RCL 8 and income as necessary
 
         let shouldBe = Math.ceil((room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length));
+        if (room.storage && room.storage.store.energy > 500000 && room.controller!.level !== 8) shouldBe = Math.ceil((room.sources.length * 10) * 2) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length);
         Utils.Logger.log(`scientist.quantityWanted() shouldBe: ${shouldBe}, ${(room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 3)}, ${(Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length)}`, LogLevel.INFO)
         return sciCount < shouldBe ? shouldBe - sciCount : 0;
     }

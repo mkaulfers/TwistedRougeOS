@@ -6,6 +6,7 @@ import { Logger } from "utils/Logger"
 export class Filler extends Creep {
     static baseBody = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE]
     static segment = [CARRY]
+    static partLimits = [12]
 
     static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
         Utils.Logger.log("quantityWanted -> filler.quantityWanted()", LogLevel.TRACE)
@@ -16,7 +17,7 @@ export class Filler extends Creep {
     }
 
     static dispatch(room: Room) {
-        let fillers = room.localCreeps.fillers
+        let fillers = room.localCreeps.filler
         for (let filler of fillers) {
             if (!filler.memory.task) {
                 global.scheduler.swapProcess(filler, Task.FILLER)
@@ -84,7 +85,7 @@ export class Filler extends Creep {
             new RoomPosition(anchor.x + 1, anchor.y + 1, anchor.roomName),
         ]
 
-        let creeps = room.localCreeps.fillers
+        let creeps = room.localCreeps.filler
         for (let creep of creeps) {
             if (creep.memory.assignedPos) {
                 for (let assignable of assignablePositions) {

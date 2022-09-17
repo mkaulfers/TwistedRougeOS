@@ -56,7 +56,7 @@ export class Process {
     toString() {
         return `<body><div style='width: 50vw; text-align: left; align-items: left; justify-content: left; display: inline-block; background: ${colors.lightGrey};'><div style='padding: 2px; font-size: 18px; font-weight: 600; color: ${colors.black};'>${this.id}<br>` +
                `<div style='width: 50vw; text-align: left; align-items: left; justify-content: left; display: inline-block; background: ${colors.white};'><div style='padding: 2px; font-size: 14px; font-weight: 500; color: ${colors.brown};'>${this.currentPriority}<br>` +
-               `<div style='height:20px;width:${this.getAvgCpuUsed() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>${this.getAvgCpuUsed().toString().substring(0, 4)}</div></div></body>`
+               `<div style='height:20px;width:${this.cpuUsedHistory[this.cpuUsedHistory.length - 1] * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>${this.cpuUsedHistory[this.cpuUsedHistory.length - 1].toString().substring(0, 4)}</div></div></body>`
     }
 }
 

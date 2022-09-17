@@ -90,21 +90,18 @@ export default class ConstructionManager {
                         hubSkipped.splice(hubSkipped.indexOf(STRUCTURE_TERMINAL), 1)
 
                         let labs = blueprint.stamps.filter(stamp => stamp.type == StampType.LABS)
-                        let labsCount = room.labs().length
+                        let labsCount = room.labs.length
                         let labsConstCount = room.constructionSites(STRUCTURE_LAB).length
 
                         for (let lab of labs) {
-                            if (labsCount + labsConstCount < room.maxLabsAvail()) {
+                            if (labsCount + labsConstCount < room.maxLabsAvail) {
                                 let pos = Utils.Utility.unpackPostionToRoom(lab.stampPos, room.name)
                                 Stamps.buildStructure(pos, lab.type as StampType)
                             }
                         }
 
-                        let minerals = room.minerals()
-                        for (let mineral of minerals) {
-                            let pos = mineral.pos
-                            pos.createConstructionSite(STRUCTURE_EXTRACTOR)
-                        }
+                        let mineral = room.mineral;
+                        if (mineral) mineral.pos.createConstructionSite(STRUCTURE_EXTRACTOR);
                     case 5:
                         let packedRamparts = blueprint.ramparts
                         for (let rampart of packedRamparts) {
@@ -147,8 +144,8 @@ export default class ConstructionManager {
                         let extensions = blueprint.stamps.filter(x => x.type == StampType.EXTENSIONS)
                         for (let extension of extensions) {
                             let roomExtConstSites = room.constructionSites(STRUCTURE_EXTENSION)
-                            let extensions = room.extensions()
-                            if (roomExtConstSites.length + extensions.length < room.maxExtensionsAvail() && room.areFastFillerExtensionsBuilt()) {
+                            let extensions = room.extensions
+                            if (roomExtConstSites.length + extensions.length < room.maxExtensionsAvail && room.areFastFillerExtensionsBuilt) {
                                 Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(extension.stampPos, room.name), StampType.EXTENSIONS)
                             }
                         }
@@ -158,11 +155,11 @@ export default class ConstructionManager {
                         Stamps.buildStructure(hubPos, StampType.ANCHOR, hubSkipped)
 
                     case 3:
-                        let towers = room.towers()
+                        let towers = room.towers
                         let towerConstructionSites = room.constructionSites(STRUCTURE_TOWER)
                         let towerStamps = blueprint.stamps.filter(x => x.type == StampType.TOWER)
                         for (let stamp of towerStamps) {
-                            if (towerConstructionSites.length + towers.length < room.maxTowersAvail()) {
+                            if (towerConstructionSites.length + towers.length < room.maxTowersAvail) {
                                 Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(stamp.stampPos, room.name), StampType.TOWER, [STRUCTURE_RAMPART])
                             }
                         }
@@ -191,7 +188,7 @@ export default class ConstructionManager {
                         let fastFiller = blueprint.stamps.find(s => s.type === StampType.FAST_FILLER)
                         if (fastFiller) {
                             Utils.Logger.log(`Level ${controller.level}`, LogLevel.INFO)
-                            if (room.areFastFillerExtensionsBuilt()) {
+                            if (room.areFastFillerExtensionsBuilt) {
                                 fastFillerStructuresSkipped.splice(fastFillerStructuresSkipped.indexOf(STRUCTURE_CONTAINER), 1)
                             }
                             Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(fastFiller.stampPos, room.name), fastFiller.type as StampType, fastFillerStructuresSkipped)

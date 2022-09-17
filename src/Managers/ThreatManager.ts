@@ -122,7 +122,7 @@ export default class ThreatManager {
                                 global.attackedTime = Game.time;
                             }
                         } else {
-                            if (target.hits <= (room.rampartHPTarget() * 0.25)) {
+                            if (target.hits <= (room.rampartHPTarget * 0.25)) {
                                 shouldSafeMode = true;
                                 global.recentlyAttacked = true;
                                 global.attackedTime = Game.time;
@@ -152,7 +152,7 @@ export default class ThreatManager {
 
         let owner = creep.owner.username;
 
-        let towers = creep.room.towers();
+        let towers = creep.room.towers;
         if (towers.length === 0) return false;
 
         // TODO: Modify to add boost calculations
@@ -189,7 +189,7 @@ export default class ThreatManager {
         Utils.Logger.log(`ThreatManager -> towerAttack`, LogLevel.TRACE)
 
         let room = target.room as Room;
-        let towers = room.towers();
+        let towers = room.towers;
 
         if (towers.length == 0) return;
 
@@ -201,7 +201,7 @@ export default class ThreatManager {
     static towerHeal(room: Room) {
         Utils.Logger.log(`ThreatManager -> towerHeal`, LogLevel.TRACE)
 
-        let towers = room.towers();
+        let towers = room.towers;
         if (towers.length === 0) return;
 
         for (let tower of towers) {

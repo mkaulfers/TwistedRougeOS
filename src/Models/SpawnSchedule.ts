@@ -4,19 +4,21 @@ import { Utils } from "utils/Index"
 export default class SpawnSchedule {
     roomName: string
     spawnName: string
+    /** Position in the schedule. A number from 0 to 1500. */
     tick: number
+    /** Number of ticks schedule has been halted. Used for tracking and triggering special circumstances to mitigate room-crash situations. */
     pausedTicks: number
-    freeSpaces: [number, number][] // [tick, freeTickCount][]
+    /** Tracker for unused space in the schedule. Each tuple is [tick, freeTickCount]. Example: [10, 350]. On tick 10 in the schedule, there is 350 ticks of free space. */
+    freeSpaces: [number, number][]
+    /** Number representing total quantity of ticks the spawn will be in use for the duration of the schedule. */
     usedSpace: number
-    limiter: number // Limits total amount of the schedule that is used.
+    /** Number between 0.0 and 1.0 that limits the total amount of schedule used. Example: 0.8. 80% of the schedule's ticks are free to be used for spawning.*/
+    limiter: number
+    /** The actual schedule. Contains all SpawnOrders required, with all information required but the final name.*/
     schedule: SpawnOrder[]
+    /** Used by the Spawn Manager to know when to rebuild the whole schedule. */
     needsScheduled: boolean;
 
-    /**
-     * How to create a new spawn schedule. Can also recreate an existing schedule.
-     * @param roomName Name of room.
-     * @param spawnName Name of spawn.
-     */
     constructor(roomName: string, spawnName: string, opts?: {tick: number, pausedTicks: number, schedule: SpawnOrder[], freeSpaces: [number, number][], usedSpace: number}) {
         this.roomName = roomName;
         this.spawnName = spawnName;
@@ -40,18 +42,23 @@ export default class SpawnSchedule {
     add(spawnOrders: SpawnOrder[], opts?: {force?: boolean}): SpawnOrder[] | undefined {
         // TODO: Modify to handle gaps between spawnOrders
 
-        // TODO: Modify to handle suggested scheduleTicks
         let externalSpawnOrders = [...spawnOrders];
+        // Schedule each spawnOrder
         for (const spawnOrder of spawnOrders) {
-            // Already exists?
+            // SpawnOrder already exists check
             if (this.schedule.findIndex((o) => o.id === spawnOrder.id) >= 0) continue;
+            // Over limiter check
+            if ((opts && !opts.force || !opts) && this.usedSpace >= (this.limiter * 1500)) return externalSpawnOrders;
 
+            // TODO: Consider spawning creeps too
+            // Check for existing creep to match spawnOrder
             let relCreep = Game.rooms[this.roomName].stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id && c.spawning == false);
             let relCFreeSpace = relCreep ? this.freeSpaces.find(freeSpace => freeSpace[0] <= (relCreep!.ticksToLive! - spawnOrder.spawnTime) &&
                 (freeSpace[1] - ((relCreep!.ticksToLive! - spawnOrder.spawnTime) - freeSpace[0])) >= spawnOrder.spawnTime) : undefined;
 
+            // TODO: Modify for travel time.
+            // Set scheduleTick to PreSpawn IFF possible
             if (relCreep && relCFreeSpace) {
-                // Throw in to match death of existing creep
                 Utils.Logger.log(`${relCreep.name} found. TTL: ${relCreep.ticksToLive}`, LogLevel.INFO);
 
                 spawnOrder.scheduleTick = relCreep.ticksToLive! - spawnOrder.spawnTime;
@@ -68,19 +75,22 @@ export default class SpawnSchedule {
                 }
             }
             else {
-                // Throw in at first available open slot
+                // Set scheduleTick in first open slot
                 let firstFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[1] >= spawnOrder.spawnTime);
-                if (!firstFreeSpace || ((opts && !opts.force || !opts) && this.usedSpace >= (this.limiter * 1500)))
-                    return externalSpawnOrders;
+                if (!firstFreeSpace) return externalSpawnOrders;
                 spawnOrder.scheduleTick = firstFreeSpace[0];
                 this.freeSpaces[this.freeSpaces.indexOf(firstFreeSpace)] = [firstFreeSpace[0] + spawnOrder.spawnTime + 1, firstFreeSpace[1] - (spawnOrder.spawnTime + 1)];
             }
-            // TODO: Fix useSpace Calculations
+
+            // TODO: Fix usedSpace Calculations
+            // Add to schedule, adjust numbers, remove SpawnOrder from externalSpawnOrders
             this.usedSpace += spawnOrder.spawnTime;
             this.schedule.push(spawnOrder);
             externalSpawnOrders.shift();
             Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.INFO);
         }
+
+        // Sort for easy legibility
         this.schedule = _.sortBy(this.schedule, (o) => o.scheduleTick);
         return undefined;
     }
@@ -95,7 +105,7 @@ export default class SpawnSchedule {
     }
 
     /**
-     * Removes SpawnOrders from the schedule.
+     * Removes SpawnOrders from the schedule. UNTESTED
      * @param spawnOrders All SpawnOrders you wish to remove.
      */
     remove(spawnOrders: SpawnOrder[]): void {
@@ -126,9 +136,9 @@ export default class SpawnSchedule {
     /**
      * Reschedules existing schedule based on priority.
      */
-    reschedule(): void {
+    // reschedule(): void {
 
-    }
+    // }
 
     /**
      * Resets the schedule without having to reinitialize the class.
@@ -143,9 +153,9 @@ export default class SpawnSchedule {
     }
 
     /**
-     *
+     * Cancels prespawns, forces all as tightly as possible to allow for more spawning.
      */
-    shift(): void {
+    // shift(): void {
 
-    }
+    // }
 }

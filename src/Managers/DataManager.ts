@@ -45,7 +45,6 @@ declare global {
     // Add properties you wish to have stored in a room's cache in the interface below.
     // Refer to `const cacheTask` below if you make it a required property.
     interface RoomCache {
-        towers: Id<StructureTower>[];
         towerTarget?: Id<AnyCreep>;
         links: {[key: Id<StructureLink>]: string};
         spawnSchedules?: SpawnSchedule[];
@@ -120,7 +119,6 @@ export default class DataManager {
                 if (!global.Cache.rooms[roomName]) {
                     global.Cache.rooms[roomName] = {
                         // Add required properties of the room's cache here
-                        towers: [],
                         links: {},
                     };
                 }
