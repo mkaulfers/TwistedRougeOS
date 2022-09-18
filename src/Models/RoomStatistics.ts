@@ -5,7 +5,7 @@ import { PortalDetail } from "./PortalDetail"
 
 export class RoomStatistics {
     exploredTime: number
-    name: String
+    name: string
     swampCount: number
     plainCount: number
     wallCount: number
@@ -26,7 +26,7 @@ export class RoomStatistics {
 
     constructor(
         exporedTime: number,
-        name: String,
+        name: string,
         swampCount: number,
         plainCount: number,
         wallCount: number,

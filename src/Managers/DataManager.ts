@@ -32,7 +32,7 @@ declare global {
         costMatrix?: string
         frontiers?: string[]
         intel?: RoomStatistics
-        remotes?: string[]
+        remotes?: RoomStatistics[]
     }
 
     interface Memory {

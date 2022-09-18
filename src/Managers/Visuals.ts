@@ -77,6 +77,7 @@ export default class Visuals {
         for (const roomName in Memory.rooms) {
             if (!Memory.rooms[roomName] || !Memory.rooms[roomName].blueprint) continue;
             let blueprint = Memory.rooms[roomName].blueprint;
+            if (!blueprint) continue;
             let rVis = new RoomVisual(roomName);
 
             for (let stamp of blueprint.stamps) {

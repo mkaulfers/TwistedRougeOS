@@ -47,20 +47,22 @@ export class Agent extends Creep {
             if (homeFrontiers && homeFrontiers.length > 0) {
                 let targetFrontier = homeFrontiers[0]
 
-                if (targetFrontier == currentRoom.name ||
-                    !this.isRoomExplored(currentRoom.name) && currentRoom.name != agent.memory.homeRoom ||
-                    this.shouldUpdateIntel(currentRoom.name)) {
-                    if (!Memory.rooms[currentRoom.name]) {
-                        Memory.rooms[currentRoom.name] = {}
-                    }
+                if (currentRoom.name != agent.memory.homeRoom) {
+                    if (targetFrontier == currentRoom.name ||
+                        !this.isRoomExplored(currentRoom.name) ||
+                        this.shouldUpdateIntel(currentRoom.name)) {
+                        if (!Memory.rooms[currentRoom.name]) {
+                            Memory.rooms[currentRoom.name] = {}
+                        }
 
-                    let roomStatistics = this.generateRoomStatistics(currentRoom)
+                        let roomStatistics = this.generateRoomStatistics(currentRoom)
 
-                    Memory.rooms[currentRoom.name].intel = roomStatistics
+                        Memory.rooms[currentRoom.name].intel = roomStatistics
 
-                    if (targetFrontier == currentRoom.name) {
-                        homeFrontiers.push(homeFrontiers.shift()!)
-                        Memory.rooms[agent.memory.homeRoom].frontiers = homeFrontiers
+                        if (targetFrontier == currentRoom.name) {
+                            homeFrontiers.push(homeFrontiers.shift()!)
+                            Memory.rooms[agent.memory.homeRoom].frontiers = homeFrontiers
+                        }
                     }
                 }
 
