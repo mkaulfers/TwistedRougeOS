@@ -39,39 +39,38 @@ export class Agent extends Creep {
         const agentTask = () => {
             let agent = Game.getObjectById(creepId)
             if (!agent) { return ProcessResult.FAILED }
-            let frontiers = Game.rooms[agent.memory.homeRoom].memory.frontiers
-            if (!frontiers) { return ProcessResult.FAILED }
-            if (!Memory.intelligence) { Memory.intelligence = [] }
+            let currentRoom = agent.room
+            let homeFrontiers = Game.rooms[agent.memory.homeRoom].memory.frontiers
 
-            let targetFrontier = new RoomPosition(25, 25, frontiers[0])
-            if (agent.room.name != frontiers[0]) {
-                agent.moveToDefault(targetFrontier)
-                if (frontiers[0] != agent.memory.homeRoom && !this.isRoomExplored(agent.room)) {
-                    let roomStatistics = this.generateRoomStatistics(agent.room)
-                    Memory.intelligence.push(roomStatistics)
+            if (homeFrontiers && homeFrontiers.length > 0) {
+                let targetFrontier = homeFrontiers[0]
 
-                    frontiers.splice(frontiers.indexOf(agent.room.name), 1)
-                    Game.rooms[agent.memory.homeRoom].memory.frontiers = frontiers
-                    let frontierAsCoords = Utils.Utility.roomNameToCoords(frontiers[0])
-                    let packedCoords = Utils.Utility.packPosition(frontierAsCoords)
-                    agent.memory.assignedPos = packedCoords
-
-                }
-            } else {
-                moveTo(agent, targetFrontier, {
-                    avoidCreeps: true,
-                    avoidObstacleStructures: true,
-                    avoidSourceKeepers: true,
-                    plainCost: 2,
-                    swampCost: 2,
-                    visualizePathStyle: {
-                        fill: 'transparent',
-                        stroke: '#fff',
-                        lineStyle: 'dashed',
-                        strokeWidth: .15,
-                        opacity: .2
+                if (currentRoom.name != agent.memory.homeRoom &&
+                    (targetFrontier == currentRoom.name ||
+                        !this.isRoomExplored(currentRoom.name) ||
+                        this.shouldUpdateIntel(currentRoom.name))) {
+                    if (!Memory.rooms[currentRoom.name]) {
+                        Memory.rooms[currentRoom.name] = {}
                     }
-                })
+
+                    let roomStatistics = this.generateRoomStatistics(currentRoom)
+
+                    Memory.rooms[currentRoom.name].intel = roomStatistics
+
+                    if (targetFrontier == currentRoom.name) {
+                        homeFrontiers.push(homeFrontiers.shift()!)
+                        Memory.rooms[agent.memory.homeRoom].frontiers = homeFrontiers
+                    }
+                }
+
+                if (creep.room.name != targetFrontier) {
+                    creep.travel({ pos: new RoomPosition(25, 25, targetFrontier), range: 25 }, {
+                        avoidCreeps: true,
+                        plainCost: 2,
+                        swampCost: 2
+                    })
+                }
+
             }
             return ProcessResult.RUNNING
         }
@@ -81,19 +80,22 @@ export class Agent extends Creep {
         global.scheduler.addProcess(newProcess)
     }
 
-    private static isRoomExplored(room: Room): boolean {
-        let intelligence = Memory.intelligence
-        if (!intelligence) { return false }
-        let explored = false
-        for (let data of intelligence) {
-            if (data.name == room.name) {
-                explored = true
-            }
-        }
-        return explored
+    private static isRoomExplored(targetFrontier: string): boolean {
+        if (!Game.rooms[targetFrontier]) return false
+        if (!Game.rooms[targetFrontier].memory) return false
+        if (!Game.rooms[targetFrontier].memory.intel) return false
+        return true
+    }
+
+    private static shouldUpdateIntel(targetRoom: string): boolean {
+        let intel = Memory.rooms[targetRoom].intel
+        if (!intel) return true
+        if (Game.time - intel.exploredTime > 3000) return true
+        return false
     }
 
     private static generateRoomStatistics(room: Room): RoomStatistics {
+        let exploredTime = Game.time
         let terrainInfo = this.getTerrainCounts(room)
         let swampCount = terrainInfo.swamp
         let plainCount = terrainInfo.plain
@@ -125,6 +127,7 @@ export class Agent extends Creep {
         let invaderDetails = this.getInvaderDetails(room)
 
         return new RoomStatistics(
+            exploredTime,
             room.name,
             swampCount,
             plainCount,

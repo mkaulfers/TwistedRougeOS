@@ -8,19 +8,15 @@ import { Utils } from '../utils/Index';
 declare global {
     interface CreepMemory {
         assignedPos?: number
-        task?: Task
-        role: string
-        working: boolean
-        target?: Id<any>
         homeRoom: string
+        role: string
+        target?: Id<any>
+        task?: Task
+        working: boolean
     }
 
     interface RoomMemory {
-        claim?: string
-        remotes?: string[]
-        frontiers?: string[]
-        costMatrix: string
-        blueprint: {
+        blueprint?: {
             anchor: number,
             containers: number[],
             links: number[],
@@ -32,27 +28,32 @@ declare global {
                 completed: boolean
             }[]
         }
+
+        claim?: string
+        costMatrix?: string
+        frontiers?: string[]
+        intel?: RoomStatistics
         rclZero?: number
         rclThree?: number
         rclFour?: number
         rclFive?: number
+        remotes?: string[]
     }
 
     interface Memory {
-        uuid: number;
-        log: any;
         kernel: string
+        log: any;
         scheduler: string
-        intelligence: RoomStatistics[]
+        uuid: number;
     }
 
     // Add properties you wish to have stored in a room's cache in the interface below.
     // Refer to `const cacheTask` below if you make it a required property.
     interface RoomCache {
-        towerTarget?: Id<AnyCreep>;
         links: {[key: Id<StructureLink>]: string};
-        spawnSchedules?: SpawnSchedule[];
         pauseSpawning?: boolean;
+        spawnSchedules?: SpawnSchedule[];
+        towerTarget?: Id<AnyCreep>;
     }
 
     // Add properties you wish to have stored in a creep's cache in the interface below.
@@ -80,11 +81,11 @@ export default class DataManager {
                     delete Memory.creeps[name]
                 }
             }
-            // Cleanup rooms we aren't in
-            // TODO: Modfiy to only cleanup claimed rooms of data required to run a claimed room. Keep scouting data, other data, etc.
+
             for (const name in Memory.rooms) {
-                if (!Game.rooms[name]) {
-                    Utils.Logger.log(`Removing dead room: ${name}`, LogLevel.INFO)
+                //Delete the room from Memory if it is not owned by me AND it does not contain intel.
+                if (!Game.rooms[name] && !Memory.rooms[name].intel) {
+                    Utils.Logger.log(`Removing room: ${name}`, LogLevel.INFO)
                     delete Memory.rooms[name]
                 }
             }
