@@ -202,10 +202,10 @@ export default class Creep_Extended extends Creep {
             let controller: StructureController | undefined = undefined;
             controller = Game.rooms[roomName].controller;
             if (controller) {
-                this.travel({pos: controller.pos, range: 3});
+                this.travel({ pos: controller.pos, range: 3 });
                 if (!controller.isSigned) {
                     let text = 'Signs are meant to be signed, right?'
-                    if (this.signController(controller, text) == ERR_NOT_IN_RANGE) this.travel({pos: controller.pos, range: 1});
+                    if (this.signController(controller, text) == ERR_NOT_IN_RANGE) this.travel({ pos: controller.pos, range: 1 });
                 }
 
                 if (Memory.rooms[this.memory.homeRoom].claim == roomName) {
@@ -223,7 +223,7 @@ export default class Creep_Extended extends Creep {
                 result = ERR_INVALID_TARGET;
             }
         } else {
-            this.travel({pos: new RoomPosition(25, 25, roomName), range: 20});
+            this.travel({ pos: new RoomPosition(25, 25, roomName), range: 20 });
         }
 
         switch (result) {
@@ -239,7 +239,7 @@ export default class Creep_Extended extends Creep {
     praise(target: StructureController): number {
         Logger.log("Creep -> praise()", LogLevel.TRACE)
 
-        this.travel({pos: target.pos, range: 3});
+        this.travel({ pos: target.pos, range: 3 });
         let result: number = this.upgradeController(target);
 
         if (!target.isSigned) {
@@ -288,24 +288,32 @@ export default class Creep_Extended extends Creep {
 
         // TODO: Add Portal Avoidance
 
-        // TODO: Tie to intel
-        const hostileRooms: string[] = [];
-
         // Apply civilian creep defaults
         let defaultOpts: MoveOpts = {
             avoidSourceKeepers: true,
-            routeCallback: (room: string) => {
-                if (hostileRooms.includes(room)) {
-                  return Infinity;
+            visualizePathStyle: {
+                fill: 'transparent',
+                stroke: '#fff',
+                lineStyle: 'dashed',
+                strokeWidth: .15,
+                opacity: .2
+            },
+            routeCallback: (roomName: string) => {
+                let room = Game.rooms[roomName]
+                if (!room) return
+                if (!room.memory) return
+                if (!room.memory.intel) return
+                if (room.memory.intel.threatLevel > 0) {
+                    return Infinity
                 }
-                return undefined;
-              }
+                return
+            }
         };
         opts = Object.assign(defaultOpts, opts)
 
         let defaultFallbackOpts: MoveOpts = {
-
         };
+
         fallbackOpts = Object.assign(Object.assign(defaultFallbackOpts, defaultOpts), fallbackOpts)
 
         return this.moveToDefault(targets, opts, fallbackOpts);
@@ -313,7 +321,7 @@ export default class Creep_Extended extends Creep {
 
     work(target: Structure | ConstructionSite): number {
         Logger.log("Creep -> work()", LogLevel.TRACE)
-        this.travel({pos: target.pos, range: 3});
+        this.travel({ pos: target.pos, range: 3 });
         let result: number;
         if ('remove' in target) {
             result = this.build(target);

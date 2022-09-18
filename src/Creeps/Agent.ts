@@ -47,49 +47,29 @@ export class Agent extends Creep {
             if (homeFrontiers && homeFrontiers.length > 0) {
                 let targetFrontier = homeFrontiers[0]
 
-                if (currentRoom.name != agent.memory.homeRoom) {
-                    if (targetFrontier == currentRoom.name ||
+                if (currentRoom.name != agent.memory.homeRoom &&
+                    (targetFrontier == currentRoom.name ||
                         !this.isRoomExplored(currentRoom.name) ||
-                        this.shouldUpdateIntel(currentRoom.name)) {
-                        if (!Memory.rooms[currentRoom.name]) {
-                            Memory.rooms[currentRoom.name] = {}
-                        }
+                        this.shouldUpdateIntel(currentRoom.name))) {
+                    if (!Memory.rooms[currentRoom.name]) {
+                        Memory.rooms[currentRoom.name] = {}
+                    }
 
-                        let roomStatistics = this.generateRoomStatistics(currentRoom)
+                    let roomStatistics = this.generateRoomStatistics(currentRoom)
 
-                        Memory.rooms[currentRoom.name].intel = roomStatistics
+                    Memory.rooms[currentRoom.name].intel = roomStatistics
 
-                        if (targetFrontier == currentRoom.name) {
-                            homeFrontiers.push(homeFrontiers.shift()!)
-                            Memory.rooms[agent.memory.homeRoom].frontiers = homeFrontiers
-                        }
+                    if (targetFrontier == currentRoom.name) {
+                        homeFrontiers.push(homeFrontiers.shift()!)
+                        Memory.rooms[agent.memory.homeRoom].frontiers = homeFrontiers
                     }
                 }
 
                 if (creep.room.name != targetFrontier) {
-                    moveTo(agent, { pos: new RoomPosition(25, 25, targetFrontier), range: 25 }, {
+                    creep.travel({ pos: new RoomPosition(25, 25, targetFrontier), range: 25 }, {
                         avoidCreeps: true,
-                        avoidObstacleStructures: true,
-                        avoidSourceKeepers: true,
                         plainCost: 2,
-                        swampCost: 2,
-                        visualizePathStyle: {
-                            fill: 'transparent',
-                            stroke: '#fff',
-                            lineStyle: 'dashed',
-                            strokeWidth: .15,
-                            opacity: .2
-                        },
-                        routeCallback: (roomName: string) => {
-                            let room = Game.rooms[roomName]
-                            if (!room) return
-                            if (!room.memory) return
-                            if (!room.memory.intel) return
-                            if (room.memory.intel.threatLevel > 0) {
-                                return Infinity
-                            }
-                            return
-                        }
+                        swampCost: 2
                     })
                 }
 
