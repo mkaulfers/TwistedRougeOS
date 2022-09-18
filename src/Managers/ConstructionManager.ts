@@ -14,7 +14,7 @@ export default class ConstructionManager {
             let room = Game.rooms[roomName]
             if (!room) { return }
 
-            if (!room.memory.frontiers) {
+            if (!room.memory.frontiers && room.memory.blueprint) {
                 room.setFrontiers(room)
             }
 
@@ -28,7 +28,7 @@ export default class ConstructionManager {
                         site.remove()
                     }
 
-                    let packedRamparts = room.memory.blueprint.ramparts
+                    let packedRamparts = room.memory.blueprint!.ramparts
                     for (let rampart of packedRamparts) {
                         let pos = Utils.Utility.unpackPostionToRoom(rampart, room.name)
                         pos.createConstructionSite(STRUCTURE_RAMPART)

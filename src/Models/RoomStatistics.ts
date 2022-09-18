@@ -4,6 +4,7 @@ import { PlayerDetail } from "./PlayerDetail"
 import { PortalDetail } from "./PortalDetail"
 
 export class RoomStatistics {
+    exploredTime: number
     name: String
     swampCount: number
     plainCount: number
@@ -23,7 +24,9 @@ export class RoomStatistics {
     playerDetail?: PlayerDetail
     invaderDetail?: InvaderDetail
 
-    constructor(name: String,
+    constructor(
+        exporedTime: number,
+        name: String,
         swampCount: number,
         plainCount: number,
         wallCount: number,
@@ -39,6 +42,7 @@ export class RoomStatistics {
         largestDistanceToController?: number,
         playerDetail?: PlayerDetail,
         invaderDetail?: InvaderDetail) {
+        this.exploredTime = exporedTime
         this.name = name
         this.swampCount = swampCount
         this.plainCount = plainCount
