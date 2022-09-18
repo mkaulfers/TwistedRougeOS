@@ -7,8 +7,6 @@ import { RoomStatistics } from "Models/RoomStatistics"
 import { moveTo } from "screeps-cartographer"
 import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
-import { Logger } from "utils/Logger"
-import { Z_PARTIAL_FLUSH } from "zlib"
 
 export class Agent extends Creep {
     static baseBody = [MOVE]
@@ -49,8 +47,8 @@ export class Agent extends Creep {
 
                 if (currentRoom.name != agent.memory.homeRoom &&
                     (targetFrontier == currentRoom.name ||
-                    !this.isRoomExplored(currentRoom.name) ||
-                    this.shouldUpdateIntel(currentRoom.name))) {
+                        !this.isRoomExplored(currentRoom.name) ||
+                        this.shouldUpdateIntel(currentRoom.name))) {
                     if (!Memory.rooms[currentRoom.name]) {
                         Memory.rooms[currentRoom.name] = {}
                     }
@@ -66,29 +64,11 @@ export class Agent extends Creep {
                 }
 
                 if (creep.room.name != targetFrontier) {
-                    moveTo(agent, { pos: new RoomPosition(25, 25, targetFrontier), range: 25 }, {
+                    creep.travel({ pos: new RoomPosition(25, 25, targetFrontier), range: 25 }, {
                         avoidCreeps: true,
                         avoidObstacleStructures: true,
-                        avoidSourceKeepers: true,
                         plainCost: 2,
-                        swampCost: 2,
-                        visualizePathStyle: {
-                            fill: 'transparent',
-                            stroke: '#fff',
-                            lineStyle: 'dashed',
-                            strokeWidth: .15,
-                            opacity: .2
-                        },
-                        routeCallback: (roomName: string) => {
-                            let room = Game.rooms[roomName]
-                            if (!room) return
-                            if (!room.memory) return
-                            if (!room.memory.intel) return
-                            if (room.memory.intel.threatLevel > 0) {
-                                return Infinity
-                            }
-                            return
-                        }
+                        swampCost: 2
                     })
                 }
 
