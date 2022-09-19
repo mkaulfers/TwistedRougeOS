@@ -302,9 +302,8 @@ export default class Creep_Extended extends Creep {
             },
             routeCallback: (roomName: string) => {
                 let room = Game.rooms[roomName]
-                if (!room) return
-                if (!room.memory) return
-                if (!room.memory.intel) return
+                if (!room || !room.memory || !room.memory.intel) return
+
                 if (room.memory.intel.threatLevel > 0) {
                     return Infinity
                 }
@@ -314,9 +313,25 @@ export default class Creep_Extended extends Creep {
         opts = Object.assign(defaultOpts, opts)
 
         let defaultFallbackOpts: MoveOpts = {
+            avoidSourceKeepers: true,
+            visualizePathStyle: {
+                fill: 'transparent',
+                stroke: '#f00',
+                lineStyle: 'dashed',
+                strokeWidth: .15,
+                opacity: .2
+            },
+            routeCallback: (roomName: string) => {
+                let room = Game.rooms[roomName]
+                if (!room || !room.memory || !room.memory.intel) return
+                if (room.memory.intel.threatLevel > 0) {
+                    return Infinity
+                }
+                return
+            }
         };
 
-        fallbackOpts = Object.assign(Object.assign(defaultFallbackOpts, defaultOpts), fallbackOpts)
+        fallbackOpts = Object.assign(defaultFallbackOpts, fallbackOpts)
 
         return this.moveToDefault(targets, opts, fallbackOpts);
     }
