@@ -195,26 +195,11 @@ export class Utility {
          * Example: [CARRY, CARRY, MOVE, CARRY, MOVE, WORK] would have a partLimits reference array of [CARRY, MOVE, WORK]
          */
         if (!partLimits) partLimits = [];
-        let refPartLimitsArray = tempSegment.filter((p, i) => tempSegment.indexOf(p) === i);
+        const refPartLimitsArray = tempSegment.filter((p, i) => tempSegment.indexOf(p) === i);
+
+        // Fallback partLimits Missing Catcher
         if (partLimits.length === 0 && tempSegment.length !== 0) {
-            // Builds a proportional partLimits that mimics the segments ratios while fully utilizing the max body size.
-            let freePartsPortion = Math.floor((50 - tempBody.length) / tempSegment.length);
-
-            refPartLimitsArray.forEach((p, i) => partLimits![i] = 0);
-            tempBody.forEach(function(p) {
-                let i = refPartLimitsArray.indexOf(p);
-                if (i >= 0) partLimits![i] += partLimits![i]
-            });
-
-            tempSegment.forEach(function(p) {
-                partLimits![refPartLimitsArray.indexOf(p)] += freePartsPortion;
-            })
-            let unusedParts = 50 - (tempBody.length + (partLimits.reduce((previousValue, currentValue) => previousValue + currentValue)));
-            for (let i = 0; unusedParts < 50; i >= tempSegment.length ? i = 0 : i++) {
-                partLimits[refPartLimitsArray.indexOf(tempSegment[i])] += 1;
-                unusedParts++;
-            }
-
+            partLimits = this.buildPartLimits(tempBody, tempSegment);
         }
 
         // Determine energy limit for body generation
@@ -278,5 +263,30 @@ export class Utility {
 
         Logger.log(`Temp Body Length: ${tempBody.length}`, LogLevel.TRACE)
         return tempBody
+    }
+
+    static buildPartLimits(tempBody: BodyPartConstant[], tempSegment: BodyPartConstant[]): number[] {
+        if (tempSegment.length == 0) return [];
+        // Builds a proportional partLimits that mimics the segments ratios while fully utilizing the max body size.
+        const refPartLimitsArray = tempSegment.filter((p, i) => tempSegment.indexOf(p) === i);
+        let freePartsPortion = Math.floor((50 - tempBody.length) / tempSegment.length);
+        let partLimits: number[] = [];
+
+        refPartLimitsArray.forEach((p, i) => partLimits![i] = 0);
+        tempBody.forEach(function(p) {
+            let i = refPartLimitsArray.indexOf(p);
+            if (i >= 0) partLimits![i] += partLimits![i]
+        });
+
+        tempSegment.forEach(function(p) {
+            partLimits![refPartLimitsArray.indexOf(p)] += freePartsPortion;
+        })
+        let unusedParts = 50 - (tempBody.length + (partLimits.reduce((previousValue, currentValue) => previousValue + currentValue)));
+        for (let i = 0; unusedParts < 50; i >= tempSegment.length ? i = 0 : i++) {
+            partLimits[refPartLimitsArray.indexOf(tempSegment[i])] += 1;
+            unusedParts++;
+        }
+
+        return partLimits;
     }
 }

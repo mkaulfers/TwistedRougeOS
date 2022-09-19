@@ -64,7 +64,7 @@ export class Agent extends Creep {
                 }
 
                 if (creep.room.name != targetFrontier) {
-                    creep.travel({ pos: new RoomPosition(25, 25, targetFrontier), range: 25 }, {
+                    creep.travel({ pos: new RoomPosition(25, 25, targetFrontier), range: 23 }, {
                         avoidCreeps: true,
                         plainCost: 2,
                         swampCost: 2

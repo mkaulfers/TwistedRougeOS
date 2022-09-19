@@ -6,6 +6,7 @@ export class Scientist extends Creep {
 
     static baseBody = [CARRY, MOVE, WORK, WORK]
     static segment = [CARRY, WORK, WORK]
+    static partLimits: number[] = [];
 
     static scientistUpgrading(creep: Creep) {
         let creepId = creep.id
@@ -53,10 +54,10 @@ export class Scientist extends Creep {
         if (min && min == true) return sciCount < 1 ? 1 : 0;
 
         // TODO: Modify to return correct amount to consume energy, limited by RCL 8 and income as necessary
-
-        let shouldBe = Math.ceil((room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 2) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length));
-        if (room.storage && room.storage.store.energy > 500000 && room.controller!.level !== 8) shouldBe = Math.ceil((room.sources.length * 10) * 2) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length);
-        Utils.Logger.log(`scientist.quantityWanted() shouldBe: ${shouldBe}, ${(room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 2)}, ${(Utils.Utility.getBodyFor(room, this.baseBody, this.segment).filter(p => p == WORK).length)}`, LogLevel.INFO)
+        if (!this.partLimits || this.partLimits.length == 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
+        let shouldBe = Math.ceil((room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 2) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits).filter(p => p == WORK).length));
+        if (room.storage && room.storage.store.energy > 500000 && room.controller!.level !== 8) shouldBe = Math.ceil((room.sources.length * 10) * 2) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits).filter(p => p == WORK).length);
+        Utils.Logger.log(`scientist.quantityWanted() shouldBe: ${shouldBe}, ${(room.controller!.level == 8 ? 15 : (room.sources.length * 10) / 2)}, ${(Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits).filter(p => p == WORK).length)}`, LogLevel.INFO)
         return sciCount < shouldBe ? shouldBe - sciCount : 0;
     }
 }
