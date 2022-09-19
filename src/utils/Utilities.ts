@@ -190,10 +190,7 @@ export class Utility {
         let tempSegment = segment;
 
         // Build partLimits
-        /**
-         * Each number represents max number of each part in the tempSegment, when only the first of each unique bodypart used is kept.
-         * Example: [CARRY, CARRY, MOVE, CARRY, MOVE, WORK] would have a partLimits reference array of [CARRY, MOVE, WORK]
-         */
+
         if (!partLimits) partLimits = [];
         const refPartLimitsArray = tempSegment.filter((p, i) => tempSegment.indexOf(p) === i);
 
@@ -263,7 +260,12 @@ export class Utility {
         return tempBody
     }
 
+    /**
+     * Each number represents max number of each part in the tempSegment, when only the first of each unique bodypart used is kept.
+     * Example: [CARRY, CARRY, MOVE, CARRY, MOVE, WORK] would have a partLimits reference array of [CARRY, MOVE, WORK]
+     */
     static buildPartLimits(tempBody: BodyPartConstant[], tempSegment: BodyPartConstant[]): number[] {
+        Logger.log("SpawnManager -> buildPartLimits()", LogLevel.TRACE)
         if (tempSegment.length == 0) return [];
         // Builds a proportional partLimits that mimics the segments ratios while fully utilizing the max body size.
         const refPartLimitsArray = tempSegment.filter((p, i) => tempSegment.indexOf(p) === i);
