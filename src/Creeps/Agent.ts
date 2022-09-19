@@ -37,15 +37,15 @@ export class Agent extends Creep {
         let creepId = creep.id
 
         const agentTask = () => {
-            let agent = Game.getObjectById(creepId)
-            if (!agent) { return ProcessResult.FAILED }
-            let currentRoom = agent.room
-            let homeFrontiers = Game.rooms[agent.memory.homeRoom].memory.frontiers
+            let creep = Game.getObjectById(creepId)
+            if (!creep) { return ProcessResult.FAILED }
+            let currentRoom = creep.room
+            let homeFrontiers = Game.rooms[creep.memory.homeRoom].memory.frontiers
 
             if (homeFrontiers && homeFrontiers.length > 0) {
                 let targetFrontier = homeFrontiers[0]
 
-                if (currentRoom.name != agent.memory.homeRoom &&
+                if (currentRoom.name != creep.memory.homeRoom &&
                     (targetFrontier == currentRoom.name ||
                         !this.isRoomExplored(currentRoom.name) ||
                         this.shouldUpdateIntel(currentRoom.name))) {
@@ -59,12 +59,12 @@ export class Agent extends Creep {
 
                     if (targetFrontier == currentRoom.name) {
                         homeFrontiers.push(homeFrontiers.shift()!)
-                        Memory.rooms[agent.memory.homeRoom].frontiers = homeFrontiers
+                        Memory.rooms[creep.memory.homeRoom].frontiers = homeFrontiers
                     }
                 }
 
                 if (creep.room.name != targetFrontier) {
-                    creep.travel({ pos: new RoomPosition(25, 25, targetFrontier), range: 25 }, {
+                    creep.travel({ pos: new RoomPosition(25, 25, targetFrontier), range: 23 }, {
                         avoidCreeps: true,
                         plainCost: 2,
                         swampCost: 2
