@@ -1,3 +1,4 @@
+import CreepRole from "./CreepRole"
 import { InvaderDetail } from "./InvaderDetail"
 import { MineralDetail } from "./MineralDetail"
 import { PlayerDetail, StorageDetail, HostileStructuresDetail, DefenseStructuresDetail } from "./PlayerDetail"
@@ -19,4 +20,5 @@ export var Models = {
     RoomStatistics: RoomStatistics,
     SpawnSchedule: SpawnSchedule,
     Stamps: Stamps,
+    CreepRole: CreepRole,
 }
