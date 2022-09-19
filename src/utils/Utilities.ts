@@ -206,13 +206,11 @@ export class Utility {
         // Current limit: No single creep consumes more than a 20th of our income.
         let eLimit: number;
         if (!override) {
-            let roomIncome = (room.energyIncome * 1500)
-            eLimit = roomIncome == 0 ? 300 : (room.energyCapacityAvailable > (roomIncome / 20)) ? roomIncome / 20 : room.energyCapacityAvailable;
+            eLimit = room.spawnEnergyLimit;
         } else {
             eLimit = room.energyCapacityAvailable;
         }
 
-        //room.energyCapacityAvailable
         // Expand tempBody to correct size given limits
         let baseCost = Utility.bodyCost(tempBody)
         if (baseCost > eLimit) return [];

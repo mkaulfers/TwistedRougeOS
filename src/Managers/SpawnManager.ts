@@ -101,7 +101,8 @@ export default class SpawnManager {
             // TODO: Consider if we have logistical support for spawnTime value
             if (!Roles[role].partLimits || Roles[role].partLimits.length == 0) Roles[role].partLimits = Utils.Utility.buildPartLimits(Roles[role].baseBody, Roles[role].segment);
             let partLimits: number[] = Roles[role].partLimits;
-            let body = Utils.Utility.getBodyFor(room, Roles[role].baseBody, Roles[role].segment, partLimits)
+            if (!Roles[role][room.spawnEnergyLimit]) Roles[role][room.spawnEnergyLimit.toString()] = Utils.Utility.getBodyFor(room, Roles[role].baseBody, Roles[role].segment, partLimits);
+            let body = Roles[role][room.spawnEnergyLimit.toString()];
             if (body.length === 0) {
                 Utils.Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
                 continue;

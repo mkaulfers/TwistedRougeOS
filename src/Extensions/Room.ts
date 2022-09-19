@@ -72,6 +72,7 @@ declare global {
         maxTowersAvail: number;
         /** Returns target goal for rampart HP in the room */
         rampartHPTarget: number;
+        spawnEnergyLimit: number;
     }
 }
 
@@ -572,4 +573,15 @@ export default class Room_Extended extends Room {
         }
         return this._rampartHPTarget;
     }
+
+    private _spawnEnergyLimit: number | undefined;
+    get spawnEnergyLimit() {
+        if (!this._spawnEnergyLimit) {
+            this._spawnEnergyLimit = 0;
+            const roomIncome = (this.energyIncome * 1500)
+            this._spawnEnergyLimit = roomIncome == 0 ? 300 : (this.energyCapacityAvailable > (roomIncome / 20)) ? roomIncome / 20 : this.energyCapacityAvailable;
+        }
+        return this._spawnEnergyLimit;
+    }
+
 }
