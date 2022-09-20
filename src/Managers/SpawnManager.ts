@@ -56,6 +56,16 @@ export default class SpawnManager {
 
             // TODO: Make as cheap as possible to reconsider
             // Reconsider schedule every 1500 ticks
+
+            /*
+            Conditions to reconsider:
+                eLimit changes
+                quantityWanted changes
+
+
+            Minimum actions:
+                adjust for prespawning
+            */
             if (_.any(spawnSchedules, (s) => s.tick == 1500)) {
                 for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
             }
@@ -173,7 +183,7 @@ export default class SpawnManager {
             Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, LogLevel.DEBUG);
 
             // Handle Restarting
-            if (spawnSchedule.pausedTicks > 0 && room.localCreeps.trucker.length == 0 && room.controller && room.controller.level > 2) {
+            if (spawnSchedule.pausedTicks > 25 && room.localCreeps.trucker.length == 0 && room.controller && room.controller.level > 2) {
                 // Handle Restarting if energy available
                 let segment: BodyPartConstant[];
                 let modifier: number;
@@ -197,10 +207,6 @@ export default class SpawnManager {
                 let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 'RE' + role, { memory: {role: 'trucker', working: false, homeRoom: room.name } })
                 Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, LogLevel.DEBUG);
             }
-
-
-
-            // TODO: Handle Restarting if energy NOT available.
 
             spawnSchedule.pausedTicks++;
 
