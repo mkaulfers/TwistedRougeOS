@@ -172,17 +172,33 @@ export default class SpawnManager {
         if (emergency === true) {
             Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, LogLevel.DEBUG);
 
-            // Handle Restarting if energy available
+            // Handle Restarting
             if (spawnSchedule.pausedTicks > 0 && room.localCreeps.trucker.length == 0 && room.controller && room.controller.level > 2) {
+                // Handle Restarting if energy available
+                let segment: BodyPartConstant[];
+                let modifier: number;
+                let role: Role;
+                if (room.storage && room.storage.store.energy > (room.energyCapacityAvailable * 3)) {
+                    segment = [CARRY, CARRY, MOVE];
+                    modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
+                    role = Role.TRUCKER;
+                } else {
+                    // Handle Restarting if energy available
+                    segment = [WORK, CARRY, MOVE];
+                    modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
+                    role = Role.HARVESTER;
+                }
+
                 let body: BodyPartConstant[] = [];
-                let segment = [CARRY, CARRY, MOVE];
-                let modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
                 for (let i = 0; i < modifier; i++) {
                     body.push(...segment);
                 }
-                let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 're.00', { memory: {role: 'trucker', working: false, homeRoom: room.name } })
+
+                let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 'RE' + role, { memory: {role: 'trucker', working: false, homeRoom: room.name } })
                 Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, LogLevel.DEBUG);
             }
+
+
 
             // TODO: Handle Restarting if energy NOT available.
 

@@ -82,9 +82,8 @@ export default class SpawnSchedule {
                 this.freeSpaces[this.freeSpaces.indexOf(firstFreeSpace)] = [firstFreeSpace[0] + spawnOrder.spawnTime + 1, firstFreeSpace[1] - (spawnOrder.spawnTime + 1)];
             }
 
-            // TODO: Fix usedSpace Calculations
             // Add to schedule, adjust numbers, remove SpawnOrder from externalSpawnOrders
-            this.usedSpace += spawnOrder.spawnTime;
+            this.usedSpace += spawnOrder.spawnTime + 1;
             this.schedule.push(spawnOrder);
             externalSpawnOrders.shift();
             Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.INFO);
@@ -128,7 +127,7 @@ export default class SpawnSchedule {
                 this.freeSpaces[this.freeSpaces.indexOf(matchingSpace)] = [matchingSpace[0] - removeThis.spawnTime, matchingSpace[1] + removeThis.spawnTime]
             }
 
-            this.usedSpace -= removeThis.spawnTime;
+            this.usedSpace -= (removeThis.spawnTime + 1);
         }
         return undefined;
     }
