@@ -182,7 +182,7 @@ export class Utility {
      * @param sortOrder Sort order override, in ascending order numerically.
      * Defaults to TOUGH, WORK, ATTACK, RANGED_ATTACK, CARRY, MOVE, HEAL, and CLAIM with values ranging from 0-7 respectively.
      */
-     static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], sortOrder?: {[key in BodyPartConstant]?: number}): BodyPartConstant[] {
+    static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], sortOrder?: {[key in BodyPartConstant]?: number}): BodyPartConstant[] {
         Logger.log("SpawnManager -> getBodyFor()", LogLevel.TRACE)
 
         let tempBody = baseBody;
@@ -270,5 +270,53 @@ export class Utility {
 
         Logger.log(`Temp Body Length: ${tempBody.length}`, LogLevel.TRACE)
         return tempBody
+    }
+
+    static genPathfindingCM(roomName: string): CostMatrix {
+        let cm = new PathFinder.CostMatrix();
+        const room = Game.rooms[roomName];
+        if (!room) return cm;
+
+        if (!room.cache.pathfindingCM) {
+            const terrain = Game.map.getRoomTerrain(roomName);
+
+            // Consider source and mineral adjacent positions
+            let consider: (Mineral | Source)[] = room.sources;
+            room.mineral ? consider.push(room.mineral) : 0;
+            for (const thing of consider) {
+                for (let x = -1; x <= 1; x++) {
+                    for (let y = -1; y <= 1; y++) {
+                        if (terrain.get(thing.pos.x + x, thing.pos.y + y) == TERRAIN_MASK_WALL) continue;
+                        cm.set(thing.pos.x + x, thing.pos.y + y, 50);
+                    }
+                }
+            }
+
+            // Consider finished Fast Filler stamp
+            console.log(`asdf: ${room.memory.blueprint} && ${room.areFastFillerExtensionsBuilt}`)
+            if (room.memory.blueprint && room.areFastFillerExtensionsBuilt) {
+                let anchorPos = this.unpackPostionToRoom(room.memory.blueprint.anchor, room.name)
+                for (let x = -2; x <= 2; x++) {
+                    if (x == 0) {
+                        for (let y = -2; Math.abs(y) == 2; y += 4) {
+                            console.log(anchorPos.x,anchorPos.y + y);
+                            cm.set(anchorPos.x, anchorPos.y + y, 50);
+                        }
+                    } else if (Math.abs(x / 2) == 1) {
+                        console.log(anchorPos.x + x,anchorPos.y);
+                        cm.set(anchorPos.x + x, anchorPos.y, 50);
+                    } else {
+                        for (let y = -1; Math.abs(y) == 1; y += 2) {
+                            console.log(anchorPos.x,anchorPos.y + y);
+                            cm.set(anchorPos.x + x, anchorPos.y + y, 50);
+                        }
+                    }
+                }
+            }
+
+            room.cache.pathfindingCM = JSON.stringify(cm.serialize());
+        }
+
+        return PathFinder.CostMatrix.deserialize(JSON.parse(room.cache.pathfindingCM));
     }
 }
