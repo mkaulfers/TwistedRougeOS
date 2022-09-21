@@ -518,14 +518,14 @@ function generateBluePrintAnchor(room: Room, positions: RoomPosition[] = []): Ro
 function generateRoomCostMatrix(room: Room) {
     if (!room.memory) return
     if (!room.memory.blueprint) return
-    if (room.memory.costMatrix && room.memory.blueprint.anchor != 0) { return }
+    if (room.cache.dTCM && room.memory.blueprint.anchor != 0) { return }
 
     let costMatrix: CostMatrix | undefined = undefined
-    if (!room.memory.costMatrix) {
+    if (!room.cache.dTCM) {
         costMatrix = Utils.Utility.distanceTransform(room.name)
-        room.memory.costMatrix = JSON.stringify(costMatrix.serialize())
+        room.cache.dTCM = JSON.stringify(costMatrix.serialize())
     } else {
-        costMatrix = PathFinder.CostMatrix.deserialize(JSON.parse(room.memory.costMatrix))
+        costMatrix = PathFinder.CostMatrix.deserialize(JSON.parse(room.cache.dTCM))
     }
 
     let biggestSpace = 0
@@ -545,5 +545,5 @@ function generateRoomCostMatrix(room: Room) {
     }
 
     room.memory.blueprint.anchor = Utils.Utility.packPosition(roomPosition!)
-    room.memory.costMatrix = JSON.stringify(costMatrix.serialize())
+    room.cache.dTCM = JSON.stringify(costMatrix.serialize())
 }
