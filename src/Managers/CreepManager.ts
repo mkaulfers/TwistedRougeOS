@@ -11,36 +11,37 @@ export default class CreepManager {
             let creep = creeps[i]
             if (global.scheduler.processQueue.has(creep.name)) { continue }
 
+            // TODO: Write this generically.
             switch (creep.memory.task as Task) {
                 case Task.HARVESTER_EARLY:
-                    Roles.harvester.harvesterEarlyTask(creep)
+                    Roles.harvester!.tasks.harvester_early!(creep)
                     break
                 case Task.HARVESTER_SOURCE:
-                    Roles.harvester.harvesterSource(creep)
+                    Roles.harvester!.tasks.harvester_source!(creep)
                     break
                 case Task.TRUCKER_STORAGE:
-                    Roles.trucker.truckerStorage(creep)
+                    Roles.trucker!.tasks.trucker_storage!(creep)
                     break
                 case Task.TRUCKER_SCIENTIST:
-                    Roles.trucker.truckerScientist(creep)
+                    Roles.trucker!.tasks.trucker_scientist!(creep)
                     break
                 case Task.SCIENTIST_UPGRADING:
-                    Roles.scientist.scientistUpgrading(creep)
+                    Roles.scientist!.tasks.scientist_upgrading!(creep)
                     break
                 case Task.ENGINEER_BUILDING:
-                    Roles.engineer.engineerBuilding(creep)
+                    Roles.engineer!.tasks.engineer_building!(creep)
                     break
                 case Task.ENGINEER_REPAIRING:
-                    Roles.engineer.engineerRepairing(creep)
+                    Roles.engineer!.tasks.engineer_repairing!(creep)
                     break
                 case Task.ENGINEER_UPGRADING:
-                    Roles.engineer.engineerUpgrading(creep)
+                    Roles.engineer!.tasks.engineer_upgrading!(creep)
                     break
                 case Task.FILLER:
-                    Roles.filler.fillerWorking(creep)
+                    Roles.filler!.tasks.filler_working!(creep)
                     break
                 case Task.AGENT:
-                    Roles.agent.scheduleAgentTask(creep)
+                    Roles.agent!.tasks.agent!(creep)
             }
         }
     }
@@ -54,7 +55,8 @@ export default class CreepManager {
             if (!room) { return }
             _.forEach(roles, function (role) {
                 if (room.localCreeps.all.length < 1) { return }
-                Roles[role].dispatch(room);
+                // TODO: Fix to remove '!'
+                Roles[role]!.dispatch(room);
             });
         }
 

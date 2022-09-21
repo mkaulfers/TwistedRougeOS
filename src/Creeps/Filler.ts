@@ -1,22 +1,16 @@
+import CreepRole from "Models/CreepRole"
 import { Process } from "Models/Process"
 import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
 import { Logger } from "utils/Logger"
 
-export class Filler extends Creep {
-    static baseBody = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE]
-    static segment = [CARRY]
-    static partLimits = [12]
+export class Filler extends CreepRole {
 
-    static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        Utils.Logger.log("quantityWanted -> filler.quantityWanted()", LogLevel.TRACE)
-        if (min && min == true) return 0;
-        let fillerCount = rolesNeeded.filter(x => x == Role.FILLER).length
-        if (this.isFillerComplete(room) && fillerCount !== 4) return 4 - fillerCount;
-        return 0;
-    }
+    readonly baseBody = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE]
+    readonly segment = [CARRY]
+    readonly partLimits = [12]
 
-    static dispatch(room: Room) {
+    dispatch(room: Room) {
         let fillers = room.localCreeps.filler
         for (let filler of fillers) {
             if (!filler.memory.task) {
@@ -25,55 +19,65 @@ export class Filler extends Creep {
         }
     }
 
-    static fillerWorking(creep: Creep) {
-        let creepId = creep.id
+    quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
+        Utils.Logger.log("quantityWanted -> filler.quantityWanted()", LogLevel.TRACE)
+        if (min && min == true) return 0;
+        let fillerCount = rolesNeeded.filter(x => x == Role.FILLER).length
+        if (Filler.isFillerComplete(room) && fillerCount !== 4) return 4 - fillerCount;
+        return 0;
+    }
 
-        const fastFillerTask = () => {
-            let creep = Game.getObjectById(creepId)
-            if (!creep) return ProcessResult.FAILED
-            let room = Game.rooms[creep.memory.homeRoom]
+    readonly tasks = {
+        filler_working: function(creep: Creep) {
+            let creepId = creep.id
 
-            if (!creep.memory.assignedPos) {
-                let assignablePosition = this.getFillerPosition(room)
-                if (assignablePosition) {
-                    creep.memory.assignedPos = Utils.Utility.packPosition(assignablePosition)
+            const fastFillerTask = () => {
+                let creep = Game.getObjectById(creepId)
+                if (!creep) return ProcessResult.FAILED
+                let room = Game.rooms[creep.memory.homeRoom]
+
+                if (!creep.memory.assignedPos) {
+                    let assignablePosition = Filler.getFillerPosition(room)
+                    if (assignablePosition) {
+                        creep.memory.assignedPos = Utils.Utility.packPosition(assignablePosition)
+                    } else {
+                        return ProcessResult.FAILED
+                    }
                 } else {
-                    return ProcessResult.FAILED
-                }
-            } else {
-                let assignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name)
-                if (creep.pos != assignedPos) {
-                    creep.travel(assignedPos)
-                    return ProcessResult.RUNNING
-                }
-
-                let nearbyStructures = this.nearbyStructures(creep)
-                let storingStructures = nearbyStructures.filter(structure => structure.structureType != STRUCTURE_LINK)
-                let container = nearbyStructures.filter(structure => structure.structureType === STRUCTURE_CONTAINER)[0]
-                let link = nearbyStructures.filter(structure => structure.structureType === STRUCTURE_LINK)[0]
-
-                if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0 &&
-                    container && container.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
-                    creep.take(container, RESOURCE_ENERGY)
-
-                    for (let structure of storingStructures) {
-                        creep.give(structure, RESOURCE_ENERGY)
+                    let assignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name)
+                    if (creep.pos != assignedPos) {
+                        creep.travel(assignedPos)
+                        return ProcessResult.RUNNING
                     }
 
-                } else {
-                    if (link.store.getUsedCapacity(RESOURCE_ENERGY) > 0 &&
-                        container && container.store.getUsedCapacity(RESOURCE_ENERGY) < container.store.getCapacity(RESOURCE_ENERGY)) {
-                        creep.take(link, RESOURCE_ENERGY)
-                        creep.give(container, RESOURCE_ENERGY)
+                    let nearbyStructures = Filler.nearbyStructures(creep)
+                    let storingStructures = nearbyStructures.filter(structure => structure.structureType != STRUCTURE_LINK)
+                    let container = nearbyStructures.filter(structure => structure.structureType === STRUCTURE_CONTAINER)[0]
+                    let link = nearbyStructures.filter(structure => structure.structureType === STRUCTURE_LINK)[0]
+
+                    if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0 &&
+                        container && container.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                        creep.take(container, RESOURCE_ENERGY)
+
+                        for (let structure of storingStructures) {
+                            creep.give(structure, RESOURCE_ENERGY)
+                        }
+
+                    } else {
+                        if (link.store.getUsedCapacity(RESOURCE_ENERGY) > 0 &&
+                            container && container.store.getUsedCapacity(RESOURCE_ENERGY) < container.store.getCapacity(RESOURCE_ENERGY)) {
+                            creep.take(link, RESOURCE_ENERGY)
+                            creep.give(container, RESOURCE_ENERGY)
+                        }
                     }
                 }
+
+                return ProcessResult.RUNNING
             }
 
-            return ProcessResult.RUNNING
+            let newProcess = new Process(creep.name, ProcessPriority.MEDIUM, fastFillerTask)
+            global.scheduler.addProcess(newProcess)
         }
-
-        let newProcess = new Process(creep.name, ProcessPriority.MEDIUM, fastFillerTask)
-        global.scheduler.addProcess(newProcess)
     }
 
     private static getFillerPosition(room: Room): RoomPosition | undefined {

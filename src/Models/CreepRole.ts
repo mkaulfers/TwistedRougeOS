@@ -1,6 +1,6 @@
 import { Role, Task } from "utils/Enums";
 
-export default abstract class CreepRole extends Creep {
+export default abstract class CreepRole {
 
     /*
     Body Related
@@ -26,6 +26,8 @@ export default abstract class CreepRole extends Creep {
     abstract dispatch(room: Room): void;
     /** Tells the SpawnManager how many of this role is wanted, in what priority order. */
     abstract quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number;
+    /** Prespawn consideration ticks to add on top of spawntime required. */
+    preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number { return 0; }
     /** The tasks for the role. */
     abstract tasks: { [key in Task]?: (creep: Creep) => void };
 
@@ -37,6 +39,10 @@ class asdf extends CreepRole {
 
     readonly baseBody = [WORK];
     readonly segment = [WORK, MOVE];
+
+    preSpawnBy(room: Room): number {
+        return 1;
+    }
 
     dispatch(room: Room): void {
         // does things
@@ -52,3 +58,4 @@ class asdf extends CreepRole {
         }
     }
 }
+

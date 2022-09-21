@@ -94,7 +94,7 @@ export default class SpawnManager {
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
                     console.log(`roles ${role} being considered`)
-                    let count: number = Roles[role].quantityWanted(room, rolesNeeded, minimum);
+                    let count: number = Roles[role]!.quantityWanted(room, rolesNeeded, minimum);
                     if (count > 0) allFound = false;
                     for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
                     console.log(`rolesNeeded for ${minimum ? minimum : false}: ${JSON.stringify(rolesNeeded)}`)
@@ -108,11 +108,11 @@ export default class SpawnManager {
         for (const role of rolesNeeded) {
             let roleName = Utils.Utility.truncateString(role);
             let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
-            // TODO: Consider if we have logistical support for spawnTime value
-            if (!Roles[role].partLimits || Roles[role].partLimits.length == 0) Roles[role].partLimits = Utils.Utility.buildPartLimits(Roles[role].baseBody, Roles[role].segment);
-            let partLimits: number[] = Roles[role].partLimits;
-            if (!Roles[role][room.spawnEnergyLimit]) Roles[role][room.spawnEnergyLimit.toString()] = Utils.Utility.getBodyFor(room, Roles[role].baseBody, Roles[role].segment, partLimits);
-            let body = Roles[role][room.spawnEnergyLimit.toString()];
+            // TODO: Fix to remove '!'
+            if (!Roles[role]!.partLimits || Roles[role]!.partLimits!.length == 0) Roles[role]!.partLimits = Utils.Utility.buildPartLimits(Roles[role]!.baseBody!, Roles[role]!.segment!);
+            let partLimits: number[] = Roles[role]!.partLimits!;
+            if (!Roles[role]![room.spawnEnergyLimit]) Roles[role]![room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, Roles[role]!.baseBody, Roles[role]!.segment, partLimits);
+            let body = Roles[role]![room.spawnEnergyLimit];
             if (body.length === 0) {
                 Utils.Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
                 continue;
@@ -204,7 +204,7 @@ export default class SpawnManager {
                     body.push(...segment);
                 }
 
-                let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 'RE' + role, { memory: {role: 'trucker', working: false, homeRoom: room.name } })
+                let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 'RE' + role, { memory: {role: role, working: false, homeRoom: room.name } })
                 Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, LogLevel.DEBUG);
             }
 

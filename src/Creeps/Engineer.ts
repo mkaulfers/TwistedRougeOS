@@ -1,283 +1,14 @@
+import CreepRole from "Models/CreepRole"
 import { Utils } from "utils/Index"
 import { Process } from "../Models/Process"
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
-export class Engineer extends Creep {
+export class Engineer extends CreepRole {
 
-    static baseBody = [CARRY, CARRY, MOVE, MOVE, WORK]
-    static segment = [CARRY, WORK, MOVE, MOVE]
+    readonly baseBody = [CARRY, CARRY, MOVE, MOVE, WORK]
+    readonly segment = [CARRY, WORK, MOVE, MOVE]
 
-    static engineerBuilding(creep: Creep) {
-        let creepId = creep.id
-
-        const buildingTask = () => {
-            Utils.Logger.log("CreepTask -> builderTask()", LogLevel.TRACE)
-            let creep = Game.getObjectById(creepId);
-            if (!creep) return ProcessResult.FAILED;
-
-            if (creep.memory.working == undefined) creep.memory.working = false;
-            if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
-            (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
-                creep.memory.working = !creep.memory.working;
-                delete creep.memory.target;
-            }
-            const working = creep.memory.working;
-
-            if (working) {
-                if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
-                    let potentialTargets: ConstructionSite[] = creep.room.find(FIND_CONSTRUCTION_SITES);
-                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { hits: true, order: 'asc' })
-
-                    if (potentialTargets.length > 0) {
-                        creep.memory.target = potentialTargets[0].id;
-                    } else {
-                        return ProcessResult.RUNNING
-                    }
-                }
-                let target = Game.getObjectById(creep.memory.target);
-
-                var result = creep.work(target);
-                if (result === OK) {
-                    return ProcessResult.RUNNING
-                }
-                Utils.Logger.log(`${creep.name} generated error code ${result} while building.`, LogLevel.ERROR)
-                return ProcessResult.INCOMPLETE
-            } else {
-                if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
-                    let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
-                    potentialTargets = Array.prototype.concat(
-                        creep.room.find(FIND_DROPPED_RESOURCES),
-                        creep.room.find(FIND_TOMBSTONES),
-                        creep.room.find(FIND_STRUCTURES));
-                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
-
-                    let priorityTargets = potentialTargets.filter(function(t) {
-                        (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
-                    });     // Only used creep! because of creep not existing being caught at the beginning of the process
-
-                    if (priorityTargets.length > 0) {
-                        creep.memory.target = priorityTargets[0].id;
-                    } else if (potentialTargets.length > 0) {
-                        let pTarget = creep.pos.findClosestByRange(potentialTargets)
-                        if (pTarget) {
-                            creep.memory.target = pTarget.id;
-                        } else {
-                            creep.memory.target = potentialTargets[0].id;
-                        }
-                    } else if (creep.room.storage) {
-                        creep.memory.target = creep.room.storage.id;
-                    } else {
-                        return ProcessResult.RUNNING
-                    }
-                }
-                let target = Game.getObjectById(creep.memory.target);
-
-                if (!target ||
-                    'store' in target && target.store.energy < 25 ||
-                    'amount' in target && target.amount < 25) {
-                    delete creep.memory.target;
-                    ProcessResult.RUNNING;
-                }
-
-                result = creep.take(target, RESOURCE_ENERGY);
-
-                if (result === OK) {
-                    return ProcessResult.RUNNING
-                }
-                Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
-                return ProcessResult.INCOMPLETE
-            }
-        }
-
-        creep.memory.task = Task.ENGINEER_BUILDING
-        let newProcess = new Process(creep.name, ProcessPriority.LOW, buildingTask)
-        global.scheduler.addProcess(newProcess)
-    }
-
-    static engineerRepairing(creep: Creep) {
-        let creepId = creep.id
-
-        const repairingTask = () => {
-            Utils.Logger.log("CreepTask -> repairTask()", LogLevel.TRACE)
-            let creep = Game.getObjectById(creepId);
-            if (!creep) return ProcessResult.FAILED;
-
-            if (creep.memory.working == undefined) creep.memory.working = false;
-            if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
-            (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
-                creep.memory.working = !creep.memory.working;
-                delete creep.memory.target;
-            }
-            const working = creep.memory.working;
-
-            if (working) {
-                if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
-                    let potentialTargets: AnyStructure[] = creep.room.find(FIND_STRUCTURES);
-                    potentialTargets = _.filter(potentialTargets, function(t) {
-                        if ((t.structureType == STRUCTURE_WALL || t.structureType == STRUCTURE_RAMPART) && t.hits <= (creep!.room.rampartHPTarget * 0.75)) {
-                            return t;
-                        } else if (t.structureType !== STRUCTURE_WALL && t.structureType !== STRUCTURE_RAMPART && t.structureType !== STRUCTURE_CONTROLLER){
-                            return t;
-                        }
-                        return;
-                    });
-                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { hits: true })
-                    if (potentialTargets.length > 0) {
-                        creep.memory.target = potentialTargets[0].id;
-                    } else {
-                        return ProcessResult.RUNNING
-                    }
-                }
-                let target = Game.getObjectById(creep.memory.target);
-
-                if (!target || target.hits === target.hitsMax) delete creep.memory.target;
-
-                var result = creep.work(target);
-                if (result === OK) {
-                    return ProcessResult.RUNNING
-                }
-                Utils.Logger.log(`${creep.name} generated error code ${result} while building.`, LogLevel.ERROR)
-                return ProcessResult.INCOMPLETE
-            } else {
-
-                if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
-                    let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
-                    potentialTargets = Array.prototype.concat(
-                        creep.room.find(FIND_DROPPED_RESOURCES),
-                        creep.room.find(FIND_TOMBSTONES),
-                        creep.room.find(FIND_STRUCTURES));
-                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
-
-                    let priorityTargets = potentialTargets.filter(function(t) {
-                        (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
-                    });     // Only used creep! because of creep not existing being caught at the beginning of the process
-
-                    if (priorityTargets.length > 0) {
-                        creep.memory.target = priorityTargets[0].id;
-                    } else if (potentialTargets.length > 0) {
-                        let pTarget = creep.pos.findClosestByRange(potentialTargets)
-                        if (pTarget) {
-                            creep.memory.target = pTarget.id;
-                        } else {
-                            creep.memory.target = potentialTargets[0].id;
-                        }
-                    } else if (creep.room.storage) {
-                        creep.memory.target = creep.room.storage.id;
-                    } else {
-                        return ProcessResult.RUNNING
-                    }
-                }
-                let target = Game.getObjectById(creep.memory.target);
-
-                if (!target ||
-                    'store' in target && target.store.energy < 25 ||
-                    'amount' in target && target.amount < 25) {
-                    delete creep.memory.target;
-                    ProcessResult.RUNNING;
-                }
-
-                result = creep.take(target, RESOURCE_ENERGY);
-
-                if (result === OK) {
-                    return ProcessResult.RUNNING
-                }
-                Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
-                return ProcessResult.INCOMPLETE
-            }
-        }
-
-        creep.memory.task = Task.ENGINEER_REPAIRING
-        let newProcess = new Process(creep.name, ProcessPriority.LOW, repairingTask)
-        global.scheduler.addProcess(newProcess)
-    }
-
-    static engineerUpgrading(creep: Creep) {
-        let creepId = creep.id
-
-        const upgradingTask = () => {
-            Utils.Logger.log("CreepTask -> eUpgradingTask()", LogLevel.TRACE)
-            let creep = Game.getObjectById(creepId);
-            if (!creep) return ProcessResult.FAILED;
-
-            if (creep.memory.working == undefined) creep.memory.working = false;
-            if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
-            (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
-                creep.memory.working = !creep.memory.working;
-                delete creep.memory.target;
-            }
-            const working = creep.memory.working;
-
-            if (working) {
-                if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
-                    let potentialTargets: AnyStructure[] = creep.room.find(FIND_STRUCTURES);
-                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { hits: true , structures: [STRUCTURE_WALL, STRUCTURE_RAMPART]})
-                    if (potentialTargets.length > 0) {
-                        creep.memory.target = potentialTargets[0].id;
-                    } else {
-                        return ProcessResult.RUNNING
-                    }
-                }
-                let target = Game.getObjectById(creep.memory.target);
-
-                var result = creep.work(target);
-                if (result === OK) {
-                    return ProcessResult.RUNNING
-                }
-                Utils.Logger.log(`${creep.name} generated error code ${result} while building.`, LogLevel.ERROR)
-                return ProcessResult.INCOMPLETE
-            } else {
-                if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
-                    let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
-                    potentialTargets = Array.prototype.concat(
-                        creep.room.find(FIND_DROPPED_RESOURCES),
-                        creep.room.find(FIND_TOMBSTONES),
-                        creep.room.find(FIND_STRUCTURES));
-                    potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK, STRUCTURE_STORAGE]})
-
-                    let priorityTargets = potentialTargets.filter(function(t) {
-                        (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
-                    });     // Only used creep! because of creep not existing being caught at the beginning of the process
-
-                    if (priorityTargets.length > 0) {
-                        creep.memory.target = priorityTargets[0].id;
-                    } else if (potentialTargets.length > 0) {
-                        let pTarget = creep.pos.findClosestByRange(potentialTargets)
-                        if (pTarget) {
-                            creep.memory.target = pTarget.id;
-                        } else {
-                            creep.memory.target = potentialTargets[0].id;
-                        }
-                    } else if (creep.room.storage) {
-                        creep.memory.target = creep.room.storage.id;
-                    } else {
-                        return ProcessResult.RUNNING
-                    }
-                }
-                let target = Game.getObjectById(creep.memory.target);
-
-                if (!target ||
-                    'store' in target && target.store.energy < 25 ||
-                    'amount' in target && target.amount < 25) {
-                    delete creep.memory.target;
-                    ProcessResult.RUNNING;
-                }
-
-                result = creep.take(target, RESOURCE_ENERGY);
-
-                if (result === OK) {
-                    return ProcessResult.RUNNING
-                }
-                Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
-                return ProcessResult.INCOMPLETE
-            }
-        }
-
-        creep.memory.task = Task.ENGINEER_UPGRADING
-        let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
-        global.scheduler.addProcess(newProcess)
-    }
-
-    static dispatch(room: Room) {
+    dispatch(room: Room) {
         Utils.Logger.log("CreepDispatch -> engineer.dispatch()", LogLevel.TRACE)
 
         let engineers = room.localCreeps.engineer
@@ -350,7 +81,7 @@ export class Engineer extends Creep {
 
     }
 
-    static quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
+    quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
         Utils.Logger.log("quantityWanted -> engineer.quantityWanted()", LogLevel.TRACE)
         if (!(room.controller && room.controller.my && room.controller.level >= 2)) return 0;
         let engineerCount = rolesNeeded.filter(x => x == Role.ENGINEER).length
@@ -362,5 +93,275 @@ export class Engineer extends Creep {
         if (room.constructionSites().length > 10) return engineerCount < 3 ? 3 - engineerCount : 0;
         if (room.find(FIND_STRUCTURES).length > 200) return engineerCount < 2 ? 2 - engineerCount : 0;
         return engineerCount < 1 ? 1 : 0;
+    }
+
+    readonly tasks = {
+        engineer_building: function(creep: Creep) {
+            let creepId = creep.id
+
+            const buildingTask = () => {
+                Utils.Logger.log("CreepTask -> builderTask()", LogLevel.TRACE)
+                let creep = Game.getObjectById(creepId);
+                if (!creep) return ProcessResult.FAILED;
+
+                if (creep.memory.working == undefined) creep.memory.working = false;
+                if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
+                (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                    creep.memory.working = !creep.memory.working;
+                    delete creep.memory.target;
+                }
+                const working = creep.memory.working;
+
+                if (working) {
+                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                        let potentialTargets: ConstructionSite[] = creep.room.find(FIND_CONSTRUCTION_SITES);
+                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { hits: true, order: 'asc' })
+
+                        if (potentialTargets.length > 0) {
+                            creep.memory.target = potentialTargets[0].id;
+                        } else {
+                            return ProcessResult.RUNNING
+                        }
+                    }
+                    let target = Game.getObjectById(creep.memory.target);
+
+                    var result = creep.work(target);
+                    if (result === OK) {
+                        return ProcessResult.RUNNING
+                    }
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while building.`, LogLevel.ERROR)
+                    return ProcessResult.INCOMPLETE
+                } else {
+                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                        let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
+                        potentialTargets = Array.prototype.concat(
+                            creep.room.find(FIND_DROPPED_RESOURCES),
+                            creep.room.find(FIND_TOMBSTONES),
+                            creep.room.find(FIND_STRUCTURES));
+                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+
+                        let priorityTargets = potentialTargets.filter(function(t) {
+                            (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
+                        });     // Only used creep! because of creep not existing being caught at the beginning of the process
+
+                        if (priorityTargets.length > 0) {
+                            creep.memory.target = priorityTargets[0].id;
+                        } else if (potentialTargets.length > 0) {
+                            let pTarget = creep.pos.findClosestByRange(potentialTargets)
+                            if (pTarget) {
+                                creep.memory.target = pTarget.id;
+                            } else {
+                                creep.memory.target = potentialTargets[0].id;
+                            }
+                        } else if (creep.room.storage) {
+                            creep.memory.target = creep.room.storage.id;
+                        } else {
+                            return ProcessResult.RUNNING
+                        }
+                    }
+                    let target = Game.getObjectById(creep.memory.target);
+
+                    if (!target ||
+                        'store' in target && target.store.energy < 25 ||
+                        'amount' in target && target.amount < 25) {
+                        delete creep.memory.target;
+                        ProcessResult.RUNNING;
+                    }
+
+                    result = creep.take(target, RESOURCE_ENERGY);
+
+                    if (result === OK) {
+                        return ProcessResult.RUNNING
+                    }
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
+                    return ProcessResult.INCOMPLETE
+                }
+            }
+
+            creep.memory.task = Task.ENGINEER_BUILDING
+            let newProcess = new Process(creep.name, ProcessPriority.LOW, buildingTask)
+            global.scheduler.addProcess(newProcess)
+        },
+        engineer_repairing: function(creep: Creep) {
+            let creepId = creep.id
+
+            const repairingTask = () => {
+                Utils.Logger.log("CreepTask -> repairTask()", LogLevel.TRACE)
+                let creep = Game.getObjectById(creepId);
+                if (!creep) return ProcessResult.FAILED;
+
+                if (creep.memory.working == undefined) creep.memory.working = false;
+                if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
+                (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                    creep.memory.working = !creep.memory.working;
+                    delete creep.memory.target;
+                }
+                const working = creep.memory.working;
+
+                if (working) {
+                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                        let potentialTargets: AnyStructure[] = creep.room.find(FIND_STRUCTURES);
+                        potentialTargets = _.filter(potentialTargets, function(t) {
+                            if ((t.structureType == STRUCTURE_WALL || t.structureType == STRUCTURE_RAMPART) && t.hits <= (creep!.room.rampartHPTarget * 0.75)) {
+                                return t;
+                            } else if (t.structureType !== STRUCTURE_WALL && t.structureType !== STRUCTURE_RAMPART && t.structureType !== STRUCTURE_CONTROLLER){
+                                return t;
+                            }
+                            return;
+                        });
+                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { hits: true })
+                        if (potentialTargets.length > 0) {
+                            creep.memory.target = potentialTargets[0].id;
+                        } else {
+                            return ProcessResult.RUNNING
+                        }
+                    }
+                    let target = Game.getObjectById(creep.memory.target);
+
+                    if (!target || target.hits === target.hitsMax) delete creep.memory.target;
+
+                    var result = creep.work(target);
+                    if (result === OK) {
+                        return ProcessResult.RUNNING
+                    }
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while building.`, LogLevel.ERROR)
+                    return ProcessResult.INCOMPLETE
+                } else {
+
+                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                        let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
+                        potentialTargets = Array.prototype.concat(
+                            creep.room.find(FIND_DROPPED_RESOURCES),
+                            creep.room.find(FIND_TOMBSTONES),
+                            creep.room.find(FIND_STRUCTURES));
+                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+
+                        let priorityTargets = potentialTargets.filter(function(t) {
+                            (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
+                        });     // Only used creep! because of creep not existing being caught at the beginning of the process
+
+                        if (priorityTargets.length > 0) {
+                            creep.memory.target = priorityTargets[0].id;
+                        } else if (potentialTargets.length > 0) {
+                            let pTarget = creep.pos.findClosestByRange(potentialTargets)
+                            if (pTarget) {
+                                creep.memory.target = pTarget.id;
+                            } else {
+                                creep.memory.target = potentialTargets[0].id;
+                            }
+                        } else if (creep.room.storage) {
+                            creep.memory.target = creep.room.storage.id;
+                        } else {
+                            return ProcessResult.RUNNING
+                        }
+                    }
+                    let target = Game.getObjectById(creep.memory.target);
+
+                    if (!target ||
+                        'store' in target && target.store.energy < 25 ||
+                        'amount' in target && target.amount < 25) {
+                        delete creep.memory.target;
+                        ProcessResult.RUNNING;
+                    }
+
+                    result = creep.take(target, RESOURCE_ENERGY);
+
+                    if (result === OK) {
+                        return ProcessResult.RUNNING
+                    }
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
+                    return ProcessResult.INCOMPLETE
+                }
+            }
+
+            creep.memory.task = Task.ENGINEER_REPAIRING
+            let newProcess = new Process(creep.name, ProcessPriority.LOW, repairingTask)
+            global.scheduler.addProcess(newProcess)
+        },
+        engineer_upgrading: function(creep: Creep) {
+            let creepId = creep.id
+
+            const upgradingTask = () => {
+                Utils.Logger.log("CreepTask -> eUpgradingTask()", LogLevel.TRACE)
+                let creep = Game.getObjectById(creepId);
+                if (!creep) return ProcessResult.FAILED;
+
+                if (creep.memory.working == undefined) creep.memory.working = false;
+                if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
+                (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                    creep.memory.working = !creep.memory.working;
+                    delete creep.memory.target;
+                }
+                const working = creep.memory.working;
+
+                if (working) {
+                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                        let potentialTargets: AnyStructure[] = creep.room.find(FIND_STRUCTURES);
+                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { hits: true , structures: [STRUCTURE_WALL, STRUCTURE_RAMPART]})
+                        if (potentialTargets.length > 0) {
+                            creep.memory.target = potentialTargets[0].id;
+                        } else {
+                            return ProcessResult.RUNNING
+                        }
+                    }
+                    let target = Game.getObjectById(creep.memory.target);
+
+                    var result = creep.work(target);
+                    if (result === OK) {
+                        return ProcessResult.RUNNING
+                    }
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while building.`, LogLevel.ERROR)
+                    return ProcessResult.INCOMPLETE
+                } else {
+                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                        let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
+                        potentialTargets = Array.prototype.concat(
+                            creep.room.find(FIND_DROPPED_RESOURCES),
+                            creep.room.find(FIND_TOMBSTONES),
+                            creep.room.find(FIND_STRUCTURES));
+                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK, STRUCTURE_STORAGE]})
+
+                        let priorityTargets = potentialTargets.filter(function(t) {
+                            (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
+                        });     // Only used creep! because of creep not existing being caught at the beginning of the process
+
+                        if (priorityTargets.length > 0) {
+                            creep.memory.target = priorityTargets[0].id;
+                        } else if (potentialTargets.length > 0) {
+                            let pTarget = creep.pos.findClosestByRange(potentialTargets)
+                            if (pTarget) {
+                                creep.memory.target = pTarget.id;
+                            } else {
+                                creep.memory.target = potentialTargets[0].id;
+                            }
+                        } else if (creep.room.storage) {
+                            creep.memory.target = creep.room.storage.id;
+                        } else {
+                            return ProcessResult.RUNNING
+                        }
+                    }
+                    let target = Game.getObjectById(creep.memory.target);
+
+                    if (!target ||
+                        'store' in target && target.store.energy < 25 ||
+                        'amount' in target && target.amount < 25) {
+                        delete creep.memory.target;
+                        ProcessResult.RUNNING;
+                    }
+
+                    result = creep.take(target, RESOURCE_ENERGY);
+
+                    if (result === OK) {
+                        return ProcessResult.RUNNING
+                    }
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
+                    return ProcessResult.INCOMPLETE
+                }
+            }
+
+            creep.memory.task = Task.ENGINEER_UPGRADING
+            let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
+            global.scheduler.addProcess(newProcess)
+        }
     }
 }

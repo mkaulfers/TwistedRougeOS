@@ -1,4 +1,5 @@
-import { LogLevel } from "utils/Enums"
+import Roles from "Creeps/Index"
+import { LogLevel, Role } from "utils/Enums"
 import { Utils } from "utils/Index"
 
 export default class SpawnSchedule {
@@ -52,26 +53,25 @@ export default class SpawnSchedule {
 
             // TODO: Consider spawning creeps too
             // Check for existing creep to match spawnOrder
-            let relCreep = Game.rooms[this.roomName].stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id && c.spawning == false);
-            let relCFreeSpace = relCreep ? this.freeSpaces.find(freeSpace => freeSpace[0] <= (relCreep!.ticksToLive! - spawnOrder.spawnTime) &&
-                (freeSpace[1] - ((relCreep!.ticksToLive! - spawnOrder.spawnTime) - freeSpace[0])) >= spawnOrder.spawnTime) : undefined;
+            const room = Game.rooms[this.roomName];
+            let relCreep = room.stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id && c.spawning == false);
+            // preSpawnBy is a temporary until CreepRole is implemented
+            let preSpawnOffset = Math.ceil(spawnOrder.spawnTime + (typeof Roles[spawnOrder.memory.role]!['preSpawnBy'] === 'function' ? Roles[spawnOrder.memory.role]!.preSpawnBy(room, Game.spawns[this.spawnName], relCreep) : 0));
+            console.log(spawnOrder.id, typeof Roles[spawnOrder.memory.role]!['preSpawnBy'] === 'function' , preSpawnOffset - spawnOrder.spawnTime)
+            let relCFreeSpace = relCreep ? this.freeSpaces.find(freeSpace => freeSpace[0] <= (relCreep!.ticksToLive! - preSpawnOffset) &&
+                (freeSpace[1] - ((relCreep!.ticksToLive! - preSpawnOffset) - freeSpace[0])) >= spawnOrder.spawnTime) : undefined;
 
             // TODO: Modify for travel time.
             // Set scheduleTick to PreSpawn IFF possible
             if (relCreep && relCFreeSpace) {
-                Utils.Logger.log(`${relCreep.name} found. TTL: ${relCreep.ticksToLive}`, LogLevel.INFO);
-
                 spawnOrder.scheduleTick = relCreep.ticksToLive! - spawnOrder.spawnTime;
                 if (relCFreeSpace[0] == spawnOrder.scheduleTick) {
                     this.freeSpaces[this.freeSpaces.indexOf(relCFreeSpace)] = [relCFreeSpace[0] + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + 1)];
-                    Utils.Logger.log(`Exact POST: ${JSON.stringify(this.freeSpaces)}`, LogLevel.INFO);
                 }
                 else {
                     let i = this.freeSpaces.indexOf(relCFreeSpace);
                     this.freeSpaces[i] = [relCFreeSpace[0], spawnOrder.scheduleTick - (relCFreeSpace[0] + 1)];
-                    Utils.Logger.log(`Rel POST First: ${JSON.stringify(this.freeSpaces)}`, LogLevel.INFO);
                     this.freeSpaces.splice(i + 1, 0, [spawnOrder.scheduleTick + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + this.freeSpaces[i][1] + 2)]);
-                    Utils.Logger.log(`Rel POST: ${JSON.stringify(this.freeSpaces)}`, LogLevel.INFO);
                 }
             }
             else {
@@ -154,6 +154,11 @@ export default class SpawnSchedule {
     /**
      * Cancels prespawns, forces all as tightly as possible to allow for more spawning.
      */
+    // pack(): void {
+
+    // }
+
+    /** Reschedules existing based on preSpawning or manually provided values. */
     // shift(): void {
 
     // }
