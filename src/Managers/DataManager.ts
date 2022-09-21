@@ -29,7 +29,6 @@ declare global {
             }[]
         }
         claim?: string
-        costMatrix?: string
         frontiers?: string[]
         intel?: RoomStatistics
         remotes?: string[]
@@ -45,6 +44,8 @@ declare global {
     // Add properties you wish to have stored in a room's cache in the interface below.
     // Refer to `const cacheTask` below if you make it a required property.
     interface RoomCache {
+        pathfindingCM?: string;
+        dTCM?: string;
         links: {[key: Id<StructureLink>]: string};
         pauseSpawning?: boolean;
         spawnSchedules?: SpawnSchedule[];
