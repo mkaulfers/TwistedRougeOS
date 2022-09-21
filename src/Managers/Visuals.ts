@@ -122,7 +122,7 @@ export default class Visuals {
         for (const roomName in global.Cache.rooms) {
             if (!global.Cache.rooms[roomName].pathfindingCM) continue;
             let costMatrix = PathFinder.CostMatrix.deserialize(JSON.parse(global.Cache.rooms[roomName].pathfindingCM!));
-            new RoomVisual(roomName).costMatrix(costMatrix);
+            new RoomVisual(roomName).costMatrix(costMatrix, false);
         }
     }
 

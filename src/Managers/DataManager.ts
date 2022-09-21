@@ -45,8 +45,8 @@ declare global {
     // Refer to `const cacheTask` below if you make it a required property.
     interface RoomCache {
         pathfindingCM?: string;
-        dTCM?: string;
-        links: {[key: Id<StructureLink>]: string};
+        distanceTransformCM?: string;
+        links?: {[key: Id<StructureLink>]: string};
         pauseSpawning?: boolean;
         spawnSchedules?: SpawnSchedule[];
         towerTarget?: Id<AnyCreep>;
@@ -120,7 +120,7 @@ export default class DataManager {
                 if (!global.Cache.rooms[roomName]) {
                     global.Cache.rooms[roomName] = {
                         // Add required properties of the room's cache here
-                        links: {},
+
                     };
                 }
             }
