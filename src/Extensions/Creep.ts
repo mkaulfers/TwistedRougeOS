@@ -2,6 +2,8 @@ import 'ts-polyfill/lib/es2019-array';
 import { Logger } from '../utils/Logger';
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 import { moveTo, MoveOpts, MoveTarget } from 'screeps-cartographer';
+import Room_Extended from './Room';
+import { Utils } from 'utils/Index';
 
 declare global {
     interface Creep {
@@ -281,6 +283,8 @@ export default class Creep_Extended extends Creep {
         return OK;
     }
 
+
+
     travel(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number {
         Logger.log("Creep -> travel()", LogLevel.TRACE)
 
@@ -310,28 +314,8 @@ export default class Creep_Extended extends Creep {
                 return
             },
             roomCallback(roomName) {
-                console.log(`test:`);
-                let cm = new PathFinder.CostMatrix();
-                const room = Game.rooms[roomName];
-                if (!room) return cm;
-
-                if (!room.cache.pathfindingCM) {
-                    const terrain = Game.map.getRoomTerrain(roomName);
-
-                    for (const source of room.sources) {
-                        for (let x = -1; x <= 1; x++) {
-                            for (let y = -1; y <= 1; y++) {
-                                console.log(x,y);
-                                if (terrain.get(source.pos.x + x, source.pos.y + y) == TERRAIN_MASK_WALL) continue;
-                                cm.set(source.pos.x + x, source.pos.y + y, 50);
-                            }
-                        }
-                    }
-                    room.cache.pathfindingCM = JSON.stringify(cm.serialize());
-                }
-
-                return PathFinder.CostMatrix.deserialize(JSON.parse(room.cache.pathfindingCM));
-              },
+                return Utils.Utility.genPathfindingCM(roomName);
+            },
         };
         opts = Object.assign(defaultOpts, opts)
 
@@ -353,28 +337,8 @@ export default class Creep_Extended extends Creep {
                 return
             },
             roomCallback(roomName) {
-                console.log(`test:`);
-                let cm = new PathFinder.CostMatrix();
-                const room = Game.rooms[roomName];
-                if (!room) return cm;
-
-                if (!room.cache.pathfindingCM) {
-                    const terrain = Game.map.getRoomTerrain(roomName);
-
-                    for (const source of room.sources) {
-                        for (let x = -1; x <= 1; x++) {
-                            for (let y = -1; y <= 1; y++) {
-                                console.log(x,y);
-                                if (terrain.get(source.pos.x + x, source.pos.y + y) == TERRAIN_MASK_WALL) continue;
-                                cm.set(source.pos.x + x, source.pos.y + y, 50);
-                            }
-                        }
-                    }
-                    room.cache.pathfindingCM = JSON.stringify(cm.serialize());
-                }
-
-                return PathFinder.CostMatrix.deserialize(JSON.parse(room.cache.pathfindingCM));
-              },
+                return Utils.Utility.genPathfindingCM(roomName);
+            },
         };
 
         fallbackOpts = Object.assign(defaultFallbackOpts, fallbackOpts)

@@ -378,7 +378,7 @@ export default class Room_Extended extends Room {
 
     updateCostMatrix() {
         let costMatrix = Utils.Utility.distanceTransform(this.name)
-        this.cache.dTCM = JSON.stringify(costMatrix.serialize());
+        this.cache.distanceTransformCM = JSON.stringify(costMatrix.serialize());
     }
 
     /*
@@ -405,12 +405,14 @@ export default class Room_Extended extends Room {
     private _areFastFillerExtensionsBuilt: boolean | undefined;
     get areFastFillerExtensionsBuilt() {
         if (!this._areFastFillerExtensionsBuilt) {
-            let anchorPos = Utils.Utility.unpackPostionToRoom(this.memory.blueprint!.anchor, this.name)
+            if (!this.memory.blueprint) return this._areFastFillerExtensionsBuilt = false;
+            let anchorPos = Utils.Utility.unpackPostionToRoom(this.memory.blueprint.anchor, this.name)
             let results = this.lookAtArea(anchorPos.y - 2, anchorPos.x - 2, anchorPos.y + 2, anchorPos.x + 2, true).filter(x => x.structure?.structureType == STRUCTURE_EXTENSION)
             if (results.length >= 14) {
                 this._areFastFillerExtensionsBuilt = true;
+            } else {
+                this._areFastFillerExtensionsBuilt = false;
             }
-            this._areFastFillerExtensionsBuilt = false;
         }
         return this._areFastFillerExtensionsBuilt;
     }
