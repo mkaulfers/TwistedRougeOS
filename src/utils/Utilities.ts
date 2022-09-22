@@ -287,7 +287,12 @@ export class Utility {
                 for (let x = -1; x <= 1; x++) {
                     for (let y = -1; y <= 1; y++) {
                         if (terrain.get(thing.pos.x + x, thing.pos.y + y) == TERRAIN_MASK_WALL) continue;
-                        cm.set(thing.pos.x + x, thing.pos.y + y, 50);
+                        let lookArray = room.lookForAt(LOOK_STRUCTURES, thing.pos.x + x, thing.pos.y + y)
+                        if (lookArray.findIndex((s) => s.structureType == STRUCTURE_CONTAINER) >= 0) {
+                            cm.set(thing.pos.x + x, thing.pos.y + y, 40);
+                        } else {
+                            cm.set(thing.pos.x + x, thing.pos.y + y, 50);
+                        }
                     }
                 }
             }

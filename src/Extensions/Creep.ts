@@ -141,7 +141,6 @@ export default class Creep_Extended extends Creep {
             case OK: case ERR_BUSY: case ERR_NOT_IN_RANGE:
                 return OK;
             case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
-                // Utils.Logger.log(`${this.name} recieved result ${result} from Give with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
                 return result;
         }
         return OK;

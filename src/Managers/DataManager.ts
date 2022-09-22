@@ -45,7 +45,7 @@ declare global {
     // Refer to `const cacheTask` below if you make it a required property.
     interface RoomCache {
         pathfindingCM?: string;
-        distanceTransformCM?: string;
+        openSpaceCM?: string;
         links?: {[key: Id<StructureLink>]: string};
         pauseSpawning?: boolean;
         spawnSchedules?: SpawnSchedule[];

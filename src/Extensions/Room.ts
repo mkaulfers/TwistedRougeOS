@@ -378,7 +378,7 @@ export default class Room_Extended extends Room {
 
     updateCostMatrix() {
         let costMatrix = Utils.Utility.distanceTransform(this.name)
-        this.cache.distanceTransformCM = JSON.stringify(costMatrix.serialize());
+        this.cache.openSpaceCM = JSON.stringify(costMatrix.serialize());
     }
 
     /*
