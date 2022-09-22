@@ -3,7 +3,7 @@ import { Utils } from 'utils/Index';
 
 declare global {
     interface Source {
-        assignablePosition(): RoomPosition
+        assignablePosition(): RoomPosition | undefined
         isHarvestingAtMaxEfficiency: boolean
         /** Returns count of Resources of Energy adjacent to the Source. */
         nearbyEnergy: number
@@ -20,7 +20,7 @@ declare global {
 }
 
 export default class Source_Extended extends Source {
-    assignablePosition(): RoomPosition {
+    assignablePosition(): RoomPosition | undefined {
         Utils.Logger.log("Source -> assignablePosition()", LogLevel.TRACE);
         let validPositions = this.validPositions
         let assignedPositions = this.room.localCreeps.harvester.map(x => x.memory.assignedPos)
