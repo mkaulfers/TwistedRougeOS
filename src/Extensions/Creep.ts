@@ -191,7 +191,7 @@ export default class Creep_Extended extends Creep {
         };
         fallbackOpts = Object.assign(defaultFallbackOpts, fallbackOpts)
 
-        return moveTo(this, targets, defaultOpts, defaultFallbackOpts);
+        return moveTo(this, targets, opts, defaultFallbackOpts);
     }
 
     nMRController(roomName: string): number {
@@ -309,6 +309,7 @@ export default class Creep_Extended extends Creep {
                 return
             },
             roomCallback(roomName) {
+                console.log(`roomCallback ran`)
                 return Utils.Utility.genPathfindingCM(roomName);
             },
         };

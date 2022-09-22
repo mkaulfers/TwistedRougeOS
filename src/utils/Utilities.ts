@@ -298,7 +298,6 @@ export class Utility {
             }
 
             // Consider finished Fast Filler stamp
-            console.log(`asdf: ${room.memory.blueprint} && ${room.areFastFillerExtensionsBuilt}`)
             if (room.memory.blueprint && room.areFastFillerExtensionsBuilt) {
                 let anchorPos = this.unpackPostionToRoom(room.memory.blueprint.anchor, room.name)
                 for (let x = -2; x <= 2; x++) {
