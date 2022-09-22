@@ -75,13 +75,7 @@ export class Harvester extends CreepRole {
                 let closestSource: Source | undefined = undefined
 
                 if (!creep.memory.assignedPos) {
-                    let sources = creep.room.sources
-                    for (let source of sources) {
-                        if (!source.isHarvestingAtMaxEfficiency) {
-                            closestSource = source
-                            creep.memory.assignedPos = Utils.Utility.packPosition(source.assignablePosition())
-                        }
-                    }
+                    closestSource = Harvester.genAssignedPos(creep);
                 } else {
                     closestSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
                 }
@@ -113,19 +107,13 @@ export class Harvester extends CreepRole {
                 let closestSource: Source | undefined = undefined
 
                 if (!creep.memory.assignedPos) {
-                    let sources = creep.room.sources
-                    for (let source of sources) {
-                        if (!source.isHarvestingAtMaxEfficiency) {
-                            closestSource = source
-                            creep.memory.assignedPos = Utils.Utility.packPosition(source.assignablePosition())
-                        }
-                    }
+                    closestSource = Harvester.genAssignedPos(creep);
                 } else {
                     closestSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
                 }
 
                 if (closestSource) {
-                    if (creep.store.getFreeCapacity() <= 10) {
+                    if (creep.store.getFreeCapacity() < creep.store.getCapacity() * 0.8) {
                         if (!creep.cache.harvesterDump) {
                             let dumps = creep.pos.findInRange(FIND_STRUCTURES, 1);
                             let link = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_LINK && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureLink;
@@ -139,7 +127,7 @@ export class Harvester extends CreepRole {
                         }
                         if (creep.cache.harvesterDump) {
                             let dump = Game.getObjectById(creep.cache.harvesterDump!);
-                            if (dump && dump.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                            if (dump && dump.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.ticksToLive && creep.ticksToLive % 50 !== 0) {
                                 creep.give(dump, RESOURCE_ENERGY);
                             } else {
                                 delete creep.cache.harvesterDump
@@ -157,5 +145,40 @@ export class Harvester extends CreepRole {
             let newProcess = new Process(creep.name, ProcessPriority.LOW, sourceTask)
             global.scheduler.addProcess(newProcess)
         }
+    }
+
+    private static genAssignedPos(creep: Creep): Source | undefined {
+        let sources = creep.room.sources
+        let targetSource: Source | undefined;
+
+        // Prespawn targeting
+        let matchingCreep = creep.room.stationedCreeps.harvester.find((c) => c.name !== creep!.name && c.name.substring(0,6) == creep!.name.substring(0,6))
+        if (matchingCreep && matchingCreep.memory.assignedPos) {
+            creep.memory.assignedPos = matchingCreep.memory.assignedPos;
+            targetSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
+        }
+
+        // Non-maxed targeting
+        if (!creep.memory.assignedPos) {
+            for (let source of sources) {
+                if (!source.isHarvestingAtMaxEfficiency) {
+                    targetSource = source;
+                    let assignablePos = source.assignablePosition();
+                    creep.memory.assignedPos = assignablePos ? Utils.Utility.packPosition(assignablePos) : undefined;
+                }
+            }
+        }
+
+        // Backup targeting
+        if (!creep.memory.assignedPos) {
+            for (let source of sources) {
+                if (!creep.memory.assignedPos) {
+                    targetSource = source;
+                    let assignablePos = source.assignablePosition();
+                    creep.memory.assignedPos = assignablePos ? Utils.Utility.packPosition(assignablePos) : undefined;
+                }
+            }
+        }
+        return targetSource;
     }
 }
