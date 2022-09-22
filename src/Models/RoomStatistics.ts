@@ -25,7 +25,7 @@ export class RoomStatistics {
     invaderDetail?: InvaderDetail
 
     constructor(
-        exporedTime: number,
+        explored: number,
         name: string,
         swampCount: number,
         plainCount: number,
@@ -42,7 +42,7 @@ export class RoomStatistics {
         largestDistanceToController?: number,
         playerDetail?: PlayerDetail,
         invaderDetail?: InvaderDetail) {
-        this.exploredTime = exporedTime
+        this.exploredTime = explored
         this.name = name
         this.swampCount = swampCount
         this.plainCount = plainCount
