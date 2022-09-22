@@ -177,6 +177,7 @@ export default class Creep_Extended extends Creep {
                 opacity: .2
             },
         };
+        opts = Object.assign(defaultOpts, opts)
 
         let defaultFallbackOpts: MoveOpts = {
             visualizePathStyle: {
@@ -188,6 +189,7 @@ export default class Creep_Extended extends Creep {
             },
             avoidCreeps: true,
         };
+        fallbackOpts = Object.assign(defaultFallbackOpts, fallbackOpts)
 
         return moveTo(this, targets, defaultOpts, defaultFallbackOpts);
     }
@@ -335,7 +337,6 @@ export default class Creep_Extended extends Creep {
         };
 
         fallbackOpts = Object.assign(defaultFallbackOpts, fallbackOpts)
-
         return this.moveToDefault(targets, opts, fallbackOpts);
     }
 
