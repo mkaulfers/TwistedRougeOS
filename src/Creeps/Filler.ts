@@ -77,7 +77,7 @@ export class Filler extends Creep {
     }
 
     private static getFillerPosition(room: Room): RoomPosition | undefined {
-        if (!room.memory.blueprint) return undefined
+        if (!room.memory.blueprint) return;
         let anchor = Utils.Utility.unpackPostionToRoom(room.memory.blueprint.anchor, room.name)
         let assignablePositions = [
             new RoomPosition(anchor.x - 1, anchor.y - 1, anchor.roomName),
