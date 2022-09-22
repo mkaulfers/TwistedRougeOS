@@ -277,7 +277,7 @@ export class Utility {
         const room = Game.rooms[roomName];
         if (!room) return cm;
 
-        if (!room.cache.pathfindingCM) {
+        if (!room.cache.pathfindingCM || Game.time % 10000 == 0 || (Game.time % 100 == 0 && global.recentlyAttacked)) {
             const terrain = Game.map.getRoomTerrain(roomName);
 
             // Consider source and mineral adjacent positions
