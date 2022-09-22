@@ -5,7 +5,8 @@ declare global {
     interface RoomVisual {
         animatedPosition(x: number, y: number, opts?: {color?: string, opacity?: number, radius?: number, frames?: number}): RoomVisual;
         connectRoads(opts?: {color?: string, opacity?: number}): RoomVisual | undefined;
-        costMatrix(costMatrix: CostMatrix): RoomVisual;
+        /** Visualizes a CostMatrix. Defaults to not rendering 0 values. */
+        costMatrix(costMatrix: CostMatrix, renderZero?: boolean): RoomVisual;
         resource(type: string, x: number, y: number, size: number): number;
         speech(text: string, x: number, y: number, opts?: {background?: string, textcolor?: string, textstyle?: boolean, textsize?: number, textfont?: string, opacity?: number}): RoomVisual;
         structure(x: number, y: number, type: string, opts?: { opacity?: number }): RoomVisual;
@@ -70,11 +71,12 @@ export default class RoomVisuals_Extended extends RoomVisual {
         return this;
     }
 
-    costMatrix(costMatrix: CostMatrix): RoomVisual {
+    costMatrix(costMatrix: CostMatrix, renderZero?: boolean): RoomVisual {
         Utils.Logger.log("RoomVisual -> costMatrix()", LogLevel.TRACE);
         for (let x = 0; x < 50; x++) {
             for (let y = 0; y < 50; y++) {
-                this.text(`${costMatrix.get(x,y)}`, x,y, {font: 0.5})
+                const value = costMatrix.get(x,y);
+                if (!(value == 0 && !renderZero)) this.text(`${costMatrix.get(x,y)}`, x,y, {font: 0.5})
             }
         }
         return this;

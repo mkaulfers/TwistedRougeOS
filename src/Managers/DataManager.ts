@@ -30,7 +30,6 @@ declare global {
         }
 
         claim?: string
-        costMatrix?: string
         frontiers?: string[]
         intel?: RoomStatistics
         rclZero?: number
@@ -50,7 +49,9 @@ declare global {
     // Add properties you wish to have stored in a room's cache in the interface below.
     // Refer to `const cacheTask` below if you make it a required property.
     interface RoomCache {
-        links: {[key: Id<StructureLink>]: string};
+        pathfindingCM?: string;
+        openSpaceCM?: string;
+        links?: {[key: Id<StructureLink>]: string};
         pauseSpawning?: boolean;
         spawnSchedules?: SpawnSchedule[];
         towerTarget?: Id<AnyCreep>;
@@ -124,7 +125,7 @@ export default class DataManager {
                 if (!global.Cache.rooms[roomName]) {
                     global.Cache.rooms[roomName] = {
                         // Add required properties of the room's cache here
-                        links: {},
+
                     };
                 }
 
