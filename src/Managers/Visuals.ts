@@ -21,7 +21,6 @@ declare global {
     }[]
     interface Cache {
         distanceTransform: {[roomName: string]: number[]};
-        pathfinding: {[roomName: string]: number[]};
         worldRoomScoring: {[roomName: string]: worldRoomScoring};
         worldPathfinding: {[roomname: string]: worldPathfinding};
     }
@@ -77,6 +76,7 @@ export default class Visuals {
         for (const roomName in Memory.rooms) {
             if (!Memory.rooms[roomName] || !Memory.rooms[roomName].blueprint) continue;
             let blueprint = Memory.rooms[roomName].blueprint;
+            if (!blueprint) continue;
             let rVis = new RoomVisual(roomName);
 
             for (let stamp of blueprint.stamps) {
@@ -119,10 +119,10 @@ export default class Visuals {
 
     static pathfinding() {
         Utils.Logger.log(`Visuals -> pathfinding()`, LogLevel.TRACE);
-        if (!global.tempForVisuals || !global.tempForVisuals.pathfinding) return;
-        for (const roomName in global.tempForVisuals.pathfinding) {
-            let costMatrix = PathFinder.CostMatrix.deserialize(global.tempForVisuals.pathfinding[roomName])
-            new RoomVisual(roomName).costMatrix(costMatrix);
+        for (const roomName in global.Cache.rooms) {
+            if (!global.Cache.rooms[roomName].pathfindingCM) continue;
+            let costMatrix = PathFinder.CostMatrix.deserialize(JSON.parse(global.Cache.rooms[roomName].pathfindingCM!));
+            new RoomVisual(roomName).costMatrix(costMatrix, false);
         }
     }
 

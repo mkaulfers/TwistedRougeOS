@@ -5,7 +5,7 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, Danger
 
 export default class LinkManager {
 
-    static linksTriggerAt: 0.1 // Percent full links send energy at
+    static get linksTriggerAt(): number { return 0.1 } // Percent full links send energy at
 
     static schedule(room: Room) {
         let roomName = room.name;
@@ -20,7 +20,6 @@ export default class LinkManager {
             if (!room.cache.links ||
                 (Game.time % 250 == 0 &&
                 room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_LINK } }).length !== Object.keys(room.cache.links).length)) {
-
                 room.cache.links = {};
                 let links = room.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LINK } });
 
@@ -39,27 +38,27 @@ export default class LinkManager {
                         }
                     }
                     if (room.storage && link.pos.getRangeTo(room.storage.pos.x, room.storage.pos.y) < 2) {
-                        room.cache.links![link.id] = LinkState.BOTH;
+                        room.cache.links[link.id] = LinkState.BOTH;
                     }
-                    if (!room.cache.links![link.id]) {
-                        room.cache.links![link.id] = LinkState.OUTPUT;
+                    if (!room.cache.links[link.id]) {
+                        room.cache.links[link.id] = LinkState.OUTPUT;
                     }
                 }
             }
 
             // Build links to work with
-            let links = this.links(room);
+            let links = room.links;
             if (!links) return ProcessResult.RUNNING;
 
             let linkStates = room.cache.links;
             if (!linkStates) return;
 
             let targetLinks = links.filter((l) => { return ([LinkState.OUTPUT, LinkState.BOTH].indexOf(linkStates![l.id] as LinkState) >= 0 &&
-                l.store.energy < (l.store.getCapacity(RESOURCE_ENERGY) * 0.9)) });
+                l.store.getFreeCapacity(RESOURCE_ENERGY) > (l.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt)) });
             targetLinks = _.sortByOrder(targetLinks, (t: StructureLink) => t.store.energy, 'asc');
 
             for (let link of links) {
-                if ((linkStates[link.id] == LinkState.INPUT || linkStates[link.id] == LinkState.BOTH) && link.store.energy > (link.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt)) {
+                if ((linkStates[link.id] == LinkState.INPUT || linkStates[link.id] == LinkState.BOTH) && link.store.getUsedCapacity(RESOURCE_ENERGY) > (link.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt)) {
                     let target = targetLinks.shift();
                     if (!target) return ProcessResult.RUNNING;
                     link.transferEnergy(target);
@@ -70,20 +69,5 @@ export default class LinkManager {
 
         let newProcess = new Process(roomProcessId, ProcessPriority.LOW, task)
         global.scheduler.addProcess(newProcess)
-    }
-
-    static links(room: Room) {
-        let links: StructureLink[] = [];
-
-            for (let linkId in room.cache.links) {
-                let link = Game.getObjectById(linkId as Id<StructureLink>)
-                if (link) {
-                    links.push(link);
-                } else {
-                    room.cache.links = {};
-                }
-            }
-            if (links.length > 0) return links;
-            return;
     }
 }
