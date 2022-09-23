@@ -33,29 +33,3 @@ export default abstract class CreepRole {
 
     // Supporting funtions for internal use not declared here
 }
-
-// Example
-class asdf extends CreepRole {
-
-    readonly baseBody = [WORK];
-    readonly segment = [WORK, MOVE];
-
-    preSpawnBy(room: Room): number {
-        return 1;
-    }
-
-    dispatch(room: Room): void {
-        // does things
-    }
-
-    quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        return 0;
-    }
-
-    readonly tasks = {
-        harvester_early: function(creep: Creep): void {
-            // normal stuff
-        }
-    }
-}
-

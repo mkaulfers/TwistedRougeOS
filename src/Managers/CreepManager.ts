@@ -14,34 +14,44 @@ export default class CreepManager {
             // TODO: Write this generically.
             switch (creep.memory.task as Task) {
                 case Task.HARVESTER_EARLY:
-                    Roles.harvester!.tasks.harvester_early!(creep)
+                    if (!Roles.harvester || !Roles.harvester.tasks.harvester_early) continue;
+                    Roles.harvester.tasks.harvester_early(creep)
                     break
                 case Task.HARVESTER_SOURCE:
-                    Roles.harvester!.tasks.harvester_source!(creep)
+                    if (!Roles.harvester || !Roles.harvester.tasks.harvester_source) continue;
+                    Roles.harvester.tasks.harvester_source(creep)
                     break
                 case Task.TRUCKER_STORAGE:
-                    Roles.trucker!.tasks.trucker_storage!(creep)
+                    if (!Roles.trucker || !Roles.trucker.tasks.trucker_storage) continue;
+                    Roles.trucker.tasks.trucker_storage(creep)
                     break
                 case Task.TRUCKER_SCIENTIST:
-                    Roles.trucker!.tasks.trucker_scientist!(creep)
+                    if (!Roles.trucker || !Roles.trucker.tasks.trucker_scientist) continue;
+                    Roles.trucker.tasks.trucker_scientist(creep)
                     break
                 case Task.SCIENTIST_UPGRADING:
-                    Roles.scientist!.tasks.scientist_upgrading!(creep)
+                    if (!Roles.scientist || !Roles.scientist.tasks.scientist_upgrading) continue;
+                    Roles.scientist.tasks.scientist_upgrading(creep)
                     break
                 case Task.ENGINEER_BUILDING:
-                    Roles.engineer!.tasks.engineer_building!(creep)
+                    if (!Roles.engineer || !Roles.engineer.tasks.engineer_building) continue;
+                    Roles.engineer.tasks.engineer_building(creep)
                     break
                 case Task.ENGINEER_REPAIRING:
-                    Roles.engineer!.tasks.engineer_repairing!(creep)
+                    if (!Roles.engineer || !Roles.engineer.tasks.engineer_repairing) continue;
+                    Roles.engineer.tasks.engineer_repairing(creep)
                     break
                 case Task.ENGINEER_UPGRADING:
-                    Roles.engineer!.tasks.engineer_upgrading!(creep)
+                    if (!Roles.engineer || !Roles.engineer.tasks.engineer_upgrading) continue;
+                    Roles.engineer.tasks.engineer_upgrading(creep)
                     break
                 case Task.FILLER:
-                    Roles.filler!.tasks.filler_working!(creep)
+                    if (!Roles.filler || !Roles.filler.tasks.filler_working) continue;
+                    Roles.filler.tasks.filler_working(creep)
                     break
                 case Task.AGENT:
-                    Roles.agent!.tasks.agent!(creep)
+                    if (!Roles.agent || !Roles.agent.tasks.agent) continue;
+                    Roles.agent.tasks.agent(creep)
             }
         }
     }
@@ -55,8 +65,9 @@ export default class CreepManager {
             if (!room) { return }
             _.forEach(roles, function (role) {
                 if (room.localCreeps.all.length < 1) { return }
-                // TODO: Fix to remove '!'
-                Roles[role]!.dispatch(room);
+
+                let theRole = Roles[role];
+                if (theRole) theRole.dispatch(room);
             });
         }
 
