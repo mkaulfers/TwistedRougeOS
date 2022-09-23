@@ -58,7 +58,8 @@ export class Harvester extends CreepRole {
             }
             x = Math.floor(x / room.sources.length);
             y = Math.floor(y / room.sources.length);
-            preSpawnOffset = room.findPath(spawn.pos, new RoomPosition(x >= 0 && x <= 49 ? x : 25, y >= 0 && y <= 49 ? y : 25, room.name)).length;
+            let modifier = creep ? creep.getActiveBodyparts(WORK) : 1;
+            preSpawnOffset = room.findPath(spawn.pos, new RoomPosition(x >= 0 && x <= 49 ? x : 25, y >= 0 && y <= 49 ? y : 25, room.name)).length * modifier;
         }
         return preSpawnOffset;
     }
