@@ -37,7 +37,7 @@ export class Scientist extends CreepRole {
         return room.findPath(spawn.pos, room.controller.pos, { range: 3 }).length;
     }
 
-    readonly tasks = {
+    readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
         scientist_upgrading: function(creep: Creep) {
             let creepId = creep.id
 

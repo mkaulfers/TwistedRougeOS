@@ -27,7 +27,7 @@ export class Filler extends CreepRole {
         return 0;
     }
 
-    readonly tasks = {
+    readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
         filler_working: function(creep: Creep) {
             let creepId = creep.id
 

@@ -61,7 +61,7 @@ export class Trucker extends CreepRole {
         return room.averageDistanceFromSourcesToStructures;
     }
 
-    readonly tasks = {
+    readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
         trucker_storage: function(creep: Creep) {
             let creepId = creep.id
 

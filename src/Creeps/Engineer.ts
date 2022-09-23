@@ -95,7 +95,7 @@ export class Engineer extends CreepRole {
         return engineerCount < 1 ? 1 : 0;
     }
 
-    readonly tasks = {
+    readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
         engineer_building: function(creep: Creep) {
             let creepId = creep.id
 

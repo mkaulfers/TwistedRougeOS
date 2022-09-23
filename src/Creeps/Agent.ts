@@ -30,11 +30,11 @@ export class Agent extends CreepRole {
     dispatch(room: Room) {
         let agents = room.stationedCreeps.agent
         for (let agent of agents) {
-            this.tasks.agent(agent);
+            this.tasks.agent!(agent);
         }
     }
 
-    readonly tasks = {
+    readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
         agent: function(creep: Creep) {
             let creepId = creep.id
 

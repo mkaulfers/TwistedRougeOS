@@ -64,7 +64,7 @@ export class Harvester extends CreepRole {
         return preSpawnOffset;
     }
 
-    readonly tasks = {
+    readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
         harvester_early: function(creep: Creep) {
             let creepId = creep.id
 
