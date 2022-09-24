@@ -179,46 +179,34 @@ export class Utility {
 
     /**
      * Generates a body for a creep taking into account factors such as maximum cost, supportable cost given income, etc.
+     * @param override Overrides energy income body cost limitations.
      * @param sortOrder Sort order override, in ascending order numerically.
      * Defaults to TOUGH, WORK, ATTACK, RANGED_ATTACK, CARRY, MOVE, HEAL, and CLAIM with values ranging from 0-7 respectively.
      */
-    static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], sortOrder?: {[key in BodyPartConstant]?: number}): BodyPartConstant[] {
+    static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], override?: boolean, sortOrder?: {[key in BodyPartConstant]?: number}): BodyPartConstant[] {
         Logger.log("SpawnManager -> getBodyFor()", LogLevel.TRACE)
 
         let tempBody = baseBody;
         let tempSegment = segment;
 
         // Build partLimits
-        /**
-         * Each number represents max number of each part in the tempSegment, when only the first of each unique bodypart used is kept.
-         * Example: [CARRY, CARRY, MOVE, CARRY, MOVE, WORK] would have a partLimits reference array of [CARRY, MOVE, WORK]
-         */
+
         if (!partLimits) partLimits = [];
-        let refPartLimitsArray = tempSegment.filter((p, i) => tempSegment.indexOf(p) === i);
+        const refPartLimitsArray = tempSegment.filter((p, i) => tempSegment.indexOf(p) === i);
+
+        // Fallback partLimits Missing Catcher
         if (partLimits.length === 0 && tempSegment.length !== 0) {
-            // Builds a proportional partLimits that mimics the segments ratios while fully utilizing the max body size.
-            let freePartsPortion = Math.floor((50 - tempBody.length) / tempSegment.length);
-
-            refPartLimitsArray.forEach((p, i) => partLimits![i] = 0);
-            tempBody.forEach(function(p) {
-                let i = refPartLimitsArray.indexOf(p);
-                if (i >= 0) partLimits![i] += partLimits![i]
-            });
-
-            tempSegment.forEach(function(p) {
-                partLimits![refPartLimitsArray.indexOf(p)] += freePartsPortion;
-            })
-            let unusedParts = 50 - (tempBody.length + (partLimits.reduce((previousValue, currentValue) => previousValue + currentValue)));
-            for (let i = 0; unusedParts < 50; i >= tempSegment.length ? i = 0 : i++) {
-                partLimits[refPartLimitsArray.indexOf(tempSegment[i])] += 1;
-                unusedParts++;
-            }
-
+            partLimits = this.buildPartLimits(tempBody, tempSegment);
         }
 
         // Determine energy limit for body generation
-        // TODO: Modify max energy expenditure calculations to allow for income compensation
-        let eLimit = room.energyCapacityAvailable;
+        // Current limit: No single creep consumes more than a 20th of our income.
+        let eLimit: number;
+        if (!override) {
+            eLimit = room.spawnEnergyLimit;
+        } else {
+            eLimit = room.energyCapacityAvailable;
+        }
 
         // Expand tempBody to correct size given limits
         let baseCost = Utility.bodyCost(tempBody)
@@ -272,6 +260,36 @@ export class Utility {
         return tempBody
     }
 
+    /**
+     * Each number represents max number of each part in the tempSegment, when only the first of each unique bodypart used is kept.
+     * Example: [CARRY, CARRY, MOVE, CARRY, MOVE, WORK] would have a partLimits reference array of [CARRY, MOVE, WORK]
+     */
+    static buildPartLimits(tempBody: BodyPartConstant[], tempSegment: BodyPartConstant[]): number[] {
+        Logger.log("SpawnManager -> buildPartLimits()", LogLevel.TRACE)
+        if (tempSegment.length == 0) return [];
+        // Builds a proportional partLimits that mimics the segments ratios while fully utilizing the max body size.
+        const refPartLimitsArray = tempSegment.filter((p, i) => tempSegment.indexOf(p) === i);
+        let freePartsPortion = Math.floor((50 - tempBody.length) / tempSegment.length);
+        let partLimits: number[] = [];
+
+        refPartLimitsArray.forEach((p, i) => partLimits![i] = 0);
+        tempBody.forEach(function(p) {
+            let i = refPartLimitsArray.indexOf(p);
+            if (i >= 0) partLimits![i] += partLimits![i]
+        });
+
+        tempSegment.forEach(function(p) {
+            partLimits![refPartLimitsArray.indexOf(p)] += freePartsPortion;
+        })
+        let unusedParts = 50 - (tempBody.length + (partLimits.reduce((previousValue, currentValue) => previousValue + currentValue)));
+        for (let i = 0; unusedParts < 50; i >= tempSegment.length ? i = 0 : i++) {
+            partLimits[refPartLimitsArray.indexOf(tempSegment[i])] += 1;
+            unusedParts++;
+        }
+
+        return partLimits;
+    }
+    
     static genPathfindingCM(roomName: string): CostMatrix {
         let cm = new PathFinder.CostMatrix();
         const room = Game.rooms[roomName];

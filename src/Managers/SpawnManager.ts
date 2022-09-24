@@ -56,6 +56,16 @@ export default class SpawnManager {
 
             // TODO: Make as cheap as possible to reconsider
             // Reconsider schedule every 1500 ticks
+
+            /*
+            Conditions to reconsider:
+                eLimit changes
+                quantityWanted changes
+
+
+            Minimum actions:
+                adjust for prespawning
+            */
             if (_.any(spawnSchedules, (s) => s.tick == 1500)) {
                 for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
             }
@@ -83,9 +93,11 @@ export default class SpawnManager {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
-                    let count: number = Roles[role].quantityWanted(room, rolesNeeded, minimum);
+                    console.log(`roles ${role} being considered`)
+                    let count: number = Roles[role]!.quantityWanted(room, rolesNeeded, minimum);
                     if (count > 0) allFound = false;
-                    for (let i = 0; i < count; i++) rolesNeeded.push(role);
+                    for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
+                    console.log(`rolesNeeded for ${minimum ? minimum : false}: ${JSON.stringify(rolesNeeded)}`)
                 }
             }
         }
@@ -96,8 +108,11 @@ export default class SpawnManager {
         for (const role of rolesNeeded) {
             let roleName = Utils.Utility.truncateString(role);
             let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
-            // TODO: Consider if we have logistical support for spawnTime value
-            let body = Utils.Utility.getBodyFor(room, Roles[role].baseBody, Roles[role].segment, Roles[role].partLimits ? Roles[role].partLimits : undefined)
+            // TODO: Fix to remove '!'
+            if (!Roles[role]!.partLimits || Roles[role]!.partLimits!.length == 0) Roles[role]!.partLimits = Utils.Utility.buildPartLimits(Roles[role]!.baseBody!, Roles[role]!.segment!);
+            let partLimits: number[] = Roles[role]!.partLimits!;
+            if (!Roles[role]![room.spawnEnergyLimit]) Roles[role]![room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, Roles[role]!.baseBody, Roles[role]!.segment, partLimits);
+            let body = Roles[role]![room.spawnEnergyLimit];
             if (body.length === 0) {
                 Utils.Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
                 continue;
@@ -167,19 +182,31 @@ export default class SpawnManager {
         if (emergency === true) {
             Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, LogLevel.DEBUG);
 
-            // Handle Restarting if energy available
-            if (spawnSchedule.pausedTicks > 0 && room.localCreeps.trucker.length == 0 && room.controller && room.controller.level > 2) {
+            // Handle Restarting
+            if (spawnSchedule.pausedTicks > 25 && room.localCreeps.trucker.length == 0 && room.controller && room.controller.level > 2) {
+                // Handle Restarting if energy available
+                let segment: BodyPartConstant[];
+                let modifier: number;
+                let role: Role;
+                if (room.storage && room.storage.store.energy > (room.energyCapacityAvailable * 3)) {
+                    segment = [CARRY, CARRY, MOVE];
+                    modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
+                    role = Role.TRUCKER;
+                } else {
+                    // Handle Restarting if energy available
+                    segment = [WORK, CARRY, MOVE];
+                    modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
+                    role = Role.HARVESTER;
+                }
+
                 let body: BodyPartConstant[] = [];
-                let segment = [CARRY, CARRY, MOVE];
-                let modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
                 for (let i = 0; i < modifier; i++) {
                     body.push(...segment);
                 }
-                let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 're.00', { memory: {role: 'trucker', working: false, homeRoom: room.name } })
+
+                let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 'RE' + role, { memory: {role: role, working: false, homeRoom: room.name } })
                 Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, LogLevel.DEBUG);
             }
-
-            // TODO: Handle Restarting if energy NOT available.
 
             spawnSchedule.pausedTicks++;
 

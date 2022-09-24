@@ -64,12 +64,15 @@ declare global {
         areFastFillerExtensionsBuilt: boolean;
         /** Gets the distance from sources to each storage capable structure in the room. */
         averageDistanceFromSourcesToStructures: number;
+        /** Returns a per tick energy income */
+        energyIncome: number;
         isSpawning(role: Role): boolean
         maxExtensionsAvail: number;
         maxLabsAvail: number;
         maxTowersAvail: number;
         /** Returns target goal for rampart HP in the room */
         rampartHPTarget: number;
+        spawnEnergyLimit: number;
     }
 }
 
@@ -417,6 +420,18 @@ export default class Room_Extended extends Room {
         return this._areFastFillerExtensionsBuilt;
     }
 
+    // TODO: Modify to consider Power Creep Effects
+    // TODO: Modify to consider operational remotes only
+    private _energyIncome: number | undefined;
+    get energyIncome() {
+        if (!this._energyIncome) {
+            this._energyIncome = 0;
+            for (const source of this.sources) if (source.isHarvestingAtMaxEfficiency) this._energyIncome += 10;
+        }
+        return this._energyIncome;
+    }
+
+
     isSpawning(role: Role): boolean {
         let subString = role.substring(0, 3)
         let spawns = this.find(FIND_MY_SPAWNS)
@@ -560,4 +575,15 @@ export default class Room_Extended extends Room {
         }
         return this._rampartHPTarget;
     }
+
+    private _spawnEnergyLimit: number | undefined;
+    get spawnEnergyLimit() {
+        if (!this._spawnEnergyLimit) {
+            this._spawnEnergyLimit = 0;
+            const roomIncome = (this.energyIncome * 1500)
+            this._spawnEnergyLimit = roomIncome == 0 ? 300 : (this.energyCapacityAvailable > (roomIncome / 20)) ? roomIncome / 20 : this.energyCapacityAvailable;
+        }
+        return this._spawnEnergyLimit;
+    }
+
 }
