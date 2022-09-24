@@ -1,4 +1,5 @@
-import { LogLevel } from "utils/Enums"
+import Roles from "Creeps/Index"
+import { LogLevel, Role } from "utils/Enums"
 import { Utils } from "utils/Index"
 import { Logger } from "utils/Logger"
 
@@ -53,26 +54,23 @@ export default class SpawnSchedule {
 
             // TODO: Consider spawning creeps too
             // Check for existing creep to match spawnOrder
-            let relCreep = Game.rooms[this.roomName].stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id && c.spawning == false);
-            let relCFreeSpace = relCreep ? this.freeSpaces.find(freeSpace => freeSpace[0] <= (relCreep!.ticksToLive! - spawnOrder.spawnTime) &&
-                (freeSpace[1] - ((relCreep!.ticksToLive! - spawnOrder.spawnTime) - freeSpace[0])) >= spawnOrder.spawnTime) : undefined;
+            const room = Game.rooms[this.roomName];
+            let relCreep = room.stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id && c.spawning == false);
+            let preSpawnOffset = Math.ceil(spawnOrder.spawnTime + Roles[spawnOrder.memory.role]!.preSpawnBy(room, Game.spawns[this.spawnName], relCreep));
+            let relCFreeSpace = relCreep ? this.freeSpaces.find(freeSpace => freeSpace[0] <= (relCreep!.ticksToLive! - preSpawnOffset) &&
+                (freeSpace[1] - ((relCreep!.ticksToLive! - preSpawnOffset) - freeSpace[0])) >= spawnOrder.spawnTime) : undefined;
 
             // TODO: Modify for travel time.
             // Set scheduleTick to PreSpawn IFF possible
             if (relCreep && relCFreeSpace) {
-                Utils.Logger.log(`${relCreep.name} found. TTL: ${relCreep.ticksToLive}`, LogLevel.INFO);
-
-                spawnOrder.scheduleTick = relCreep.ticksToLive! - spawnOrder.spawnTime;
+                spawnOrder.scheduleTick = relCreep.ticksToLive! - preSpawnOffset;
                 if (relCFreeSpace[0] == spawnOrder.scheduleTick) {
                     this.freeSpaces[this.freeSpaces.indexOf(relCFreeSpace)] = [relCFreeSpace[0] + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + 1)];
-                    Utils.Logger.log(`Exact POST: ${JSON.stringify(this.freeSpaces)}`, LogLevel.INFO);
                 }
                 else {
                     let i = this.freeSpaces.indexOf(relCFreeSpace);
                     this.freeSpaces[i] = [relCFreeSpace[0], spawnOrder.scheduleTick - (relCFreeSpace[0] + 1)];
-                    Utils.Logger.log(`Rel POST First: ${JSON.stringify(this.freeSpaces)}`, LogLevel.INFO);
                     this.freeSpaces.splice(i + 1, 0, [spawnOrder.scheduleTick + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + this.freeSpaces[i][1] + 2)]);
-                    Utils.Logger.log(`Rel POST: ${JSON.stringify(this.freeSpaces)}`, LogLevel.INFO);
                 }
             }
             else {
@@ -83,9 +81,8 @@ export default class SpawnSchedule {
                 this.freeSpaces[this.freeSpaces.indexOf(firstFreeSpace)] = [firstFreeSpace[0] + spawnOrder.spawnTime + 1, firstFreeSpace[1] - (spawnOrder.spawnTime + 1)];
             }
 
-            // TODO: Fix usedSpace Calculations
             // Add to schedule, adjust numbers, remove SpawnOrder from externalSpawnOrders
-            this.usedSpace += spawnOrder.spawnTime;
+            this.usedSpace += spawnOrder.spawnTime + 1;
             this.schedule.push(spawnOrder);
             externalSpawnOrders.shift();
             Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.INFO);
@@ -129,7 +126,7 @@ export default class SpawnSchedule {
                 this.freeSpaces[this.freeSpaces.indexOf(matchingSpace)] = [matchingSpace[0] - removeThis.spawnTime, matchingSpace[1] + removeThis.spawnTime]
             }
 
-            this.usedSpace -= removeThis.spawnTime;
+            this.usedSpace -= (removeThis.spawnTime + 1);
         }
         return undefined;
     }
@@ -156,6 +153,11 @@ export default class SpawnSchedule {
     /**
      * Cancels prespawns, forces all as tightly as possible to allow for more spawning.
      */
+    // pack(): void {
+
+    // }
+
+    /** Reschedules existing based on preSpawning or manually provided values. */
     // shift(): void {
 
     // }

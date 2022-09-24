@@ -1,7 +1,7 @@
 import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
 import { RoomStatistics } from 'Models/RoomStatistics';
-import { LogLevel, ProcessPriority, ProcessResult, Task } from 'utils/Enums';
+import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from 'utils/Enums';
 import { Utils } from '../utils/Index';
 
 // Add new Memory or Cache properties in this file.
@@ -9,7 +9,7 @@ declare global {
     interface CreepMemory {
         assignedPos?: number
         homeRoom: string
-        role: string
+        role: Role
         target?: Id<any>
         task?: Task
         working: boolean
@@ -28,10 +28,15 @@ declare global {
                 completed: boolean
             }[]
         }
+
         claim?: string
         frontiers?: string[]
         intel?: RoomStatistics
-        remotes?: RoomStatistics[]
+        rclZero?: number
+        rclThree?: number
+        rclFour?: number
+        rclFive?: number
+        remotes?: string[]
     }
 
     interface Memory {
@@ -122,6 +127,15 @@ export default class DataManager {
                         // Add required properties of the room's cache here
 
                     };
+                }
+
+                // Temporary RCL tick tracker
+                let room = Game.rooms[roomName];
+                if (room.controller && room.controller.my) {
+                    if (!room.memory.rclZero) room.memory.rclZero = Game.time;
+                    if (room.controller.level == 3 && !room.memory.rclThree) room.memory.rclThree = Game.time - room.memory.rclZero!;
+                    if (room.controller.level == 4 && !room.memory.rclFour) room.memory.rclFour = Game.time - room.memory.rclZero!;
+                    if (room.controller.level == 5 && !room.memory.rclFive) room.memory.rclFive = Game.time - room.memory.rclZero!;
                 }
             }
             for (const name in Game.creeps) {
