@@ -36,7 +36,7 @@ declare global {
         rclThree?: number
         rclFour?: number
         rclFive?: number
-        remotes?: string[]
+        remotes?: RoomStatistics[]
     }
 
     interface Memory {
