@@ -24,10 +24,13 @@ export class Scientist extends CreepRole {
         let sciCount = rolesNeeded.filter(x => x == Role.SCIENTIST).length
         if (min && min == true) return sciCount < 1 ? 1 : 0;
 
-        if (!this.partLimits || this.partLimits.length == 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
         let energyIncome = room.energyIncome == 0 ? room.sources.length * 10 : room.energyIncome;
-        let shouldBe = Math.ceil((room.controller!.level == 8 ? 15 : energyIncome / 2) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits).filter(p => p == WORK).length));
-        if (room.storage && room.storage.store.energy > 500000 && room.controller!.level !== 8) shouldBe = Math.ceil(energyIncome * 2) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits).filter(p => p == WORK).length);
+        if (!this.partLimits || this.partLimits.length == 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
+        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
+        let bodyWorkCount = this[room.spawnEnergyLimit].filter(p => p == WORK).length;
+
+        let shouldBe = Math.ceil((room.controller!.level == 8 ? 15 : energyIncome / 2) / bodyWorkCount);
+        if (room.storage && room.storage.store.energy > 500000 && room.controller!.level !== 8) shouldBe = Math.ceil(energyIncome * 2) / bodyWorkCount;
         return sciCount < shouldBe ? shouldBe - sciCount : 0;
     }
 

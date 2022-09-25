@@ -10,8 +10,8 @@ import CreepRole from 'Models/CreepRole';
 var Roles: {[key in Role]?: CreepRole} = {
     harvester: new Harvester,
     trucker: new Trucker,
-    engineer: new Engineer,
     filler: new Filler,
+    engineer: new Engineer,
     scientist: new Scientist,
     agent: new Agent,
 }
