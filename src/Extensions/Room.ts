@@ -408,7 +408,7 @@ export default class Room_Extended extends Room {
     private _areFastFillerExtensionsBuilt: boolean | undefined;
     get areFastFillerExtensionsBuilt() {
         if (!this._areFastFillerExtensionsBuilt) {
-            if (!this.memory.blueprint) return this._areFastFillerExtensionsBuilt = false;
+            if (!this.memory.blueprint || this.memory.blueprint.anchor == 0) return this._areFastFillerExtensionsBuilt = false;
             let anchorPos = Utils.Utility.unpackPostionToRoom(this.memory.blueprint.anchor, this.name)
             let results = this.lookAtArea(anchorPos.y - 2, anchorPos.x - 2, anchorPos.y + 2, anchorPos.x + 2, true).filter(x => x.structure?.structureType == STRUCTURE_EXTENSION)
             if (results.length >= 14) {
