@@ -375,7 +375,7 @@ export default class Room_Extended extends Room {
                 }
             }
         }
-
+        console.log(`frontiers genned: ${room.name}`)
         room.memory.frontiers = frontiers
     }
 

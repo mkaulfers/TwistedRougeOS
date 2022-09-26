@@ -21,7 +21,10 @@ export default class SpawnManager {
             let rebuild = this.shouldRebuild(room.cache.spawnSchedules, spawns);
 
             // Rebuild schedule when needed
-            if (room.cache.spawnSchedules.length !== spawns.length || rebuild == true || _.any(room.cache.spawnSchedules, (s) => s.needsScheduled == true)) {
+            if (room.cache.spawnSchedules.length !== spawns.length ||
+                rebuild == true ||
+                _.any(room.cache.spawnSchedules, (s) => s.needsScheduled == true) ||
+                _.all(room.cache.spawnSchedules, (s) => s.schedule.length == 0)) {
                 this.buildSchedules(room, room.cache.spawnSchedules);
             }
             let spawnSchedules = room.cache.spawnSchedules;
@@ -82,26 +85,11 @@ export default class SpawnManager {
      * @param room The room to consider.
      * @param minimum Limits SpawnOrder generation to just ones considered required for room functionality.
      */
-    private static genSpawnOrders(room: Room, minimum?: boolean): SpawnOrder[] {
-        Utils.Logger.log(`SpawnManager -> genSpawnOrders(${room.name}) with minimum: ${minimum}`, LogLevel.TRACE)
+    private static genSpawnOrders(room: Room): SpawnOrder[] {
+        Utils.Logger.log(`SpawnManager -> genSpawnOrders(${room.name})`, LogLevel.TRACE)
 
         // Build array of CreepRoles in priority
-        let rolesNeeded: Role[] = [];
-
-        // Repeatedly runs through .quantityWanted() until all return 0;
-        for (let allFound = false; allFound == false;) {
-            allFound = true;
-            for (const role of Object.values(Role)) {
-                if (role in Roles) {
-                    console.log(`roles ${role} being considered`)
-                    let count: number = Roles[role]!.quantityWanted(room, rolesNeeded, minimum);
-                    if (count > 0) allFound = false;
-                    for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
-                    console.log(`rolesNeeded for ${minimum ? minimum : false}: ${JSON.stringify(rolesNeeded)}`)
-                }
-            }
-        }
-        Utils.Logger.log(`rolesNeeded for ${minimum ? minimum : false}: ${JSON.stringify(rolesNeeded)}`, LogLevel.INFO)
+        let rolesNeeded: Role[] = this.genRolesNeeded(room);
 
         // Build each SpawnOrder
         let spawnOrders: SpawnOrder[] = [];
@@ -136,6 +124,45 @@ export default class SpawnManager {
         return spawnOrders;
     }
 
+    private static genRolesNeeded(room: Room): Role[] {
+        // Build array of CreepRoles in priority
+        let rolesNeeded: Role[] = [];
+
+        // Repeatedly runs through .quantityWanted() until all return 0;
+        for (let allFound = false; allFound == false;) {
+            allFound = true;
+            for (const role of Object.values(Role)) {
+                if (role in Roles) {
+                    console.log(`roles ${role} being considered`)
+                    let count: number = Roles[role]!.quantityWanted(room, rolesNeeded, true);
+                    if (count > 0) allFound = false;
+                    for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
+                }
+            }
+        }
+        Utils.Logger.log(`rolesNeeded for true: ${JSON.stringify(rolesNeeded)}`, LogLevel.INFO)
+
+
+        // Repeatedly runs through .quantityWanted() until all return 0;
+        for (let allFound = false; allFound == false;) {
+            allFound = true;
+            for (const role of Object.values(Role)) {
+                if (role in Roles) {
+                    console.log(`roles ${role} being considered`)
+                    let count: number = Roles[role]!.quantityWanted(room, rolesNeeded, false);
+                    if (count > 0) allFound = false;
+                    for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
+                }
+            }
+        }
+        Utils.Logger.log(`rolesNeeded for false: ${JSON.stringify(rolesNeeded)}`, LogLevel.INFO)
+
+
+        Utils.Logger.log(`rolesNeeded final: ${JSON.stringify(rolesNeeded)}`, LogLevel.INFO)
+
+        return rolesNeeded;
+    }
+
     /** Boolean check of if the schedule needs rebuilt */
     private static shouldRebuild(spawnSchedules: SpawnSchedule[], spawns: StructureSpawn[]): boolean {
         if (spawnSchedules.length !== spawns.length) {
@@ -154,15 +181,10 @@ export default class SpawnManager {
         // Reset conditional so as to not rebuild again next tick.
         spawnSchedules.forEach(function(s) { s.reset(); s.needsScheduled = false });
 
-        // Schedule minimum needed creeps
-        let minSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, true);
-        minSpawnOrders = this.addToSchedules(room, minSpawnOrders);
+        let spawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room);
+        spawnOrders = this.addToSchedules(room, spawnOrders);
 
-        // Schedule all non-essential creeps if essential were handled fully.
-        if (!minSpawnOrders || minSpawnOrders.length == 0) {
-            let extraSpawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room);
-            extraSpawnOrders = this.addToSchedules(room, extraSpawnOrders);
-        }
+        Utils.Logger.log(`Failed to schedule ${spawnOrders ? spawnOrders.length : 0} spawn orders.`, LogLevel.INFO)
     }
 
     /** Adds SpawnOrders to schedule. Assumes spawnSchedules !== undefined. */
