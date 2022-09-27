@@ -44,7 +44,7 @@ export default class SpawnSchedule {
      * @param opts.force To ignore the schedule's built in percentage limiter. Will only allow to 100% usage.
      * @returns SpawnOrders it couldn't add to the schedule or undefined if successful.
      */
-    add(spawnOrders: SpawnOrder[], opts?: {force?: boolean}): SpawnOrder[] | undefined {
+    add(spawnOrders: SpawnOrder[], opts?: {pack?: boolean, force?: boolean}): SpawnOrder[] | undefined {
         // TODO: Modify to handle gaps between spawnOrders
 
         let externalSpawnOrders = [...spawnOrders];
@@ -65,7 +65,7 @@ export default class SpawnSchedule {
 
             // TODO: Modify for travel time.
             // Set scheduleTick to PreSpawn IFF possible
-            if (relCreep && relCFreeSpace) {
+            if (relCreep && relCFreeSpace && !(opts?.pack === true)) {
                 spawnOrder.scheduleTick = relCreep.ticksToLive! - preSpawnOffset;
                 if (relCFreeSpace[0] == spawnOrder.scheduleTick) {
                     this.freeSpaces[this.freeSpaces.indexOf(relCFreeSpace)] = [relCFreeSpace[0] + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + 1)];
@@ -141,9 +141,7 @@ export default class SpawnSchedule {
 
     // }
 
-    /**
-     * Resets the schedule without having to reinitialize the class.
-     */
+    /** Resets the schedule without having to reinitialize the class. */
     reset(): void {
         this.tick = 0;
         this.pausedTicks = 0;
@@ -155,15 +153,31 @@ export default class SpawnSchedule {
         this.activeELimit = undefined;
     }
 
+
     /**
-     * Cancels prespawns, forces all as tightly as possible to allow for more spawning.
+     * Reschedules existing spawn orders for accurate prespawning.
      */
-    // pack(): void {
+    shift(): void {
 
-    // }
+        let externalSchedule: SpawnOrder[] = [];
+        let rolesNeeded = this.rolesNeeded;
+        let activeELimit = this.activeELimit;
 
-    /** Reschedules existing based on preSpawning or manually provided values. */
-    // shift(): void {
+        // Re-sort schedule to match rolesNeeded
+        if (rolesNeeded) {
+            for (const role of rolesNeeded) {
+                const i = this.schedule.findIndex((o) => o.memory.role === role);
+                i >= 0 ? externalSchedule.push(...this.schedule.splice(i, 1)) : undefined;
+            }
+        } else {
+            externalSchedule.push(...this.schedule);
+        }
 
-    // }
+        this.reset();
+        this.activeELimit = activeELimit;
+        this.rolesNeeded = rolesNeeded;
+
+        // Reschedule each spawn order for prespawn
+        this.add(externalSchedule);
+    }
 }
