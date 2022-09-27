@@ -14,7 +14,7 @@ export default class ConstructionManager {
             let room = Game.rooms[roomName]
             if (!room) { return }
 
-            if (!room.memory.frontiers && room.memory.blueprint) {
+            if (!room.memory.frontiers) {
                 room.setFrontiers(room)
             }
 
