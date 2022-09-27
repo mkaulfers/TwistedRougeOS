@@ -34,8 +34,8 @@ export default class SpawnManager {
 
                 // Generic Data logging, if you want it.
                 if (Utils.Logger.devLogLevel == LogLevel.INFO || Utils.Logger.devLogLevel == LogLevel.ALL) {
-                    Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} tick: ${spawnSchedule.tick}`, LogLevel.INFO)
-                    let nextOrder = spawnSchedule.schedule.find((o) => o.scheduleTick && o.scheduleTick > spawnSchedule.tick);
+                    Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} tick: ${spawnSchedule.tick}, pausedTick: ${spawnSchedule.pausedTicks}.`, LogLevel.INFO)
+                    let nextOrder = spawnSchedule.schedule.find((o) => o.scheduleTick && o.scheduleTick >= spawnSchedule.tick);
                     Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id} in ${nextOrder && nextOrder.scheduleTick ? nextOrder.scheduleTick - spawnSchedule.tick : 1500 + spawnSchedule.schedule[0].scheduleTick! - spawnSchedule.tick} ticks.`, LogLevel.INFO)
                 }
 
@@ -63,7 +63,7 @@ export default class SpawnManager {
                     for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
                 } else {
                     // Adjust for prespawning at 1500
-                    for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
+                    for (const spawnSchedule of spawnSchedules) spawnSchedule.shift();
                 }
             }
 
@@ -230,6 +230,8 @@ export default class SpawnManager {
             // Trigger emergency end actions
             if (spawnSchedule.pausedTicks > 100) {
                 spawnSchedule.reset();
+            } else if (spawnSchedule.pausedTicks > 10) {
+                spawnSchedule.shift();
             }
             spawnSchedule.pausedTicks = 0;
         }
