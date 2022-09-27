@@ -83,11 +83,11 @@ export class Harvester extends CreepRole {
                 } else {
                     closestSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
                 }
+                let room = Game.rooms[creep.memory.homeRoom];
+                let refillTarget = room.lowestSpawn ? room.lowestSpawn : room.lowestExtension;
 
-                let lowestEnergySpawn = Game.rooms[creep.room.name].find(FIND_MY_SPAWNS).sort((a, b) => a.store.energy - b.store.energy)[0]
-
-                if (creep.store.energy == creep.store.getCapacity(RESOURCE_ENERGY) && lowestEnergySpawn.store.energy < lowestEnergySpawn.store.getCapacity(RESOURCE_ENERGY)) {
-                    creep.give(Game.spawns[lowestEnergySpawn.name], RESOURCE_ENERGY)
+                if (creep.store.energy == creep.store.getCapacity(RESOURCE_ENERGY) && refillTarget && refillTarget.store.energy < refillTarget.store.getCapacity(RESOURCE_ENERGY)) {
+                    creep.give(refillTarget, RESOURCE_ENERGY)
                     return ProcessResult.RUNNING
                 } else if (closestSource) {
                     creep.mine(closestSource)
