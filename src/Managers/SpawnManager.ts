@@ -57,20 +57,14 @@ export default class SpawnManager {
 
             }
 
-            // TODO: Make as cheap as possible to reconsider
             // Reconsider schedule every 1500 ticks
-
-            /*
-            Conditions to reconsider:
-                eLimit changes
-                quantityWanted changes
-
-
-            Minimum actions:
-                adjust for prespawning
-            */
             if (_.any(spawnSchedules, (s) => s.tick == 1500)) {
-                for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
+                if (_.any(spawnSchedules, (s) => s.activeELimit !== room.spawnEnergyLimit || s.rolesNeeded !== this.genRolesNeeded(room))) {
+                    for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
+                } else {
+                    // Adjust for prespawning at 1500
+                    for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
+                }
             }
 
             room.cache.spawnSchedules = spawnSchedules;
@@ -85,11 +79,12 @@ export default class SpawnManager {
      * @param room The room to consider.
      * @param minimum Limits SpawnOrder generation to just ones considered required for room functionality.
      */
-    private static genSpawnOrders(room: Room): SpawnOrder[] {
+    private static genSpawnOrders(room: Room, spawnSchedules: SpawnSchedule[], rolesWanted?: Role[]): SpawnOrder[] {
         Utils.Logger.log(`SpawnManager -> genSpawnOrders(${room.name})`, LogLevel.TRACE)
 
         // Build array of CreepRoles in priority
-        let rolesNeeded: Role[] = this.genRolesNeeded(room);
+        let rolesNeeded: Role[] = rolesWanted ? rolesWanted : this.genRolesNeeded(room);
+        for (const schedule of spawnSchedules) schedule.rolesNeeded = rolesNeeded;
 
         // Build each SpawnOrder
         let spawnOrders: SpawnOrder[] = [];
@@ -101,6 +96,7 @@ export default class SpawnManager {
             let partLimits: number[] = Roles[role]!.partLimits!;
             if (!Roles[role]![room.spawnEnergyLimit]) Roles[role]![room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, Roles[role]!.baseBody, Roles[role]!.segment, partLimits);
             let body = Roles[role]![room.spawnEnergyLimit];
+
             if (body.length === 0) {
                 Utils.Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
                 continue;
@@ -166,7 +162,7 @@ export default class SpawnManager {
                 if (spawnSchedules && spawnSchedules.findIndex(s => s.spawnName === spawn.name) >= 0) continue;
                 spawnSchedules.push(new SpawnSchedule(spawn.room.name, spawn.name));
             }
-            spawns[0].room.cache.spawnSchedules = spawnSchedules;
+            spawns.length > 0 ? spawns[0].room.cache.spawnSchedules = spawnSchedules : undefined;
             return true;
         }
         return false;
@@ -177,7 +173,7 @@ export default class SpawnManager {
         // Reset conditional so as to not rebuild again next tick.
         spawnSchedules.forEach(function(s) { s.reset(); s.needsScheduled = false });
 
-        let spawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room);
+        let spawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, spawnSchedules);
         spawnOrders = this.addToSchedules(room, spawnOrders);
 
         Utils.Logger.log(`Failed to schedule ${spawnOrders ? spawnOrders.length : 0} spawn orders.`, LogLevel.INFO)
@@ -189,6 +185,7 @@ export default class SpawnManager {
         for (let spawnSchedule of spawnSchedules!) {
             if (spawnSchedule.isFull() == true || !spawnOrders || spawnOrders.length == 0) continue;
             spawnOrders = spawnSchedule.add(spawnOrders);
+            if (spawnSchedule.activeELimit !== room.spawnEnergyLimit) spawnSchedule.activeELimit = room.spawnEnergyLimit;
         }
         room.cache.spawnSchedules = spawnSchedules;
         return spawnOrders;

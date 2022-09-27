@@ -19,6 +19,10 @@ export default class SpawnSchedule {
     schedule: SpawnOrder[]
     /** Used by the Spawn Manager to know when to rebuild the whole schedule. */
     needsScheduled: boolean;
+    /** A record of the currently attempted-to-schedule roles. */
+    rolesNeeded: Role[] | undefined;
+    /** A record of the last used spawn energy limit. */
+    activeELimit: number | undefined;
 
     constructor(roomName: string, spawnName: string, opts?: {tick: number, pausedTicks: number, schedule: SpawnOrder[], freeSpaces: [number, number][], usedSpace: number}) {
         this.roomName = roomName;
@@ -147,6 +151,8 @@ export default class SpawnSchedule {
         this.freeSpaces = [[0,1500]];
         this.usedSpace = 0;
         this.needsScheduled = true;
+        this.rolesNeeded = undefined;
+        this.activeELimit = undefined;
     }
 
     /**
