@@ -140,8 +140,6 @@ export default class SpawnManager {
                 }
             }
         }
-        Utils.Logger.log(`rolesNeeded for true: ${JSON.stringify(rolesNeeded)}`, LogLevel.INFO)
-
 
         // Repeatedly runs through .quantityWanted() until all return 0;
         for (let allFound = false; allFound == false;) {
@@ -155,8 +153,6 @@ export default class SpawnManager {
                 }
             }
         }
-        Utils.Logger.log(`rolesNeeded for false: ${JSON.stringify(rolesNeeded)}`, LogLevel.INFO)
-
 
         Utils.Logger.log(`rolesNeeded final: ${JSON.stringify(rolesNeeded)}`, LogLevel.INFO)
 
