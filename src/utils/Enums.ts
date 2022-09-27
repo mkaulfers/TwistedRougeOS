@@ -1,12 +1,12 @@
 export enum Role {
     HARVESTER = 'harvester',
     TRUCKER = 'trucker',
-    ENGINEER = 'engineer',
-    FILLER = 'filler',
     AGENT = 'agent',
+    FILLER = 'filler',
     NETWORK_HARVESTER = 'network_harvester',
     NETWORK_HAULER = 'network_hauler',
     NETWORK_ENGINEER = 'network_engineer',
+    ENGINEER = 'engineer',
     SCIENTIST = 'scientist'
 }
 

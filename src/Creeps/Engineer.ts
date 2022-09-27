@@ -87,7 +87,7 @@ export class Engineer extends CreepRole {
         let engineerCount = rolesNeeded.filter(x => x == Role.ENGINEER).length
         if (rolesNeeded.filter(x => x == Role.HARVESTER).length == 0 &&
             rolesNeeded.filter(x => x == Role.TRUCKER).length == 0) return 0;
-        if (min && min == true) return engineerCount < 1 ? 1 : 0;
+        if (min && min == true) return 0;
         if (room.constructionSites().length == 0 && room.find(FIND_STRUCTURES).length == 0 ) return 0;
         if (room.constructionSites().length > 5) return engineerCount < 2 ? 2 - engineerCount : 0;
         if (room.constructionSites().length > 10) return engineerCount < 3 ? 3 - engineerCount : 0;

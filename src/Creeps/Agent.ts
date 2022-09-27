@@ -16,9 +16,9 @@ export class Agent extends CreepRole {
     readonly segment = []
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        if (min && min == true) return 0;
         let agentCount = rolesNeeded.filter(x => x == Role.AGENT).length;
-        if (!room.memory.frontiers || room.observer !== undefined) return 0;
+        if (min && min == true) return rolesNeeded.filter(x => x == Role.HARVESTER).length > 0 && rolesNeeded.filter(x => x == Role.TRUCKER).length > 0 ? 1 - agentCount : 0;
+        if (!room.memory.frontiers || room.observer) return 0;
         if (rolesNeeded.filter(x => x == Role.HARVESTER).length > 0 &&
             rolesNeeded.filter(x => x == Role.SCIENTIST).length > 0 &&
             rolesNeeded.filter(x => x == Role.TRUCKER).length > 0 &&

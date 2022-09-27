@@ -32,10 +32,13 @@ export class Harvester extends CreepRole {
         Utils.Logger.log("quantityWanted -> harvester.quantityWanted()", LogLevel.TRACE)
         let sources = room.sources.length;
         let harCount = rolesNeeded.filter(x => x == Role.HARVESTER).length
-        if (min && min == true) return harCount < sources ? sources - harCount : 0;
+        let truckerCount = rolesNeeded.filter(x => x == Role.TRUCKER).length
+        if (min && min == true) return harCount < sources ? 1 : 0;
 
         // Determine max needed harvesters based on harvest efficiency and valid spaces around source
-        let shouldBe = Math.ceil((sources * 5) / (Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits).filter(p => p == WORK).length));
+        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
+        let body = this[room.spawnEnergyLimit];
+        let shouldBe = Math.ceil((sources * 5) / (body.filter(p => p == WORK).length));
         let maxPositions = 0;
         room.sources.forEach(s => maxPositions += s.validPositions.length);
 
