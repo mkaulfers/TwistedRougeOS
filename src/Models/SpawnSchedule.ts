@@ -58,15 +58,28 @@ export default class SpawnSchedule {
             // TODO: Consider spawning creeps too
             // Check for existing creep to match spawnOrder
             const room = Game.rooms[this.roomName];
-            let relCreep = room.stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id && c.spawning == false);
+            let relCreep = room.stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id);
+            // Catch prespawning, currently spawning creeps catching the almost dead creep first
+
+            if (relCreep && relCreep.spawning === false) {
+                let potCreep = room.stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id && c.spawning == true);
+                potCreep ? relCreep = potCreep : undefined;
+            }
+
             let preSpawnOffset = Math.ceil(spawnOrder.spawnTime + Roles[spawnOrder.memory.role]!.preSpawnBy(room, Game.spawns[this.spawnName], relCreep));
-            let relCFreeSpace = relCreep ? this.freeSpaces.find(freeSpace => freeSpace[0] <= (relCreep!.ticksToLive! - preSpawnOffset) &&
-                (freeSpace[1] - ((relCreep!.ticksToLive! - preSpawnOffset) - freeSpace[0])) >= spawnOrder.spawnTime) : undefined;
+            let relCFreeSpace: [number, number] | undefined;
+            if (relCreep && relCreep.spawning === true) {
+                relCFreeSpace = [...this.freeSpaces].reverse().find(freeSpace => freeSpace[0] <= (freeSpace[1] + freeSpace [0] - (preSpawnOffset + spawnOrder.spawnTime)) &&
+                    (freeSpace[1] - (preSpawnOffset + spawnOrder.spawnTime + 1)) >= 0);
+            } else if (relCreep && relCreep.spawning === false) {
+                relCFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[0] <= (relCreep!.ticksToLive! - preSpawnOffset) &&
+                    (freeSpace[1] - ((relCreep!.ticksToLive! - preSpawnOffset) - freeSpace[0])) >= spawnOrder.spawnTime);
+            }
 
             // TODO: Modify for travel time.
             // Set scheduleTick to PreSpawn IFF possible
             if (relCreep && relCFreeSpace && !(opts?.pack === true)) {
-                spawnOrder.scheduleTick = relCreep.ticksToLive! - preSpawnOffset;
+                spawnOrder.scheduleTick = relCreep.spawning === false ? relCreep.ticksToLive! - preSpawnOffset : relCFreeSpace[0] + relCFreeSpace[1] - (preSpawnOffset + spawnOrder.spawnTime + 1);
                 if (relCFreeSpace[0] == spawnOrder.scheduleTick) {
                     this.freeSpaces[this.freeSpaces.indexOf(relCFreeSpace)] = [relCFreeSpace[0] + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + 1)];
                 }
