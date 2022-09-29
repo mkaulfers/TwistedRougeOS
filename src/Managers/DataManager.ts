@@ -133,9 +133,9 @@ export default class DataManager {
                 let room = Game.rooms[roomName];
                 if (room.controller && room.controller.my) {
                     if (!room.memory.rclZero) room.memory.rclZero = Game.time;
-                    if (room.controller.level == 3 && !room.memory.rclThree) room.memory.rclThree = Game.time - room.memory.rclZero!;
-                    if (room.controller.level == 4 && !room.memory.rclFour) room.memory.rclFour = Game.time - room.memory.rclZero!;
-                    if (room.controller.level == 5 && !room.memory.rclFive) room.memory.rclFive = Game.time - room.memory.rclZero!;
+                    if (room.controller.level == 3 && !room.memory.rclThree) room.memory.rclThree = Game.time - room.memory.rclZero;
+                    if (room.controller.level == 4 && !room.memory.rclFour) room.memory.rclFour = Game.time - room.memory.rclZero;
+                    if (room.controller.level == 5 && !room.memory.rclFive) room.memory.rclFive = Game.time - room.memory.rclZero;
                 }
             }
             for (const name in Game.creeps) {

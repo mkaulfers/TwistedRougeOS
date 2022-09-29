@@ -36,7 +36,7 @@ export default class SpawnManager {
                 if (Utils.Logger.devLogLevel == LogLevel.INFO || Utils.Logger.devLogLevel == LogLevel.ALL) {
                     Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} tick: ${spawnSchedule.tick}, pausedTick: ${spawnSchedule.pausedTicks}.`, LogLevel.INFO)
                     let nextOrder = spawnSchedule.schedule.find((o) => o.scheduleTick && o.scheduleTick >= spawnSchedule.tick);
-                    Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id} in ${nextOrder && nextOrder.scheduleTick ? nextOrder.scheduleTick - spawnSchedule.tick : 1500 + spawnSchedule.schedule[0].scheduleTick! - spawnSchedule.tick} ticks.`, LogLevel.INFO)
+                    Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id} in ${nextOrder && nextOrder.scheduleTick ? nextOrder.scheduleTick - spawnSchedule.tick : spawnSchedule.schedule[0].scheduleTick ? 1500 + spawnSchedule.schedule[0].scheduleTick - spawnSchedule.tick : undefined} ticks.`, LogLevel.INFO)
                 }
 
                 let spawnOrder: SpawnOrder | undefined = spawnSchedule.schedule.find(o => o.scheduleTick == spawnSchedule.tick);
@@ -91,11 +91,12 @@ export default class SpawnManager {
         for (const role of rolesNeeded) {
             let roleName = Utils.Utility.truncateString(role);
             let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
-            // TODO: Fix to remove '!'
-            if (!Roles[role]!.partLimits || Roles[role]!.partLimits!.length == 0) Roles[role]!.partLimits = Utils.Utility.buildPartLimits(Roles[role]!.baseBody!, Roles[role]!.segment!);
-            let partLimits: number[] = Roles[role]!.partLimits!;
-            if (!Roles[role]![room.spawnEnergyLimit]) Roles[role]![room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, Roles[role]!.baseBody, Roles[role]!.segment, partLimits);
-            let body = Roles[role]![room.spawnEnergyLimit];
+            const theRole = Roles[role];
+            if (!theRole) continue;
+            if (!theRole.partLimits || theRole.partLimits.length == 0) theRole.partLimits = Utils.Utility.buildPartLimits(theRole.baseBody, theRole.segment);
+            let partLimits: number[] = theRole.partLimits;
+            if (!theRole[room.spawnEnergyLimit]) theRole[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, theRole.baseBody, theRole.segment, partLimits);
+            let body = theRole[room.spawnEnergyLimit];
 
             if (body.length === 0) {
                 Utils.Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
@@ -129,7 +130,9 @@ export default class SpawnManager {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
-                    let count: number = Roles[role]!.quantityWanted(room, rolesNeeded, true);
+                    const theRole = Roles[role];
+                    if (!theRole) continue;
+                    let count: number = theRole.quantityWanted(room, rolesNeeded, true);
                     if (count > 0) allFound = false;
                     for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
                 }
@@ -141,7 +144,9 @@ export default class SpawnManager {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
-                    let count: number = Roles[role]!.quantityWanted(room, rolesNeeded, false);
+                    const theRole = Roles[role];
+                    if (!theRole) continue;
+                    let count: number = theRole.quantityWanted(room, rolesNeeded, false);
                     if (count > 0) allFound = false;
                     for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
                 }
@@ -180,7 +185,8 @@ export default class SpawnManager {
     /** Adds SpawnOrders to schedule. Assumes spawnSchedules !== undefined. */
     private static addToSchedules(room: Room, spawnOrders: SpawnOrder[] | undefined): SpawnOrder[] | undefined {
         let spawnSchedules = room.cache.spawnSchedules;
-        for (let spawnSchedule of spawnSchedules!) {
+        if (!spawnSchedules) return;
+        for (let spawnSchedule of spawnSchedules) {
             if (spawnSchedule.isFull() == true || !spawnOrders || spawnOrders.length == 0) continue;
             spawnOrders = spawnSchedule.add(spawnOrders);
             if (spawnSchedule.activeELimit !== room.spawnEnergyLimit) spawnSchedule.activeELimit = room.spawnEnergyLimit;
