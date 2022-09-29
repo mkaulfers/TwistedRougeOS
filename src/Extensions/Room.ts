@@ -302,26 +302,26 @@ export default class Room_Extended extends Room {
     private _lowestExtension: StructureExtension | undefined;
     get lowestExtension() {
         if (this._lowestExtension) {
-            for (const extension of this.extensions) if (extension.store.energy < (this._lowestExtension && this._lowestExtension.store.energy ? this._lowestExtension.store.energy : 200)) this._lowestExtension = extension;
+            for (const extension of this.extensions) if (extension.store.energy < (this._lowestExtension && this._lowestExtension.store.energy ? this._lowestExtension.store.energy : extension.store.getCapacity(RESOURCE_ENERGY))) this._lowestExtension = extension;
         }
         return this._lowestExtension;
     }
 
     private _lowestScientist: Creep | undefined;
     get lowestScientist() {
-        for (const scientist of this.localCreeps.scientist) if (scientist.store.energy < (this._lowestScientist && this._lowestScientist.store.energy ? this._lowestScientist.store.energy : 10000)) this._lowestScientist = scientist;
+        for (const scientist of this.localCreeps.scientist) if (scientist.store.energy < (this._lowestScientist && this._lowestScientist.store.energy ? this._lowestScientist.store.energy : scientist.store.getCapacity(RESOURCE_ENERGY))) this._lowestScientist = scientist;
         return this._lowestScientist;
     }
 
     private _lowestSpawn: StructureSpawn | undefined;
     get lowestSpawn() {
-        for (const spawn of this.spawns) if (spawn.store.energy < (this._lowestSpawn && this._lowestSpawn.store.energy ? this._lowestSpawn.store.energy : 200)) this._lowestSpawn = spawn;
+        for (const spawn of this.spawns) if (spawn.store.energy < (this._lowestSpawn && this._lowestSpawn.store.energy ? this._lowestSpawn.store.energy : spawn.store.getCapacity(RESOURCE_ENERGY))) this._lowestSpawn = spawn;
         return this._lowestSpawn;
     }
 
     private _lowestTower: StructureTower | undefined;
     get lowestTower() {
-        for (const tower of this.towers) if (tower.store.energy < (this._lowestTower && this._lowestTower.store.energy ? this._lowestTower.store.energy : 200)) this._lowestTower = tower;
+        for (const tower of this.towers) if (tower.store.energy < (this._lowestTower && this._lowestTower.store.energy ? this._lowestTower.store.energy : 1000)) this._lowestTower = tower;
         return this._lowestTower;
     }
 

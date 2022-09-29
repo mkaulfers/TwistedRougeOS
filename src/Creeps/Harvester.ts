@@ -86,7 +86,14 @@ export class Harvester extends CreepRole {
                 let room = Game.rooms[creep.memory.homeRoom];
                 let refillTarget = room.lowestSpawn ? room.lowestSpawn : room.lowestExtension;
 
-                if (creep.store.energy == creep.store.getCapacity(RESOURCE_ENERGY) && refillTarget && refillTarget.store.energy < refillTarget.store.getCapacity(RESOURCE_ENERGY)) {
+                // Flip working
+                if (creep.store.energy === 0 || !refillTarget) {
+                    creep.memory.working = false;
+                } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && refillTarget) {
+                    creep.memory.working == true;
+                }
+
+                if (creep.memory.working && refillTarget) {
                     creep.give(refillTarget, RESOURCE_ENERGY)
                     return ProcessResult.RUNNING
                 } else if (closestSource) {

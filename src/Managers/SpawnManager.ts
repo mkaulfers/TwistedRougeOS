@@ -47,13 +47,13 @@ export default class SpawnManager {
                     spawnOrder && room.energyAvailable < Utils.Utility.bodyCost(spawnOrder.body) ||
                     room.cache.pauseSpawning && room.cache.pauseSpawning == true) emergency = true;
 
-                // TODO: Improve emergency handling.
-                // Handle Emergencies
-                spawnSchedule = this.handleEmergency(spawnSchedule, emergency);
-
-                if (emergency === false) {
+                // Run schedule
+                if (emergency === false && spawnSchedule.pausedTicks == 0) {
                     spawnSchedule = this.runSchedule(spawnSchedule, spawnOrder);
                 }
+
+                // Handle Emergencies
+                spawnSchedule = this.handleEmergency(spawnSchedule, emergency);
 
             }
 
@@ -206,7 +206,6 @@ export default class SpawnManager {
                     modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
                     role = Role.TRUCKER;
                 } else {
-                    // Handle Restarting if energy available
                     segment = [WORK, CARRY, MOVE];
                     modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
                     role = Role.HARVESTER;
@@ -224,8 +223,6 @@ export default class SpawnManager {
             spawnSchedule.pausedTicks++;
 
         } else if (emergency === false && spawnSchedule.pausedTicks !== 0) {
-            // TODO: Make emergency handling better
-            // Trigger emergency end actions
             if (spawnSchedule.pausedTicks > 100) {
                 spawnSchedule.reset();
             } else if (spawnSchedule.pausedTicks > 10) {
