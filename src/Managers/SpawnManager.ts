@@ -86,6 +86,7 @@ export default class SpawnManager {
         let rolesNeeded: Role[] = rolesWanted ? rolesWanted : this.genRolesNeeded(room);
         for (const schedule of spawnSchedules) schedule.rolesNeeded = rolesNeeded;
 
+
         // Build each SpawnOrder
         let spawnOrders: SpawnOrder[] = [];
         for (const role of rolesNeeded) {
@@ -130,6 +131,7 @@ export default class SpawnManager {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
+
                     const theRole = Roles[role];
                     if (!theRole) continue;
                     let count: number = theRole.quantityWanted(room, rolesNeeded, true);
@@ -144,9 +146,11 @@ export default class SpawnManager {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
+
                     const theRole = Roles[role];
                     if (!theRole) continue;
                     let count: number = theRole.quantityWanted(room, rolesNeeded, false);
+
                     if (count > 0) allFound = false;
                     for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
                 }
@@ -176,7 +180,9 @@ export default class SpawnManager {
         // Reset conditional so as to not rebuild again next tick.
         spawnSchedules.forEach(function(s) { s.reset(); s.needsScheduled = false });
 
+
         let spawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, spawnSchedules);
+
         spawnOrders = this.addToSchedules(room, spawnOrders);
 
         Utils.Logger.log(`Failed to schedule ${spawnOrders ? spawnOrders.length : 0} spawn orders.`, LogLevel.INFO)
