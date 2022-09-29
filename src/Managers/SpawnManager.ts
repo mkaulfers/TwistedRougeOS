@@ -220,6 +220,9 @@ export default class SpawnManager {
                 Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, LogLevel.DEBUG);
             }
 
+            // Paused too long? Reset
+            if (spawnSchedule.pausedTicks > 250) spawnSchedule.reset();
+
             spawnSchedule.pausedTicks++;
 
         } else if (emergency === false && spawnSchedule.pausedTicks !== 0) {
