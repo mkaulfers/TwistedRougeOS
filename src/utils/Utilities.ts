@@ -272,14 +272,14 @@ export class Utility {
         let freePartsPortion = Math.floor((50 - tempBody.length) / tempSegment.length);
         let partLimits: number[] = [];
 
-        refPartLimitsArray.forEach((p, i) => partLimits![i] = 0);
+        refPartLimitsArray.forEach((p, i) => partLimits[i] = 0);
         tempBody.forEach(function(p) {
             let i = refPartLimitsArray.indexOf(p);
-            if (i >= 0) partLimits![i] += partLimits![i]
+            if (i >= 0) partLimits[i] += partLimits[i]
         });
 
         tempSegment.forEach(function(p) {
-            partLimits![refPartLimitsArray.indexOf(p)] += freePartsPortion;
+            partLimits[refPartLimitsArray.indexOf(p)] += freePartsPortion;
         })
         let unusedParts = 50 - (tempBody.length + (partLimits.reduce((previousValue, currentValue) => previousValue + currentValue)));
         for (let i = 0; unusedParts < 50; i >= tempSegment.length ? i = 0 : i++) {
@@ -289,7 +289,7 @@ export class Utility {
 
         return partLimits;
     }
-    
+
     static genPathfindingCM(roomName: string): CostMatrix {
         let cm = new PathFinder.CostMatrix();
         const room = Game.rooms[roomName];

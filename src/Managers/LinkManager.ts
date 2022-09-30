@@ -53,7 +53,7 @@ export default class LinkManager {
             let linkStates = room.cache.links;
             if (!linkStates) return;
 
-            let targetLinks = links.filter((l) => { return ([LinkState.OUTPUT, LinkState.BOTH].indexOf(linkStates![l.id] as LinkState) >= 0 &&
+            let targetLinks = links.filter((l) => { return ([LinkState.OUTPUT, LinkState.BOTH].indexOf(linkStates[l.id] as LinkState) >= 0 &&
                 l.store.getFreeCapacity(RESOURCE_ENERGY) > (l.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt)) });
             targetLinks = _.sortByOrder(targetLinks, (t: StructureLink) => t.store.energy, 'asc');
 

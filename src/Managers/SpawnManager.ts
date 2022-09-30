@@ -34,9 +34,9 @@ export default class SpawnManager {
 
                 // Generic Data logging, if you want it.
                 if (Utils.Logger.devLogLevel == LogLevel.INFO || Utils.Logger.devLogLevel == LogLevel.ALL) {
-                    Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} tick: ${spawnSchedule.tick}`, LogLevel.INFO)
-                    let nextOrder = spawnSchedule.schedule.find((o) => o.scheduleTick && o.scheduleTick > spawnSchedule.tick);
-                    Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id} in ${nextOrder && nextOrder.scheduleTick ? nextOrder.scheduleTick - spawnSchedule.tick : 1500 + spawnSchedule.schedule[0].scheduleTick! - spawnSchedule.tick} ticks.`, LogLevel.INFO)
+                    Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} tick: ${spawnSchedule.tick}, pausedTick: ${spawnSchedule.pausedTicks}.`, LogLevel.INFO)
+                    let nextOrder = spawnSchedule.schedule.find((o) => o.scheduleTick && o.scheduleTick >= spawnSchedule.tick);
+                    Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id} in ${nextOrder && nextOrder.scheduleTick ? nextOrder.scheduleTick - spawnSchedule.tick : spawnSchedule.schedule[0].scheduleTick ? 1500 + spawnSchedule.schedule[0].scheduleTick - spawnSchedule.tick : undefined} ticks.`, LogLevel.INFO)
                 }
 
                 let spawnOrder: SpawnOrder | undefined = spawnSchedule.schedule.find(o => o.scheduleTick == spawnSchedule.tick);
@@ -47,30 +47,24 @@ export default class SpawnManager {
                     spawnOrder && room.energyAvailable < Utils.Utility.bodyCost(spawnOrder.body) ||
                     room.cache.pauseSpawning && room.cache.pauseSpawning == true) emergency = true;
 
-                // TODO: Improve emergency handling.
-                // Handle Emergencies
-                spawnSchedule = this.handleEmergency(spawnSchedule, emergency);
-
-                if (emergency === false) {
+                // Run schedule
+                if (emergency === false && spawnSchedule.pausedTicks == 0) {
                     spawnSchedule = this.runSchedule(spawnSchedule, spawnOrder);
                 }
 
+                // Handle Emergencies
+                spawnSchedule = this.handleEmergency(spawnSchedule, emergency);
+
             }
 
-            // TODO: Make as cheap as possible to reconsider
             // Reconsider schedule every 1500 ticks
-
-            /*
-            Conditions to reconsider:
-                eLimit changes
-                quantityWanted changes
-
-
-            Minimum actions:
-                adjust for prespawning
-            */
             if (_.any(spawnSchedules, (s) => s.tick == 1500)) {
-                for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
+                if (_.any(spawnSchedules, (s) => s.activeELimit !== room.spawnEnergyLimit || s.rolesNeeded !== this.genRolesNeeded(room))) {
+                    for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
+                } else {
+                    // Adjust for prespawning at 1500
+                    for (const spawnSchedule of spawnSchedules) spawnSchedule.shift();
+                }
             }
 
             room.cache.spawnSchedules = spawnSchedules;
@@ -85,22 +79,26 @@ export default class SpawnManager {
      * @param room The room to consider.
      * @param minimum Limits SpawnOrder generation to just ones considered required for room functionality.
      */
-    private static genSpawnOrders(room: Room): SpawnOrder[] {
+    private static genSpawnOrders(room: Room, spawnSchedules: SpawnSchedule[], rolesWanted?: Role[]): SpawnOrder[] {
         Utils.Logger.log(`SpawnManager -> genSpawnOrders(${room.name})`, LogLevel.TRACE)
 
         // Build array of CreepRoles in priority
-        let rolesNeeded: Role[] = this.genRolesNeeded(room);
+        let rolesNeeded: Role[] = rolesWanted ? rolesWanted : this.genRolesNeeded(room);
+        for (const schedule of spawnSchedules) schedule.rolesNeeded = rolesNeeded;
+
 
         // Build each SpawnOrder
         let spawnOrders: SpawnOrder[] = [];
         for (const role of rolesNeeded) {
             let roleName = Utils.Utility.truncateString(role);
             let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
-            // TODO: Fix to remove '!'
-            if (!Roles[role]!.partLimits || Roles[role]!.partLimits!.length == 0) Roles[role]!.partLimits = Utils.Utility.buildPartLimits(Roles[role]!.baseBody!, Roles[role]!.segment!);
-            let partLimits: number[] = Roles[role]!.partLimits!;
-            if (!Roles[role]![room.spawnEnergyLimit]) Roles[role]![room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, Roles[role]!.baseBody, Roles[role]!.segment, partLimits);
-            let body = Roles[role]![room.spawnEnergyLimit];
+            const theRole = Roles[role];
+            if (!theRole) continue;
+            if (!theRole.partLimits || theRole.partLimits.length == 0) theRole.partLimits = Utils.Utility.buildPartLimits(theRole.baseBody, theRole.segment);
+            let partLimits: number[] = theRole.partLimits;
+            if (!theRole[room.spawnEnergyLimit]) theRole[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, theRole.baseBody, theRole.segment, partLimits);
+            let body = theRole[room.spawnEnergyLimit];
+
             if (body.length === 0) {
                 Utils.Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
                 continue;
@@ -133,8 +131,10 @@ export default class SpawnManager {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
-                    console.log(`roles ${role} being considered`)
-                    let count: number = Roles[role]!.quantityWanted(room, rolesNeeded, true);
+
+                    const theRole = Roles[role];
+                    if (!theRole) continue;
+                    let count: number = theRole.quantityWanted(room, rolesNeeded, true);
                     if (count > 0) allFound = false;
                     for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
                 }
@@ -146,8 +146,11 @@ export default class SpawnManager {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
-                    console.log(`roles ${role} being considered`)
-                    let count: number = Roles[role]!.quantityWanted(room, rolesNeeded, false);
+
+                    const theRole = Roles[role];
+                    if (!theRole) continue;
+                    let count: number = theRole.quantityWanted(room, rolesNeeded, false);
+
                     if (count > 0) allFound = false;
                     for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
                 }
@@ -166,7 +169,7 @@ export default class SpawnManager {
                 if (spawnSchedules && spawnSchedules.findIndex(s => s.spawnName === spawn.name) >= 0) continue;
                 spawnSchedules.push(new SpawnSchedule(spawn.room.name, spawn.name));
             }
-            spawns[0].room.cache.spawnSchedules = spawnSchedules;
+            spawns.length > 0 ? spawns[0].room.cache.spawnSchedules = spawnSchedules : undefined;
             return true;
         }
         return false;
@@ -177,7 +180,9 @@ export default class SpawnManager {
         // Reset conditional so as to not rebuild again next tick.
         spawnSchedules.forEach(function(s) { s.reset(); s.needsScheduled = false });
 
-        let spawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room);
+
+        let spawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, spawnSchedules);
+
         spawnOrders = this.addToSchedules(room, spawnOrders);
 
         Utils.Logger.log(`Failed to schedule ${spawnOrders ? spawnOrders.length : 0} spawn orders.`, LogLevel.INFO)
@@ -186,9 +191,11 @@ export default class SpawnManager {
     /** Adds SpawnOrders to schedule. Assumes spawnSchedules !== undefined. */
     private static addToSchedules(room: Room, spawnOrders: SpawnOrder[] | undefined): SpawnOrder[] | undefined {
         let spawnSchedules = room.cache.spawnSchedules;
-        for (let spawnSchedule of spawnSchedules!) {
+        if (!spawnSchedules) return;
+        for (let spawnSchedule of spawnSchedules) {
             if (spawnSchedule.isFull() == true || !spawnOrders || spawnOrders.length == 0) continue;
             spawnOrders = spawnSchedule.add(spawnOrders);
+            if (spawnSchedule.activeELimit !== room.spawnEnergyLimit) spawnSchedule.activeELimit = room.spawnEnergyLimit;
         }
         room.cache.spawnSchedules = spawnSchedules;
         return spawnOrders;
@@ -211,7 +218,6 @@ export default class SpawnManager {
                     modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
                     role = Role.TRUCKER;
                 } else {
-                    // Handle Restarting if energy available
                     segment = [WORK, CARRY, MOVE];
                     modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
                     role = Role.HARVESTER;
@@ -226,13 +232,16 @@ export default class SpawnManager {
                 Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, LogLevel.DEBUG);
             }
 
+            // Paused too long? Reset
+            if (spawnSchedule.pausedTicks > 250) spawnSchedule.reset();
+
             spawnSchedule.pausedTicks++;
 
         } else if (emergency === false && spawnSchedule.pausedTicks !== 0) {
-            // TODO: Make emergency handling better
-            // Trigger emergency end actions
             if (spawnSchedule.pausedTicks > 100) {
                 spawnSchedule.reset();
+            } else if (spawnSchedule.pausedTicks > 10) {
+                spawnSchedule.shift();
             }
             spawnSchedule.pausedTicks = 0;
         }
