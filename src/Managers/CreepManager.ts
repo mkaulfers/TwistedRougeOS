@@ -11,48 +11,11 @@ export default class CreepManager {
             let creep = creeps[i]
             if (global.scheduler.processQueue.has(creep.name)) { continue }
 
-            // TODO: Write this generically.
-            switch (creep.memory.task as Task) {
-                case Task.HARVESTER_EARLY:
-                    if (!Roles.harvester || !Roles.harvester.tasks.harvester_early) continue;
-                    Roles.harvester.tasks.harvester_early(creep)
-                    break
-                case Task.HARVESTER_SOURCE:
-                    if (!Roles.harvester || !Roles.harvester.tasks.harvester_source) continue;
-                    Roles.harvester.tasks.harvester_source(creep)
-                    break
-                case Task.TRUCKER_STORAGE:
-                    if (!Roles.trucker || !Roles.trucker.tasks.trucker_storage) continue;
-                    Roles.trucker.tasks.trucker_storage(creep)
-                    break
-                case Task.TRUCKER_SCIENTIST:
-                    if (!Roles.trucker || !Roles.trucker.tasks.trucker_scientist) continue;
-                    Roles.trucker.tasks.trucker_scientist(creep)
-                    break
-                case Task.SCIENTIST_UPGRADING:
-                    if (!Roles.scientist || !Roles.scientist.tasks.scientist_upgrading) continue;
-                    Roles.scientist.tasks.scientist_upgrading(creep)
-                    break
-                case Task.ENGINEER_BUILDING:
-                    if (!Roles.engineer || !Roles.engineer.tasks.engineer_building) continue;
-                    Roles.engineer.tasks.engineer_building(creep)
-                    break
-                case Task.ENGINEER_REPAIRING:
-                    if (!Roles.engineer || !Roles.engineer.tasks.engineer_repairing) continue;
-                    Roles.engineer.tasks.engineer_repairing(creep)
-                    break
-                case Task.ENGINEER_UPGRADING:
-                    if (!Roles.engineer || !Roles.engineer.tasks.engineer_upgrading) continue;
-                    Roles.engineer.tasks.engineer_upgrading(creep)
-                    break
-                case Task.FILLER:
-                    if (!Roles.filler || !Roles.filler.tasks.filler_working) continue;
-                    Roles.filler.tasks.filler_working(creep)
-                    break
-                case Task.AGENT:
-                    if (!Roles.agent || !Roles.agent.tasks.agent) continue;
-                    Roles.agent.tasks.agent(creep)
-            }
+            let activeRole = Roles[creep.memory.role];
+            if (!activeRole || !creep.memory.task) continue;
+            let task: ((creep: Creep) => void) | undefined = activeRole.tasks[creep.memory.task];
+            if (!task) continue;
+            task(creep);
         }
     }
 

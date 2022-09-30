@@ -30,7 +30,8 @@ export class Agent extends CreepRole {
     dispatch(room: Room) {
         let agents = room.stationedCreeps.agent
         for (let agent of agents) {
-            this.tasks.agent!(agent);
+            if (!this.tasks.agent) continue;
+            this.tasks.agent(agent);
         }
     }
 

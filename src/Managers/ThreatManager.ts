@@ -39,11 +39,11 @@ export default class ThreatManager {
                 case (playerAttackers.length > 0 && invaderAttackers.length == 0): case (playerAttackers.length > 0 && invaderAttackers.length > 0):
 
                     // Handle Targeting
-                    if (room.cache.towerTarget && Game.getObjectById(room.cache.towerTarget!) == null) delete room.cache.towerTarget;
+                    if (room.cache.towerTarget && Game.getObjectById(room.cache.towerTarget) == null) delete room.cache.towerTarget;
 
                     let target;
                     if (!room.cache.towerTarget) {
-                        let potential: AnyCreep;
+                        let potential: AnyCreep | undefined;
                         let currentRelBodyLength: number = 0;
                         for (let enemy of playerAttackers) {
                             if (!this.canKill(enemy)) continue;
@@ -54,7 +54,7 @@ export default class ThreatManager {
                             }
                         }
 
-                        if (potential!) {
+                        if (potential) {
                             room.cache.towerTarget = potential.id;
                         }
                     }

@@ -19,6 +19,10 @@ export default class SpawnSchedule {
     schedule: SpawnOrder[]
     /** Used by the Spawn Manager to know when to rebuild the whole schedule. */
     needsScheduled: boolean;
+    /** A record of the currently attempted-to-schedule roles. */
+    rolesNeeded: Role[] | undefined;
+    /** A record of the last used spawn energy limit. */
+    activeELimit: number | undefined;
 
     constructor(roomName: string, spawnName: string, opts?: {tick: number, pausedTicks: number, schedule: SpawnOrder[], freeSpaces: [number, number][], usedSpace: number}) {
         this.roomName = roomName;
@@ -40,7 +44,7 @@ export default class SpawnSchedule {
      * @param opts.force To ignore the schedule's built in percentage limiter. Will only allow to 100% usage.
      * @returns SpawnOrders it couldn't add to the schedule or undefined if successful.
      */
-    add(spawnOrders: SpawnOrder[], opts?: {force?: boolean}): SpawnOrder[] | undefined {
+    add(spawnOrders: SpawnOrder[], opts?: {pack?: boolean, force?: boolean}): SpawnOrder[] | undefined {
         // TODO: Modify to handle gaps between spawnOrders
 
         let externalSpawnOrders = [...spawnOrders];
@@ -54,15 +58,28 @@ export default class SpawnSchedule {
             // TODO: Consider spawning creeps too
             // Check for existing creep to match spawnOrder
             const room = Game.rooms[this.roomName];
-            let relCreep = room.stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id && c.spawning == false);
+            let relCreep = room.stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id);
+            // Catch prespawning, currently spawning creeps catching the almost dead creep first
+
+            if (relCreep && relCreep.spawning === false) {
+                let potCreep = room.stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id && c.spawning == true);
+                potCreep ? relCreep = potCreep : undefined;
+            }
+
             let preSpawnOffset = Math.ceil(spawnOrder.spawnTime + Roles[spawnOrder.memory.role]!.preSpawnBy(room, Game.spawns[this.spawnName], relCreep));
-            let relCFreeSpace = relCreep ? this.freeSpaces.find(freeSpace => freeSpace[0] <= (relCreep!.ticksToLive! - preSpawnOffset) &&
-                (freeSpace[1] - ((relCreep!.ticksToLive! - preSpawnOffset) - freeSpace[0])) >= spawnOrder.spawnTime) : undefined;
+            let relCFreeSpace: [number, number] | undefined;
+            if (relCreep && relCreep.spawning === true) {
+                relCFreeSpace = [...this.freeSpaces].reverse().find(freeSpace => freeSpace[0] <= (freeSpace[1] + freeSpace [0] - (preSpawnOffset + spawnOrder.spawnTime)) &&
+                    (freeSpace[1] - (preSpawnOffset + spawnOrder.spawnTime + 1)) >= 0);
+            } else if (relCreep && relCreep.spawning === false) {
+                relCFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[0] <= (relCreep!.ticksToLive! - preSpawnOffset) &&
+                    (freeSpace[1] - ((relCreep!.ticksToLive! - preSpawnOffset) - freeSpace[0])) >= spawnOrder.spawnTime);
+            }
 
             // TODO: Modify for travel time.
             // Set scheduleTick to PreSpawn IFF possible
-            if (relCreep && relCFreeSpace) {
-                spawnOrder.scheduleTick = relCreep.ticksToLive! - preSpawnOffset;
+            if (relCreep && relCFreeSpace && !(opts?.pack === true)) {
+                spawnOrder.scheduleTick = relCreep.spawning === false ? relCreep.ticksToLive! - preSpawnOffset : relCFreeSpace[0] + relCFreeSpace[1] - (preSpawnOffset + spawnOrder.spawnTime + 1);
                 if (relCFreeSpace[0] == spawnOrder.scheduleTick) {
                     this.freeSpaces[this.freeSpaces.indexOf(relCFreeSpace)] = [relCFreeSpace[0] + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + 1)];
                 }
@@ -137,9 +154,7 @@ export default class SpawnSchedule {
 
     // }
 
-    /**
-     * Resets the schedule without having to reinitialize the class.
-     */
+    /** Resets the schedule without having to reinitialize the class. */
     reset(): void {
         this.tick = 0;
         this.pausedTicks = 0;
@@ -147,17 +162,35 @@ export default class SpawnSchedule {
         this.freeSpaces = [[0,1500]];
         this.usedSpace = 0;
         this.needsScheduled = true;
+        this.rolesNeeded = undefined;
+        this.activeELimit = undefined;
     }
 
+
     /**
-     * Cancels prespawns, forces all as tightly as possible to allow for more spawning.
+     * Reschedules existing spawn orders for accurate prespawning.
      */
-    // pack(): void {
+    shift(): void {
 
-    // }
+        let externalSchedule: SpawnOrder[] = [];
+        let rolesNeeded = this.rolesNeeded;
+        let activeELimit = this.activeELimit;
 
-    /** Reschedules existing based on preSpawning or manually provided values. */
-    // shift(): void {
+        // Re-sort schedule to match rolesNeeded
+        if (rolesNeeded) {
+            for (const role of rolesNeeded) {
+                const i = this.schedule.findIndex((o) => o.memory.role === role);
+                i >= 0 ? externalSchedule.push(...this.schedule.splice(i, 1)) : undefined;
+            }
+        } else {
+            externalSchedule.push(...this.schedule);
+        }
 
-    // }
+        this.reset();
+        this.activeELimit = activeELimit;
+        this.rolesNeeded = rolesNeeded;
+
+        // Reschedule each spawn order for prespawn
+        this.add(externalSchedule);
+    }
 }
