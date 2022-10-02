@@ -49,6 +49,7 @@ declare global {
 
         /* Custom Getters */
         getAvailableSpawn: StructureSpawn | undefined
+        ffContainers: StructureContainer[]
         nextCreepToDie: Creep | undefined;
         lowestExtension: StructureExtension | undefined
         lowestScientist: Creep | undefined
@@ -285,6 +286,20 @@ export default class Room_Extended extends Room {
             }
         }
         return this._availableSpawn;
+    }
+
+    private _ffContainers: StructureContainer[] | undefined
+    get ffContainers() {
+        if (!this._ffContainers) {
+            if (!this.memory.blueprint || !this.memory.blueprint.anchor || this.memory.blueprint.anchor === 0) return [];
+            let anchorPos = Utils.Utility.unpackPostionToRoom(this.memory.blueprint.anchor, this.name);
+            let containers: StructureContainer[] = [];
+            this.containers.forEach(function(s) {
+                if (s.pos.getRangeTo(anchorPos) === 2) containers.push(s);
+            });
+            this._ffContainers = containers;
+        }
+        return this._ffContainers;
     }
 
     private _nextCreepToDie: Creep | undefined;
