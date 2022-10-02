@@ -91,7 +91,6 @@ export class Engineer extends CreepRole {
         if (room.constructionSites().length == 0 && room.find(FIND_STRUCTURES).length == 0 ) return 0;
         if (room.constructionSites().length > 5) return engineerCount < 2 ? 2 - engineerCount : 0;
         if (room.constructionSites().length > 10) return engineerCount < 3 ? 3 - engineerCount : 0;
-        if (room.find(FIND_STRUCTURES).length > 200) return engineerCount < 2 ? 2 - engineerCount : 0;
         return engineerCount < 1 ? 1 : 0;
     }
 
