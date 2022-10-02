@@ -292,7 +292,8 @@ export class Agent extends CreepRole {
 
     private static getInvaderDetails(targetRoom: Room): InvaderDetail | undefined {
         if (targetRoom.controller && !targetRoom.controller.my && targetRoom.controller.reservation?.username == "Invader") {
-            let coreId = targetRoom.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_INVADER_CORE })[0].id
+            let core = targetRoom.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_INVADER_CORE });
+            let coreId = core.length > 0 ? core[0].id: undefined
 
             let storageDetails: StorageDetail[] = []
             let storeStructures: AnyStoreStructure[] = targetRoom.find(FIND_STRUCTURES, { filter: function (s: AnyStructure) { return 'store' in s } })
