@@ -140,6 +140,9 @@ export class Engineer extends CreepRole {
                             creep.room.find(FIND_STRUCTURES));
                         potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
 
+                        // Remove FF containers as option
+                        for (const container of creep.room.ffContainers) potentialTargets.splice(potentialTargets.findIndex((i) => i.id === container.id), 1);
+
                         let priorityTargets = potentialTargets.filter(function(t) {
                             (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
                         });     // Only used creep! because of creep not existing being caught at the beginning of the process
@@ -236,6 +239,9 @@ export class Engineer extends CreepRole {
                             creep.room.find(FIND_STRUCTURES));
                         potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
 
+                        // Remove FF containers as option
+                        for (const container of creep.room.ffContainers) potentialTargets.splice(potentialTargets.findIndex((i) => i.id === container.id), 1);
+
                         let priorityTargets = potentialTargets.filter(function(t) {
                             (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
                         });     // Only used creep! because of creep not existing being caught at the beginning of the process
@@ -320,6 +326,9 @@ export class Engineer extends CreepRole {
                             creep.room.find(FIND_TOMBSTONES),
                             creep.room.find(FIND_STRUCTURES));
                         potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK, STRUCTURE_STORAGE]})
+
+                        // Remove FF containers as option
+                        for (const container of creep.room.ffContainers) potentialTargets.splice(potentialTargets.findIndex((i) => i.id === container.id), 1);
 
                         let priorityTargets = potentialTargets.filter(function(t) {
                             (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
