@@ -164,7 +164,7 @@ export class Harvester extends CreepRole {
 
         // Prespawn targeting
         let matchingCreep = creep.room.stationedCreeps.harvester.find((c) => c.name !== creep.name && (c.name.substring(0,6) ?? '1') == (creep.name.substring(0,6) ?? '0'))
-        if (matchingCreep && matchingCreep.memory.assignedPos) {
+        if (matchingCreep && matchingCreep.memory.assignedPos && _.all(creep.room.sources, (s) => s.isHarvestingAtMaxEfficiency)) {
             creep.memory.assignedPos = matchingCreep.memory.assignedPos;
             targetSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
         }
