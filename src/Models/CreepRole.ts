@@ -31,5 +31,11 @@ export default abstract class CreepRole {
     /** The tasks for the role. */
     abstract tasks: { [key in Task]?: (creep: Creep) => void };
 
-    // Supporting funtions for internal use not declared here
+    // Supporting funtions for internal use:
+
+    /** Removes FF Containers from the provided list. */
+    removeFFContainers(room: Room, items: (AnyStoreStructure | Resource | Tombstone)[]): (AnyStoreStructure | Resource | Tombstone)[] {
+        for (const container of room.ffContainers) items.splice(items.findIndex((i) => i.id === container.id), 1);
+        return items;
+    }
 }
