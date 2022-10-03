@@ -43,31 +43,51 @@ export class Filler extends CreepRole {
                     } else {
                         return ProcessResult.FAILED
                     }
+                }
+                let assignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name)
+
+                if (creep.pos != assignedPos) {
+                    creep.travel({pos: assignedPos, range: 0})
+                    return ProcessResult.RUNNING
                 } else {
-                    let assignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name)
-                    if (creep.pos != assignedPos) {
-                        creep.travel({pos: assignedPos, range: 0})
-                        return ProcessResult.RUNNING
+
+                    // Handle working flip
+                    // Switches working value if full or empty
+                    if (creep.memory.working == undefined) creep.memory.working = false;
+                    if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
+                        (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                        creep.memory.working = !creep.memory.working;
+                        delete creep.memory.target;
+                    }
+                    const working = creep.memory.working;
+
+                    // Handle targeting
+                    let nearbyStructures = Filler.nearbyFillThese(creep)
+
+                    // Handle container and link identification
+                    if ((!creep.cache.dump && !creep.cache.supply) || Game.time % 500 === 0) {
+                        let nearby = creep.pos.findInRange(FIND_STRUCTURES, 1);
+                        nearby.forEach(function(s) {
+                            if (creep && s.structureType === STRUCTURE_CONTAINER) creep.cache.dump = s.id;
+                            if (creep && s.structureType === STRUCTURE_LINK) creep.cache.supply = s.id;
+                        });
                     }
 
-                    let nearbyStructures = Filler.nearbyStructures(creep)
-                    let storingStructures = nearbyStructures.filter(structure => structure.structureType != STRUCTURE_LINK)
-                    let container = nearbyStructures.filter(structure => structure.structureType === STRUCTURE_CONTAINER)[0]
-                    let link = nearbyStructures.filter(structure => structure.structureType === STRUCTURE_LINK)[0]
+                    let container = creep.cache.dump ? Game.getObjectById(creep.cache.dump) : undefined;
+                    let link = creep.cache.supply ? Game.getObjectById(creep.cache.supply) : undefined;
 
-                    if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0 &&
-                        container && container.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
-                        creep.take(container, RESOURCE_ENERGY)
-
-                        for (let structure of storingStructures) {
-                            creep.give(structure, RESOURCE_ENERGY)
+                    if (!working) {
+                        if (nearbyStructures.length > 0) {
+                            if (link && link.store.energy > 0) creep.take(link, RESOURCE_ENERGY);
+                            else if (container && container.store.energy > 0) creep.take(container, RESOURCE_ENERGY);
+                        } else if (container && link && container.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && link.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                            creep.take(link, RESOURCE_ENERGY);
                         }
-
                     } else {
-                        if (link.store.getUsedCapacity(RESOURCE_ENERGY) > 0 &&
-                            container && container.store.getUsedCapacity(RESOURCE_ENERGY) < container.store.getCapacity(RESOURCE_ENERGY)) {
-                            creep.take(link, RESOURCE_ENERGY)
-                            creep.give(container, RESOURCE_ENERGY)
+                        if (nearbyStructures.length > 0) {
+                            nearbyStructures[0] ? creep.give(nearbyStructures[0], RESOURCE_ENERGY) : undefined;
+                        } else if (container && container.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                            creep.give(container, RESOURCE_ENERGY);
                         }
                     }
                 }
@@ -104,7 +124,7 @@ export class Filler extends CreepRole {
         return assignablePositions[0]
     }
 
-    private static nearbyStructures(creep: Creep): AnyStoreStructure[] {
+    private static nearbyFillThese(creep: Creep): AnyStoreStructure[] {
         let creepAssignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos!, creep.memory.homeRoom)
         let room = Game.rooms[creep.memory.homeRoom]
         let structures = room.lookForAtArea(
@@ -117,11 +137,9 @@ export class Filler extends CreepRole {
 
         let filteredStructures: AnyStoreStructure[] = []
         for (let structure of structures) {
-            if (structure.structure.structureType === STRUCTURE_CONTAINER ||
-                structure.structure.structureType === STRUCTURE_EXTENSION ||
-                structure.structure.structureType === STRUCTURE_SPAWN ||
-                structure.structure.structureType === STRUCTURE_LINK) {
-                filteredStructures.push(structure.structure as AnyStoreStructure)
+            if (structure.structure.structureType === STRUCTURE_EXTENSION || structure.structure.structureType === STRUCTURE_SPAWN) {
+                let struct = structure.structure as StructureExtension | StructureSpawn;
+                struct.store.getFreeCapacity(RESOURCE_ENERGY) > 0 ? filteredStructures.push(struct) : undefined;
             }
         }
         return filteredStructures

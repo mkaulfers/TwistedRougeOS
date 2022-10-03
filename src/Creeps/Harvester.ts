@@ -125,23 +125,23 @@ export class Harvester extends CreepRole {
 
                 if (closestSource) {
                     if (creep.store.energy > (creep.store.getCapacity() * 0.8)) {
-                        if (!creep.cache.harvesterDump) {
+                        if (!creep.cache.dump) {
                             let dumps = creep.pos.findInRange(FIND_STRUCTURES, 1);
                             let link = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_LINK && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureLink;
                             let container = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_CONTAINER && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureContainer;
 
                             if (link) {
-                                creep.cache.harvesterDump = link.id;
+                                creep.cache.dump = link.id;
                             } else if (container) {
-                                creep.cache.harvesterDump = container.id;
+                                creep.cache.dump = container.id;
                             }
                         }
-                        if (creep.cache.harvesterDump) {
-                            let dump = Game.getObjectById(creep.cache.harvesterDump);
+                        if (creep.cache.dump) {
+                            let dump = Game.getObjectById(creep.cache.dump);
                             if (dump && dump.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.ticksToLive && creep.ticksToLive % 50 !== 0) {
                                 creep.give(dump, RESOURCE_ENERGY);
                             } else {
-                                delete creep.cache.harvesterDump
+                                delete creep.cache.dump
                             }
                         }
                     }
