@@ -46,7 +46,7 @@ export class Filler extends CreepRole {
                 }
                 let assignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name)
 
-                if (!_.isEqual(creep.pos, assignedPos)) {
+                if (creep.pos.getRangeTo(assignedPos) > 0) {
                     creep.travel({pos: assignedPos, range: 0})
                 } else {
 
