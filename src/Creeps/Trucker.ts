@@ -10,7 +10,7 @@ export class Trucker extends CreepRole {
     readonly carryModifier = 3.0
 
     dispatch(room: Room) {
-        let consider = room.find(FIND_STRUCTURES);
+        let consider = [...room.towers, ...room.labs, ...room.containers];
         consider = consider.filter((t) => {
             if ((t.structureType == STRUCTURE_TOWER || t.structureType == STRUCTURE_LAB)) return ('my' in t && t.my && 'store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
             // Add FF containers to consideration for trucker storage
@@ -283,7 +283,7 @@ export class Trucker extends CreepRole {
         nearbyInterests = Utils.Utility.organizeTargets(nearbyInterests, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK, STRUCTURE_STORAGE] })
 
         // Remove FF containers as option
-        for (const container of creep.room.ffContainers) nearbyInterests.splice(nearbyInterests.findIndex((i) => i.id === container.id), 1);
+        nearbyInterests = this.prototype.removeFFContainers(creep.room, nearbyInterests)
 
         potentialTargets.push(...nearbyInterests);
         let priorityTargets = potentialTargets.filter(function (t) {
