@@ -46,9 +46,8 @@ export class Filler extends CreepRole {
                 }
                 let assignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name)
 
-                if (creep.pos != assignedPos) {
+                if (!_.isEqual(creep.pos, assignedPos)) {
                     creep.travel({pos: assignedPos, range: 0})
-                    return ProcessResult.RUNNING
                 } else {
 
                     // Handle working flip
