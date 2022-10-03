@@ -10,9 +10,11 @@ export class Trucker extends CreepRole {
     readonly carryModifier = 3.0
 
     dispatch(room: Room) {
-        let consider = room.find(FIND_MY_STRUCTURES);
+        let consider = [...room.towers, ...room.labs, ...room.containers];
         consider = consider.filter((t) => {
-            if ((t.structureType == STRUCTURE_TOWER || t.structureType == STRUCTURE_LAB)) return ('store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
+            if ((t.structureType == STRUCTURE_TOWER || t.structureType == STRUCTURE_LAB)) return ('my' in t && t.my && 'store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
+            // Add FF containers to consideration for trucker storage
+            if (t.structureType === STRUCTURE_CONTAINER && room.ffContainers.includes(t)) return (t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
             return false;
         });
         if (room.energyAvailable < room.energyCapacityAvailable || consider.length > 0) {
@@ -227,7 +229,7 @@ export class Trucker extends CreepRole {
     private static storageTruckerWorkingTargeting(creep: Creep) {
         let oldTarget: Structure | undefined = undefined;
         if (creep.memory.target) oldTarget = Game.getObjectById(creep.memory.target);
-        let potentialTargets: Structure[] = creep.room.find(FIND_MY_STRUCTURES, {
+        let potentialTargets: Structure[] = creep.room.find(FIND_STRUCTURES, {
             filter: function (s) {
                 // Limits find to the below structureTypes
                 switch (s.structureType) {
@@ -237,7 +239,13 @@ export class Trucker extends CreepRole {
                     case STRUCTURE_EXTENSION:
                     case STRUCTURE_LAB:
                         // Returns only targets with room for energy
-                        if (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                        if (s.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && s.my) {
+                            return s;
+                        } else {
+                            return;
+                        }
+                    case STRUCTURE_CONTAINER:
+                        if (creep.room.ffContainers.includes(s) && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                             return s;
                         } else {
                             return;
@@ -273,6 +281,9 @@ export class Trucker extends CreepRole {
             creep.room.find(FIND_RUINS));
         // Limits potential targets to only ones with energy, and if a structure, only structures that are containers or links.
         nearbyInterests = Utils.Utility.organizeTargets(nearbyInterests, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK, STRUCTURE_STORAGE] })
+
+        // Remove FF containers as option
+        nearbyInterests = this.prototype.removeFFContainers(creep.room, nearbyInterests)
 
         potentialTargets.push(...nearbyInterests);
         let priorityTargets = potentialTargets.filter(function (t) {

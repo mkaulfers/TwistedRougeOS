@@ -91,7 +91,6 @@ export class Engineer extends CreepRole {
         if (room.constructionSites().length == 0 && room.find(FIND_STRUCTURES).length == 0 ) return 0;
         if (room.constructionSites().length > 5) return engineerCount < 2 ? 2 - engineerCount : 0;
         if (room.constructionSites().length > 10) return engineerCount < 3 ? 3 - engineerCount : 0;
-        if (room.find(FIND_STRUCTURES).length > 200) return engineerCount < 2 ? 2 - engineerCount : 0;
         return engineerCount < 1 ? 1 : 0;
     }
 
@@ -139,6 +138,9 @@ export class Engineer extends CreepRole {
                             creep.room.find(FIND_TOMBSTONES),
                             creep.room.find(FIND_STRUCTURES));
                         potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+
+                        // Remove FF containers as option
+                        potentialTargets = Engineer.prototype.removeFFContainers(creep.room, potentialTargets)
 
                         let priorityTargets = potentialTargets.filter(function(t) {
                             (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
@@ -236,6 +238,9 @@ export class Engineer extends CreepRole {
                             creep.room.find(FIND_STRUCTURES));
                         potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
 
+                        // Remove FF containers as option
+                        potentialTargets = Engineer.prototype.removeFFContainers(creep.room, potentialTargets)
+
                         let priorityTargets = potentialTargets.filter(function(t) {
                             (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))
                         });     // Only used creep! because of creep not existing being caught at the beginning of the process
@@ -320,6 +325,9 @@ export class Engineer extends CreepRole {
                             creep.room.find(FIND_TOMBSTONES),
                             creep.room.find(FIND_STRUCTURES));
                         potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK, STRUCTURE_STORAGE]})
+
+                        // Remove FF containers as option
+                        potentialTargets = Engineer.prototype.removeFFContainers(creep.room, potentialTargets)
 
                         let priorityTargets = potentialTargets.filter(function(t) {
                             (('store' in t && t.store.energy > creep!.store.getFreeCapacity()) || ('resourceType' in t && t.amount > creep!.store.getFreeCapacity()))

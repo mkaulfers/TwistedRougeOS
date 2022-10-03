@@ -125,23 +125,23 @@ export class Harvester extends CreepRole {
 
                 if (closestSource) {
                     if (creep.store.energy > (creep.store.getCapacity() * 0.8)) {
-                        if (!creep.cache.harvesterDump) {
+                        if (!creep.cache.dump) {
                             let dumps = creep.pos.findInRange(FIND_STRUCTURES, 1);
                             let link = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_LINK && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureLink;
                             let container = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_CONTAINER && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureContainer;
 
                             if (link) {
-                                creep.cache.harvesterDump = link.id;
+                                creep.cache.dump = link.id;
                             } else if (container) {
-                                creep.cache.harvesterDump = container.id;
+                                creep.cache.dump = container.id;
                             }
                         }
-                        if (creep.cache.harvesterDump) {
-                            let dump = Game.getObjectById(creep.cache.harvesterDump);
+                        if (creep.cache.dump) {
+                            let dump = Game.getObjectById(creep.cache.dump);
                             if (dump && dump.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.ticksToLive && creep.ticksToLive % 50 !== 0) {
                                 creep.give(dump, RESOURCE_ENERGY);
                             } else {
-                                delete creep.cache.harvesterDump
+                                delete creep.cache.dump
                             }
                         }
                     }
@@ -164,7 +164,7 @@ export class Harvester extends CreepRole {
 
         // Prespawn targeting
         let matchingCreep = creep.room.stationedCreeps.harvester.find((c) => c.name !== creep.name && (c.name.substring(0,6) ?? '1') == (creep.name.substring(0,6) ?? '0'))
-        if (matchingCreep && matchingCreep.memory.assignedPos) {
+        if (matchingCreep && matchingCreep.memory.assignedPos && _.all(creep.room.sources, (s) => s.isHarvestingAtMaxEfficiency)) {
             creep.memory.assignedPos = matchingCreep.memory.assignedPos;
             targetSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
         }

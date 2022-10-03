@@ -24,12 +24,18 @@ export default abstract class CreepRole {
 
     /** Switches tasks for creeps of this role as required. */
     abstract dispatch(room: Room): void;
-    /** Tells the SpawnManager how many of this role is wanted, in what priority order. */
+    /** Tells the SpawnManager how many of this role is wanted, in what priority order. Must eventually return 0. */
     abstract quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number;
     /** Prespawn consideration ticks to add on top of spawntime required. Not a required function for each creep role. */
     preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number { return 0; }
     /** The tasks for the role. */
     abstract tasks: { [key in Task]?: (creep: Creep) => void };
 
-    // Supporting funtions for internal use not declared here
+    // Supporting funtions for internal use:
+
+    /** INTERNAL: Removes FF Containers from the provided list. */
+    removeFFContainers(room: Room, items: (AnyStoreStructure | Resource | Tombstone)[]): (AnyStoreStructure | Resource | Tombstone)[] {
+        for (const container of room.ffContainers) items.splice(items.findIndex((i) => i.id === container.id), 1);
+        return items;
+    }
 }

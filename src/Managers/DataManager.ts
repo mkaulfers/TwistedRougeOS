@@ -59,7 +59,8 @@ declare global {
 
     // Add properties you wish to have stored in a creep's cache in the interface below.
     interface CreepCache {
-        harvesterDump?: Id<StructureLink | StructureContainer>;
+        dump?: Id<StructureLink | StructureContainer>;
+        supply?: Id<StructureLink | StructureContainer>;
     }
 
     // The global Cache object. Consider it like `Memory`, it just gets rebuilt on a global reset.
