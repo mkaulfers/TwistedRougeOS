@@ -41,9 +41,9 @@ declare global {
 
     interface Memory {
         kernel: string
-        log: any;
         scheduler: string
-        uuid: number;
+
+        autoMarket?: boolean
     }
 
     // Add properties you wish to have stored in a room's cache in the interface below.
