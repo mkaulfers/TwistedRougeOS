@@ -51,8 +51,6 @@ export default class Kernel {
                 room.scheduleTasks()
             } else if (room.controller) {
                 // room.loadOwnedProcesses()
-            } else {
-                //Handle market processes.
             }
         }
 
