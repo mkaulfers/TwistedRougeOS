@@ -3,6 +3,8 @@ import Roles from '../Creeps/Index';
 import { Role, Task, LogLevel, ProcessPriority } from '../utils/Enums'
 import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
+import { Console } from 'console';
+import { Logger } from 'utils/Logger';
 
 export default class SpawnManager {
     static scheduleSpawnMonitor(room: Room) {
@@ -91,6 +93,7 @@ export default class SpawnManager {
         let spawnOrders: SpawnOrder[] = [];
         for (const role of rolesNeeded) {
             let roleName = Utils.Utility.truncateString(role);
+            Logger.log(`Role: ${roleName}`, LogLevel.INFO)
             let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
             const theRole = Roles[role];
             if (!theRole) continue;
@@ -119,6 +122,7 @@ export default class SpawnManager {
             spawnOrders.push(spawnOrder);
         }
 
+        Logger.log(`${JSON.stringify(spawnOrders)}`, LogLevel.INFO)
         return spawnOrders;
     }
 

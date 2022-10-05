@@ -2,6 +2,7 @@ import { InvaderDetail } from "./InvaderDetail"
 import { MineralDetail } from "./MineralDetail"
 import { PlayerDetail } from "./PlayerDetail"
 import { PortalDetail } from "./PortalDetail"
+import { RemoteAssignments } from "./RemoteAssignments"
 
 export class RoomStatistics {
     exploredTime: number
@@ -23,6 +24,8 @@ export class RoomStatistics {
     largestDistanceToController?: number
     playerDetail?: PlayerDetail
     invaderDetail?: InvaderDetail
+
+    remoteAssignments?: RemoteAssignments
 
     constructor(
         explored: number,

@@ -17,8 +17,8 @@ export default class RemoteManager {
             let room = Game.rooms[roomId]
             //If room doesn't have remotes, fetch them.
             //TODO: Modify so that remotes are added if the number of allowed remotes changes.
-            if (!room.memory.remotes || room.memory.remotes.length < this.allowedNumberOfRemotes) {
-                room.memory.remotes = (this.fetchRemotes(room))
+            if (!room.memory || !room.memory.remotes || room.memory.remotes.length < this.allowedNumberOfRemotes) {
+                this.setRemotes(room)
             }
         }
 
@@ -26,37 +26,59 @@ export default class RemoteManager {
         global.scheduler.addProcess(process)
     }
 
-    private static fetchRemotes(room: Room): RoomStatistics[] {
-        let rooms = Object.values(Memory.rooms)
+    private static setRemotes(room: Room) {
+        let roomsInMemory = Object.values(Memory.rooms).filter(x => x.intel)
+        let roomFrontiers = room.memory.frontiers
+        if (!roomFrontiers) { return }
+
+        roomsInMemory.sort((a, b) => { return Game.map.getRoomLinearDistance(room.name, a.intel!.name) - Game.map.getRoomLinearDistance(room.name, b.intel!.name) })
         let remotes: RoomStatistics[] = []
-        let frontiers = room.memory.frontiers
-        if (!frontiers) {
-            Logger.log("No Frontiers Found while fetching remotes.", LogLevel.FATAL)
-            return []
-        }
 
-        //We should wait to set remotes until we have all rooms adjacent
-        //to our owned room, so we can find any that MAY have 2 sources first.
-        //Otherwise, we will return the first rooms with at least 1 source.
-        if (rooms.length < this.ownedRooms.length * 9) return []
+        /**
+         * Primary Pass - Looking for any rooms that contain two sources.
+         */
+        for (let roomIntel of roomsInMemory) {
+            let intel = roomIntel.intel!
+            let existsInFrontiers = roomFrontiers.includes(intel.name)
 
-        for (let roomData of rooms) {
-            let intel = roomData.intel
-            if (!intel) continue
-            let existsInFrontiers = frontiers.includes(intel.name)
-            if (intel && existsInFrontiers) {
-                let sourcesIds = intel.sourcesIds
+            if (existsInFrontiers) {
+                let sourceIds = intel.sourcesIds
                 let threatLevel = intel.threatLevel
+                let distance = Game.map.getRoomLinearDistance(room.name, intel.name)
 
-                if (sourcesIds && sourcesIds.length > 0 && threatLevel < 1) {
+                if (sourceIds && sourceIds.length > 1 && threatLevel < 1 && distance < 2) {
                     remotes.push(intel)
                 }
-            }
 
-            if (remotes.length >= this.allowedNumberOfRemotes) break
+                if (remotes.length >= this.allowedNumberOfRemotes) break
+            }
         }
 
-        return remotes
+        /**
+         * Fallback Pass If 2 Sources Don't Exist
+         */
+        for (let roomIntel of roomsInMemory) {
+            let intel = roomIntel.intel!
+            let existsInFrontiers = roomFrontiers.includes(intel.name)
+
+            if (existsInFrontiers) {
+                let sourceIds = intel.sourcesIds
+                let threatLevel = intel.threatLevel
+                let distance = Game.map.getRoomLinearDistance(room.name, intel.name)
+
+                if (sourceIds && sourceIds.length > 0 && threatLevel < 1 && distance < 4) {
+                    if (remotes.includes(intel)) continue
+                    remotes.push(intel)
+                }
+
+                if (remotes.length >= this.allowedNumberOfRemotes) break
+            }
+        }
+
+        //TODO: Add a pass that checks our remotes as they stand, if their PathFinder.path(x -> y) is greater than 4 * 50 = 200 then remove them and do a final pass.
+        //TODO: Alternatively, create a function that checks via Pathfinder to and never allows it to be greater than 200.
+
+        room.memory.remotes = remotes
     }
 
     private static get ownedRooms(): string[] {

@@ -25,7 +25,9 @@ export enum Task {
 
     FILLER = 'filler_working',
 
-    AGENT = 'agent'
+    AGENT = 'agent',
+
+    NETWORK_HARVESTING = 'network_harvesting'
 }
 
 export enum ProcessPriority {

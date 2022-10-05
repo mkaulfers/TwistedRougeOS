@@ -9,6 +9,7 @@ declare global {
     interface CreepMemory {
         assignedPos?: number
         homeRoom: string
+        remoteRoom?: string
         role: Role
         target?: Id<any>
         task?: Task
