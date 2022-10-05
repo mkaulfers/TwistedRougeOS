@@ -361,6 +361,7 @@ export default class Room_Extended extends Room {
         Managers.CreepManager.scheduleRoomTaskMonitor(this)
         Managers.LinkManager.schedule(this);
         Managers.ConstructionManager.scheduleConstructionMonitor(this)
+        Managers.MarketManager.schedule(this);
     }
 
     setFrontiers(room: Room) {

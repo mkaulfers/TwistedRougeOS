@@ -45,8 +45,9 @@ export default class Terminal_Extended extends StructureTerminal {
 
         // Fetch price range
         const history = Game.market.getHistory(type);
-        const minPrice = history[0]?.avgPrice - (history[0]?.stddevPrice * options.stddev)
-        if (minPrice == undefined) return ERR_NOT_FOUND;
+        let minPrice = history[0]?.avgPrice - (history[0]?.stddevPrice * options.stddev)
+        // TODO: Modify to be per resource
+        if (minPrice == undefined) minPrice = 1;
 
         // Find order
         const orders = Game.market.getAllOrders({ type: ORDER_BUY, resourceType: type });
@@ -94,8 +95,9 @@ export default class Terminal_Extended extends StructureTerminal {
 
         // Fetch price range
         const history = Game.market.getHistory(type);
-        const maxPrice = history[0]?.avgPrice + (history[0]?.stddevPrice * options.stddev)
-        if (maxPrice == undefined) return ERR_NOT_FOUND;
+        let maxPrice = history[0]?.avgPrice + (history[0]?.stddevPrice * options.stddev)
+        // TODO: Modify to be per resource
+        if (maxPrice == undefined) maxPrice = 10000;
 
         // Find order
         const orders = Game.market.getAllOrders({ type: ORDER_SELL, resourceType: type });
