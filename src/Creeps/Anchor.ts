@@ -1,51 +1,46 @@
 import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
 import { Utils } from "utils/Index";
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from '../utils/Enums'
 
-export class Scientist extends CreepRole {
+export class Anchor extends CreepRole {
 
-    readonly baseBody = [CARRY, MOVE, WORK, WORK]
-    readonly segment = [CARRY, WORK, WORK]
+    readonly baseBody = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE]
+    readonly segment = [CARRY]
 
     dispatch(room: Room) {
-        let scientists = room.localCreeps.scientist
-        for (let scientist of scientists) {
-            if (!scientist.memory.task) {
-                global.scheduler.swapProcess(scientist, Task.SCIENTIST_UPGRADING)
+        for (let anchor of room.localCreeps.anchor) {
+            if (!anchor.memory.task) {
+                global.scheduler.swapProcess(anchor, Task.ANCHOR)
             }
         }
     }
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        Utils.Logger.log("quantityWanted -> scientist.quantityWanted()", LogLevel.TRACE)
-        let controller = room.controller
-        if (!controller) return 0
-        let sciCount = rolesNeeded.filter(x => x == Role.SCIENTIST).length
+        Utils.Logger.log("quantityWanted -> anchor.quantityWanted()", LogLevel.TRACE)
         if (min && min == true) return 0;
 
-        let energyIncome = room.energyIncome == 0 ? room.sources.length * 10 : room.energyIncome;
-        if (!this.partLimits || this.partLimits.length == 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
-        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
-        let bodyWorkCount = this[room.spawnEnergyLimit].filter(p => p == WORK).length;
-
-        let shouldBe = Math.ceil((room.controller!.level == 8 ? 15 : energyIncome / 2) / bodyWorkCount);
-        if (room.storage && room.storage.store.energy > 500000 && room.controller!.level !== 8) shouldBe = Math.ceil(energyIncome * 2) / bodyWorkCount;
-        return sciCount < shouldBe ? shouldBe - sciCount : 0;
+        let anchorCount = rolesNeeded.filter(x => x == Role.ANCHOR).length
+        let shouldBe = room.isAnchorFunctional ? 1 : 0;
+        return anchorCount < shouldBe ? shouldBe - anchorCount : 0;
     }
 
     preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number {
-        if (!room || !spawn || !room.controller) return 0;
-        // return path dist to controller
-        return room.findPath(spawn.pos, room.controller.pos, { range: 3 }).length;
+        if (!room || !spawn) return 0;
+        if (!room.memory.blueprint || room.memory.blueprint.anchor === 0) return 0;
+        const anchorStamp = room.memory.blueprint.stamps.find((s) => s.type === StampType.ANCHOR);
+        if (!anchorStamp) return 0;
+
+        // return path dist to anchor
+        return room.findPath(spawn.pos, Utils.Utility.unpackPostionToRoom(anchorStamp.stampPos, room.name)).length;
     }
 
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
-        scientist_upgrading: function(creep: Creep) {
+        anchor: function(creep: Creep) {
             let creepId = creep.id
 
-            const upgradingTask = () => {
-                Utils.Logger.log("CreepTask -> upgradingTask()", LogLevel.TRACE);
+            const task = () => {
+                Utils.Logger.log("CreepTask -> anchor()", LogLevel.TRACE);
 
                 let creep = Game.getObjectById(creepId);
                 if (!creep) {
@@ -53,9 +48,58 @@ export class Scientist extends CreepRole {
                     return ProcessResult.FAILED;
                 }
 
-                if (!Game.rooms[creep.memory.homeRoom]) return ProcessResult.FAILED;
-                let controller = Game.rooms[creep.memory.homeRoom].controller;
-                if (!controller) return ProcessResult.FAILED;
+                // Handle positioning
+                if (!creep.room.memory.blueprint || creep.room.memory.blueprint.anchor === 0) return ProcessResult.FAILED;
+                const anchorStamp = creep.room.memory.blueprint.stamps.find((s) => s.type === StampType.ANCHOR);
+                if (!anchorStamp) return ProcessResult.FAILED;
+                // YOU ARE HERE YOU NINCOMPOOP
+
+                // Switches working value if full or empty
+                if (creep.memory.working == undefined) creep.memory.working = false;
+                if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
+                    (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                    creep.memory.working = !creep.memory.working;
+                    delete creep.memory.target;
+                }
+                const working = creep.memory.working;
+
+                /*
+                Targeting
+                */
+
+                // Link
+                const link = creep.pos.findInRange(creep.room.links, 1);
+
+                // Spawn
+                const spawn = creep.pos.findInRange(creep.room.spawns, 1);
+
+                // Power Spawn
+                const powerSpawn = creep.room.powerSpawn;
+                const terminal = creep.room.terminal;
+                const factory = creep.room.factory;
+                const storage = creep.room.storage;
+                const nuker = creep.room.nuker;
+
+                if (!working) {
+
+                    // Link
+
+                    // Spawn
+
+                    // Power Spawn
+                    creep.room.powerSpawn;
+
+                    // Terminal
+
+                    // Factory
+
+                    // Storage
+
+                    // Nuker
+
+                } else {
+
+                }
 
                 var result = creep.praise(controller);
                 if (result === OK || result === ERR_NOT_ENOUGH_ENERGY) {
@@ -65,8 +109,8 @@ export class Scientist extends CreepRole {
                 return ProcessResult.INCOMPLETE;
             }
 
-            creep.memory.task = Task.SCIENTIST_UPGRADING
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
+            creep.memory.task = Task.ANCHOR
+            let newProcess = new Process(creep.name, ProcessPriority.LOW, task)
             global.scheduler.addProcess(newProcess)
         }
     }

@@ -3,7 +3,7 @@ import { Utils } from 'utils/Index'
 import { Logger } from 'utils/Logger'
 import Roles from '../Creeps/Index'
 
-import { Role, LogLevel } from '../utils/Enums'
+import { Role, LogLevel, StampType } from '../utils/Enums'
 
 type CreepFind = { [key in Role | 'all' | 'unknown']: Creep[] };
 type LooseCreepFind = { [key in Role | 'all' | 'unknown']?: Creep[] };
@@ -67,10 +67,12 @@ declare global {
         averageDistanceFromSourcesToStructures: number;
         /** Returns a per tick energy income */
         energyIncome: number;
+        isAnchorFunctional: boolean;
         isSpawning(role: Role): boolean
         maxExtensionsAvail: number;
         maxLabsAvail: number;
         maxTowersAvail: number;
+        my: boolean;
         /** Returns target goal for rampart HP in the room */
         rampartHPTarget: number;
         spawnEnergyLimit: number;
@@ -451,6 +453,29 @@ export default class Room_Extended extends Room {
         return this._energyIncome;
     }
 
+    private _isAnchorFunctional: boolean | undefined;
+    get isAnchorFunctional() {
+        if (!this._isAnchorFunctional) {
+            if (!this.memory.blueprint || this.memory.blueprint.anchor === 0) return this._isAnchorFunctional = false;
+            const anchorStamp = this.memory.blueprint.stamps.find((s) => s.type === StampType.ANCHOR);
+            if (!anchorStamp) return this._isAnchorFunctional = false;
+
+            const wantThese: StructureConstant[] = [
+                STRUCTURE_LINK,
+                STRUCTURE_SPAWN,
+                STRUCTURE_TERMINAL,
+                STRUCTURE_STORAGE,
+                STRUCTURE_FACTORY,
+                STRUCTURE_NUKER,
+                STRUCTURE_POWER_SPAWN
+            ];
+            let structures = Utils.Utility.unpackPostionToRoom(anchorStamp.stampPos, this.name).findInRange(FIND_STRUCTURES, 1);
+            structures = structures.filter((s) => wantThese.indexOf(s.structureType) >= 0);
+
+            this._isAnchorFunctional = structures.length > 1 ? true : false;
+        }
+        return this._isAnchorFunctional;
+    }
 
     isSpawning(role: Role): boolean {
         let subString = role.substring(0, 3)
@@ -563,6 +588,19 @@ export default class Room_Extended extends Room {
             }
         }
         return this._maxTowersAvail;
+    }
+
+    private _my: boolean | undefined;
+    get my() {
+        if (!this._my) {
+            const controller = this.controller;
+            if (!controller) {
+                this._my = false;
+            } else {
+                this._my = controller.my;
+            }
+        }
+        return this._my;
     }
 
     _rampartHPTarget: number | undefined;
