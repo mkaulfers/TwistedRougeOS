@@ -28,8 +28,7 @@ export enum Task {
 
     AGENT = 'agent',
     NETWORK_HARVESTING = 'network_harvesting',
-    ANCHOR = 'anchor',
-    AGENT = 'agent'
+    ANCHOR = 'anchor'
 }
 
 export enum ProcessPriority {
