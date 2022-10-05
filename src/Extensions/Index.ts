@@ -6,6 +6,8 @@ import Room_Extended from './Room';
 import RoomVisuals_Extended from './RoomVisuals';
 import Source_Extended from './Source';
 import Tower_Extended from './Tower';
+import Terminal_Extended from './Terminal';
+
 import { Utility } from 'utils/Utilities';
 
 export default function prototypeExtender(): void {
@@ -15,4 +17,5 @@ export default function prototypeExtender(): void {
     Utility.extendClass(RoomVisual, RoomVisuals_Extended);
     Utility.extendClass(Source, Source_Extended);
     Utility.extendClass(StructureTower, Tower_Extended);
+    Utility.extendClass(StructureTerminal, Terminal_Extended);
 }

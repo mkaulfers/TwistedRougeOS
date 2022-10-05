@@ -24,7 +24,7 @@ export default abstract class CreepRole {
 
     /** Switches tasks for creeps of this role as required. */
     abstract dispatch(room: Room): void;
-    /** Tells the SpawnManager how many of this role is wanted, in what priority order. Must eventually return 0. */
+    /** Tells the SpawnManager how many of this role is wanted, in what priority order. Must eventually return 0. Must handle `min` being true. */
     abstract quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number;
     /** Prespawn consideration ticks to add on top of spawntime required. Not a required function for each creep role. */
     preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number { return 0; }
