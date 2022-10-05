@@ -27,6 +27,15 @@ export class Filler extends CreepRole {
         return 0;
     }
 
+    preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number {
+        if (!room || !spawn) return 0;
+
+        // return avg path dist to anchor
+        if (!room.memory.blueprint || room.memory.blueprint.anchor == 0) return 0;
+        let anchorPos = Utils.Utility.unpackPostionToRoom(room.memory.blueprint.anchor, room.name)
+        return room.findPath(spawn.pos, anchorPos).length;
+    }
+
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
         filler_working: function(creep: Creep) {
             let creepId = creep.id
@@ -37,11 +46,18 @@ export class Filler extends CreepRole {
                 let room = Game.rooms[creep.memory.homeRoom]
 
                 if (!creep.memory.assignedPos) {
+                    // Prespawn targeting
+                    let matchingCreep = creep.room.stationedCreeps.filler.find((c) => c.name !== creep!.name && (c.name.substring(0,6) ?? '1') == (creep!.name.substring(0,6) ?? '0'))
                     let assignablePosition = Filler.getFillerPosition(room)
-                    if (assignablePosition) {
-                        creep.memory.assignedPos = Utils.Utility.packPosition(assignablePosition)
+
+                    if (matchingCreep && matchingCreep.memory.assignedPos && !assignablePosition) {
+                        creep.memory.assignedPos = matchingCreep.memory.assignedPos;
                     } else {
-                        return ProcessResult.FAILED
+                        if (assignablePosition) {
+                            creep.memory.assignedPos = Utils.Utility.packPosition(assignablePosition)
+                        } else {
+                            return ProcessResult.FAILED
+                        }
                     }
                 }
                 let assignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name)
@@ -56,7 +72,6 @@ export class Filler extends CreepRole {
                     if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
                         (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
                         creep.memory.working = !creep.memory.working;
-                        delete creep.memory.target;
                     }
                     const working = creep.memory.working;
 
@@ -76,17 +91,23 @@ export class Filler extends CreepRole {
                     let link = creep.cache.supply ? Game.getObjectById(creep.cache.supply) : undefined;
 
                     if (!working) {
-                        if (nearbyStructures.length > 0) {
-                            if (link && link.store.energy > 0) creep.take(link, RESOURCE_ENERGY);
-                            else if (container && container.store.energy > 0) creep.take(container, RESOURCE_ENERGY);
-                        } else if (container && link && container.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && link.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
+                        if (container && link && container.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && link.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                             creep.take(link, RESOURCE_ENERGY);
+                        } else {
+                            let tombstone = creep.pos.findInRange(FIND_TOMBSTONES, 0)[0] ?? undefined;
+                            let resource = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 0, { filter: { type: RESOURCE_ENERGY } })[0] ?? undefined;
+                            if (tombstone && tombstone.store.getUsedCapacity(RESOURCE_ENERGY) > 0) creep.take(tombstone, RESOURCE_ENERGY);
+                            else if (resource && resource.amount > 0) creep.take(resource, RESOURCE_ENERGY);
+                            else if (link && link.store.energy > 0) creep.take(link, RESOURCE_ENERGY);
+                            else if (container && container.store.energy > 0) creep.take(container, RESOURCE_ENERGY);
                         }
                     } else {
                         if (nearbyStructures.length > 0) {
                             nearbyStructures[0] ? creep.give(nearbyStructures[0], RESOURCE_ENERGY) : undefined;
-                        } else if (container && container.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                        } else if (container && link && link.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && container.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                             creep.give(container, RESOURCE_ENERGY);
+                        } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                            creep.memory.working = !creep.memory.working;
                         }
                     }
                 }
