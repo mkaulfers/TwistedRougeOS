@@ -124,11 +124,15 @@ export class Harvester extends CreepRole {
                 }
 
                 if (closestSource) {
+
+                    creep.mine(closestSource)
+
+                    // Handle Dumping
                     if (creep.store.energy > (creep.store.getCapacity() * 0.8)) {
                         if (!creep.cache.dump) {
-                            let dumps = creep.pos.findInRange(FIND_STRUCTURES, 1);
-                            let link = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_LINK && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureLink;
-                            let container = _.filter(dumps, function (d) { return d.structureType == STRUCTURE_CONTAINER && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureContainer;
+                            let dumps = closestSource.pos.findInRange(FIND_STRUCTURES, 2);
+                            let link = dumps.filter(function (d) { return d.structureType == STRUCTURE_LINK && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureLink | undefined;
+                            let container = dumps.filter(function (d) { return d.structureType == STRUCTURE_CONTAINER && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureContainer | undefined;
 
                             if (link) {
                                 creep.cache.dump = link.id;
@@ -138,15 +142,15 @@ export class Harvester extends CreepRole {
                         }
                         if (creep.cache.dump) {
                             let dump = Game.getObjectById(creep.cache.dump);
-                            if (dump && dump.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.ticksToLive && creep.ticksToLive % 50 !== 0) {
+                            if (dump && dump.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.ticksToLive) {
                                 creep.give(dump, RESOURCE_ENERGY);
                             } else {
                                 delete creep.cache.dump
                             }
                         }
                     }
+                    if (creep.ticksToLive && creep.ticksToLive % 50 === 0) delete creep.cache.dump
 
-                    creep.mine(closestSource)
                     return ProcessResult.RUNNING
                 }
                 return ProcessResult.INCOMPLETE
