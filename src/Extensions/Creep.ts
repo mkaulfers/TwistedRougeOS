@@ -302,7 +302,7 @@ export default class Creep_Extended extends Creep {
             routeCallback: (roomName: string) => {
                 let room = Game.rooms[roomName]
                 if (!room || !room.memory || !room.memory.intel) return
-                if (room.memory.intel.threatLevel > 0) {
+                if (room.memory.intel.threatLevel > 1) {
                     return Infinity
                 }
                 return
