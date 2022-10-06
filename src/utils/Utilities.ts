@@ -295,7 +295,7 @@ export class Utility {
         const room = Game.rooms[roomName];
         if (!room) return cm;
 
-        if (!room.cache.pathfindingCM || Game.time % 10000 == 0 || (Game.time % 100 == 0 && global.recentlyAttacked)) {
+        if (!room.cache.pathfindingCM || Game.time % 10000 == 0 || (Game.time % 100 == 0 && room.cache.recentlyAttacked)) {
             const terrain = Game.map.getRoomTerrain(roomName);
 
             // Consider source and mineral adjacent positions
@@ -307,7 +307,7 @@ export class Utility {
                         if (terrain.get(thing.pos.x + x, thing.pos.y + y) == TERRAIN_MASK_WALL) continue;
                         let lookArray = room.lookForAt(LOOK_STRUCTURES, thing.pos.x + x, thing.pos.y + y)
                         if (lookArray.findIndex((s) => s.structureType == STRUCTURE_CONTAINER) >= 0) {
-                            cm.set(thing.pos.x + x, thing.pos.y + y, 40);
+                            cm.set(thing.pos.x + x, thing.pos.y + y, 49);
                         } else {
                             cm.set(thing.pos.x + x, thing.pos.y + y, 50);
                         }
