@@ -21,7 +21,7 @@ export default class ConstructionManager {
             let controller = room.controller
             if (!controller) { return }
 
-            if (global.recentlyAttacked) {
+            if (room.cache.recentlyAttacked) {
                 let constructionSites = room.constructionSites()
                 for (let site of constructionSites) {
                     if (site.structureType != STRUCTURE_RAMPART) {
@@ -36,7 +36,7 @@ export default class ConstructionManager {
                 }
             }
 
-            if (!(global.recentlyAttacked && Game.time - global.attackedTime < 10)) {
+            if (!(room.cache.recentlyAttacked && room.cache.attackedTime && Game.time - room.cache.attackedTime < 10)) {
                 if (Game.time % 1500 != 0) { return }
             }
 

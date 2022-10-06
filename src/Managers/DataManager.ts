@@ -55,6 +55,9 @@ declare global {
         pauseSpawning?: boolean;
         spawnSchedules?: SpawnSchedule[];
         towerTarget?: Id<AnyCreep>;
+
+        recentlyAttacked?: boolean,
+        attackedTime?: number,
     }
 
     // Add properties you wish to have stored in a creep's cache in the interface below.
