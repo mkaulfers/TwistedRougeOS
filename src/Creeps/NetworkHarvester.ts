@@ -60,23 +60,16 @@ export class NetworkHarvester extends NetworkCreepRole {
                 /**
                  * I'm deciding to let this particular creep manage it's own assigmnents upon death.
                  */
-                if (creep.ticksToLive ?? 0 <= 1) {
+                if (creep.ticksToLive && creep.ticksToLive <= 1) {
                     let remotes = Game.rooms[creep.memory.homeRoom].memory.remotes || []
                     for (let remote of remotes) {
                         if (remote.remoteAssignments?.sourceHarvesters) {
                             remote.remoteAssignments.sourceHarvesters.splice(remote.remoteAssignments.sourceHarvesters.indexOf(creep.id), 1)
+                            break
                         }
                     }
                     Memory.rooms[creep.memory.homeRoom].remotes = remotes
                 }
-
-                //Goal 1: Travel to remote room
-                //Goal 2: Find a source that is not occupied by another creep.
-                //Goal 3: Harvest that source
-                //Goal 4: Build a container at the source
-                //Goal 5: Deposit energy into the container
-                //Goal 6: Maintain container and ensure it doesn't decay
-
 
                 if (targetRoom) {
                     if (creep.room.name != targetRoom.roomName) {
@@ -88,7 +81,6 @@ export class NetworkHarvester extends NetworkCreepRole {
                         }
                     }
                 }
-
 
                 return ProcessResult.RUNNING
             }
