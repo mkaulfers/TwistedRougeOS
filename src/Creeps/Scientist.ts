@@ -53,11 +53,33 @@ export class Scientist extends CreepRole {
                     return ProcessResult.FAILED;
                 }
 
+                // Switches working value if full or empty
+                if (creep.memory.working == undefined) creep.memory.working = false;
+                if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
+                    (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                    creep.memory.working = !creep.memory.working;
+                }
+                const working = creep.memory.working;
+
+                // Controller targeting
                 if (!Game.rooms[creep.memory.homeRoom]) return ProcessResult.FAILED;
                 let controller = Game.rooms[creep.memory.homeRoom].controller;
                 if (!controller) return ProcessResult.FAILED;
 
-                var result = creep.praise(controller);
+                let result: number | undefined;
+                if (!working) {
+                    // Link targeting
+                    if (!creep.cache.supply && Game.time % 50 === 0) {
+                        let foundLink: StructureLink | undefined = controller.pos.findInRange(controller.room.links, 3)[0];
+                        if (foundLink) creep.cache.supply = foundLink.id;
+                    }
+                    let link = creep.cache.supply ? Game.getObjectById(creep.cache.supply) : undefined;
+                    if (link && link.store.getUsedCapacity(RESOURCE_ENERGY) > 0) result = creep.take(link, RESOURCE_ENERGY);
+                    else result = OK;
+                } else {
+                    result = creep.praise(controller);
+                }
+
                 if (result === OK || result === ERR_NOT_ENOUGH_ENERGY) {
                     return ProcessResult.RUNNING;
                 }
