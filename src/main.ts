@@ -27,14 +27,12 @@ prototypeExtender();
 Utils.Logger.devLogLevel = LogLevel.DEBUG;
 
 export const loop = Utils.ErrorMapper.wrapLoop(() => {
-  preTick()
   clearConsole()
   setup()
   boot()
   execute()
   end()
   loggingProcess()
-  reconcileTraffic()
 });
 
 function setup() {
@@ -56,7 +54,9 @@ function boot() {
 }
 
 function execute() {
+  preTick()
   global.kernel.executeProcesses()
+  reconcileTraffic()
 }
 
 function end() {
