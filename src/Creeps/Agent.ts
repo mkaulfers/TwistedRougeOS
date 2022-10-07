@@ -192,15 +192,10 @@ export class Agent extends CreepRole {
         if (!controller) {
             //Check for invaders, stronghold
             for (const core of targetRoom.invaderCores) {
-                if (core.level === 0) {
-                    return DangerLevel.INVADERS;
-                } else if (core.level < 3) {
-                    return DangerLevel.WARY;
-                } else if (core.level < 5) {
-                    return DangerLevel.DANGER;
-                } else {
-                    return DangerLevel.DEATH;
-                }
+                if (core.level === 0) return DangerLevel.INVADERS;
+                if (core.level < 3) return DangerLevel.WARY;
+                if (core.level < 5) return DangerLevel.DANGER;
+                return DangerLevel.DEATH;
             }
             if (targetRoom.keeperLairs.length > 0) return DangerLevel.INVADERS;
             else if (targetRoom.find(FIND_HOSTILE_CREEPS, {filter: (c) => c.owner.username !== 'invader'}).length > 1 || targetRoom.find(FIND_HOSTILE_POWER_CREEPS).length > 0) return DangerLevel.WARY;
@@ -209,15 +204,13 @@ export class Agent extends CreepRole {
             // Check reservations and owners
             if (controller.reservation) {
                 if (controller.reservation.username === 'invader') return DangerLevel.PEACEFUL;
-                else if (Object.values(Developer).includes(controller.reservation.username as Developer)) return DangerLevel.PEACEFUL;
-                else return DangerLevel.WARY;
+                if (Object.values(Developer).includes(controller.reservation.username as Developer)) return DangerLevel.PEACEFUL;
+                return DangerLevel.WARY;
             } else if (controller.owner) {
                 if (Object.values(Developer).includes(controller.owner.username as Developer)) return DangerLevel.PEACEFUL;
-                else {
-                    if (targetRoom.towers.length < 3) return DangerLevel.WARY;
-                    else if (targetRoom.towers.length < 6) return DangerLevel.DANGER;
-                    else return DangerLevel.DEATH;
-                }
+                if (targetRoom.towers.length < 3) return DangerLevel.WARY;
+                if (targetRoom.towers.length < 6) return DangerLevel.DANGER;
+                return DangerLevel.DEATH;
             } else return DangerLevel.PEACEFUL;
         }
 
