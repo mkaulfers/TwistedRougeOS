@@ -303,7 +303,6 @@ export default class Creep_Extended extends Creep {
                 return Utils.Utility.checkRoomSafety(roomName);
             },
             roomCallback(roomName) {
-                console.log(`roomCallback ran`)
                 return Utils.Utility.genPathfindingCM(roomName);
             },
         };

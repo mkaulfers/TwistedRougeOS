@@ -14,7 +14,7 @@ export class RoomStatistics {
     highestDT: number
     threatLevel: number
 
-    sourcesIds?: string[]
+    sourcesIds?: Id<Source>[]
     powerBankId?: string
     publicTerminalId?: string
 
@@ -26,8 +26,6 @@ export class RoomStatistics {
     playerDetail?: PlayerDetail
     invaderDetail?: InvaderDetail
 
-    remoteAssignments?: RemoteAssignments
-
     constructor(
         explored: number,
         name: string,
@@ -35,8 +33,8 @@ export class RoomStatistics {
         plainCount: number,
         wallCount: number,
         highestDT: number,
-        threatLevel: DangerLevel,
-        sourcesIds?: string[],
+        threatLevel: number,
+        sourcesIds?: Id<Source>[],
         powerBankId?: string,
         publicTerminalId?: string,
         portal?: PortalDetail,

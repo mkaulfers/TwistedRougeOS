@@ -17,7 +17,7 @@ export default class RemoteManager {
             let room = Game.rooms[roomId]
             //If room doesn't have remotes, fetch them.
             //TODO: Modify so that remotes are added if the number of allowed remotes changes.
-            if (!room.memory || !room.memory.remotes || room.memory.remotes.length < this.allowedNumberOfRemotes) {
+            if (!room.memory || !room.memory.remoteSites || Object.keys(room.memory.remoteSites).length < this.allowedNumberOfRemotes) {
                 this.setRemotes(room)
             }
         }
@@ -78,7 +78,16 @@ export default class RemoteManager {
         //TODO: Add a pass that checks our remotes as they stand, if their PathFinder.path(x -> y) is greater than 4 * 50 = 200 then remove them and do a final pass.
         //TODO: Alternatively, create a function that checks via Pathfinder to and never allows it to be greater than 200.
 
-        room.memory.remotes = remotes
+        for (let remote of remotes) {
+            if (!room.memory.remoteSites) room.memory.remoteSites = {}
+            room.memory.remoteSites[remote.name] = {
+                sourceIds: [...remote.sourcesIds ?? []],
+                assignedHarvesters: [],
+                assignedHaulers: [],
+                assignedEngineers: [],
+                assignedClaimers: []
+            }
+        }
     }
 
     private static get ownedRooms(): string[] {

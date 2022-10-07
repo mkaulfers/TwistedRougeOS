@@ -9,7 +9,7 @@ declare global {
     interface CreepMemory {
         assignedPos?: number
         homeRoom: string
-        remoteRoom?: string
+        remoteTarget?: {[roomName: string]: Id<any>}
         role: Role
         target?: Id<any>
         task?: Task
@@ -37,7 +37,16 @@ declare global {
         rclThree?: number
         rclFour?: number
         rclFive?: number
-        remotes?: RoomStatistics[]
+        // remotes?: RoomStatistics[]
+        remoteSites?: {
+            [roomName: string]: {
+                sourceIds: Id<Source>[],
+                assignedHarvesters: Id<Creep>[],
+                assignedHaulers: Id<Creep>[],
+                assignedEngineers: Id<Creep>[],
+                assignedClaimers: Id<Creep>[]
+            }
+        }
     }
 
     interface Memory {
@@ -52,7 +61,7 @@ declare global {
     interface RoomCache {
         pathfindingCM?: string;
         openSpaceCM?: string;
-        links?: {[key: Id<StructureLink>]: string};
+        links?: { [key: Id<StructureLink>]: string };
         pauseSpawning?: boolean;
         spawnSchedules?: SpawnSchedule[];
         towerTarget?: Id<AnyCreep>;
@@ -69,9 +78,9 @@ declare global {
 
     // The global Cache object. Consider it like `Memory`, it just gets rebuilt on a global reset.
     var Cache: {
-        rooms: {[key: string]: RoomCache},
-        creeps: {[key: string]: CreepCache},
-        cmd: {[key: string]: any},
+        rooms: { [key: string]: RoomCache },
+        creeps: { [key: string]: CreepCache },
+        cmd: { [key: string]: any },
     }
 }
 
