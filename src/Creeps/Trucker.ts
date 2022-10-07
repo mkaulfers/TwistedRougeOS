@@ -12,7 +12,7 @@ export class Trucker extends CreepRole {
     dispatch(room: Room) {
         let consider = [...room.towers, ...room.labs, ...room.containers];
         consider = consider.filter((t) => {
-            if ((t.structureType == STRUCTURE_TOWER || t.structureType == STRUCTURE_LAB)) return ('my' in t && t.my && 'store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
+            if ((t.structureType == STRUCTURE_TOWER || t.structureType == STRUCTURE_LAB)) return ('my' in t && t.my && 'store' in t && t.store.getFreeCapacity(RESOURCE_ENERGY) > 100)
             // Add FF containers to consideration for trucker storage
             if (t.structureType === STRUCTURE_CONTAINER && room.ffContainers.includes(t)) return (t.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
             return false;
@@ -161,8 +161,8 @@ export class Trucker extends CreepRole {
                     // Determines new target
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         // Targets scientists, sorted by how much energy they have in them
-                        let potentialTargets: Creep[] = creep.room.localCreeps.scientist;
-                        potentialTargets.push(...creep.room.localCreeps.engineer);
+                        const controllerLink = creep.room.localCreeps.scientist[0] && creep.room.localCreeps.scientist[0].cache.supply ? Game.getObjectById(creep.room.localCreeps.scientist[0].cache.supply) : undefined;
+                        let potentialTargets: Creep[] = controllerLink && controllerLink.store.getUsedCapacity(RESOURCE_ENERGY) > 0 ? [...creep.room.localCreeps.engineer] : [...creep.room.localCreeps.scientist, ...creep.room.localCreeps.engineer];
                         potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, order: 'asc', rNeed: true });
                         let potTarget = creep.pos.findClosestByRange(potentialTargets);
 
