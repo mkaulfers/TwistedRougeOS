@@ -61,7 +61,8 @@ export class Agent extends CreepRole {
                         Memory.rooms[currentRoom.name].intel = roomStatistics
 
                         if (targetFrontier == currentRoom.name) {
-                            homeFrontiers.push(homeFrontiers.shift()!)
+                            let frontierToMove = homeFrontiers.shift();
+                            frontierToMove ? homeFrontiers.push(frontierToMove) : undefined;
                             Memory.rooms[creep.memory.homeRoom].frontiers = homeFrontiers
                         }
                     }

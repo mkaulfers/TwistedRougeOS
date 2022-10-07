@@ -119,8 +119,9 @@ export default class Visuals {
     static pathfinding() {
         Utils.Logger.log(`Visuals -> pathfinding()`, LogLevel.TRACE);
         for (const roomName in global.Cache.rooms) {
-            if (!global.Cache.rooms[roomName].pathfindingCM) continue;
-            let costMatrix = PathFinder.CostMatrix.deserialize(JSON.parse(global.Cache.rooms[roomName].pathfindingCM!));
+            const pathfindingCM = global.Cache.rooms[roomName].pathfindingCM;
+            if (!pathfindingCM) continue;
+            let costMatrix = PathFinder.CostMatrix.deserialize(JSON.parse(pathfindingCM));
             new RoomVisual(roomName).costMatrix(costMatrix, false);
         }
     }

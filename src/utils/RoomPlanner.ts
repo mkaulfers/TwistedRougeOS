@@ -72,7 +72,8 @@ function generateNewPlan(room: Room) {
     let leftExits = getLeftExits(room)
     for (let exit of leftExits) {
         let shortestExit = blueprintAnchor.findClosestByPath(exit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
-        let path = blueprintAnchor.findPathTo(shortestExit!, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+        if (!shortestExit) continue;
+        let path = blueprintAnchor.findPathTo(shortestExit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         path.splice(path.length - 1, 1)
         roadPositions = roadPositions.concat(path)
     }
@@ -80,7 +81,8 @@ function generateNewPlan(room: Room) {
     let rightExits = getRightExits(room)
     for (let exit of rightExits) {
         let shortestExit = blueprintAnchor.findClosestByPath(exit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
-        let path = blueprintAnchor.findPathTo(shortestExit!, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+        if (!shortestExit) continue;
+        let path = blueprintAnchor.findPathTo(shortestExit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         path.splice(path.length - 1, 1)
         roadPositions = roadPositions.concat(path)
     }
@@ -88,7 +90,8 @@ function generateNewPlan(room: Room) {
     let topExits = getTopExits(room)
     for (let exit of topExits) {
         let shortestExit = blueprintAnchor.findClosestByPath(exit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
-        let path = blueprintAnchor.findPathTo(shortestExit!, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+        if (!shortestExit) continue;
+        let path = blueprintAnchor.findPathTo(shortestExit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         path.splice(path.length - 1, 1)
         roadPositions = roadPositions.concat(path)
     }
@@ -96,7 +99,8 @@ function generateNewPlan(room: Room) {
     let bottomExits = getBottomExits(room)
     for (let exit of bottomExits) {
         let shortestExit = blueprintAnchor.findClosestByPath(exit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
-        let path = blueprintAnchor.findPathTo(shortestExit!, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
+        if (!shortestExit) continue;
+        let path = blueprintAnchor.findPathTo(shortestExit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         path.splice(path.length - 1, 1)
         roadPositions = roadPositions.concat(path)
     }
@@ -544,6 +548,6 @@ function generateRoomCostMatrix(room: Room) {
         }
     }
 
-    room.memory.blueprint.anchor = Utils.Utility.packPosition(roomPosition!)
+    room.memory.blueprint.anchor = roomPosition ? Utils.Utility.packPosition(roomPosition) : 0;
     room.cache.openSpaceCM = JSON.stringify(costMatrix.serialize())
 }

@@ -14,7 +14,7 @@ export default class MarketManager {
             const storage = room.storage;
             if (!terminal || !storage) return ProcessResult.RUNNING;
 
-            if (storage.store.getUsedCapacity(RESOURCE_ENERGY) > 450000 && terminal.store.getUsedCapacity(RESOURCE_ENERGY) > 20000) {
+            if (storage.store.getUsedCapacity(RESOURCE_ENERGY) > 500000 && terminal.store.getUsedCapacity(RESOURCE_ENERGY) > 50000) {
                 terminal.sell(RESOURCE_ENERGY, { quantity: terminal.store.energy - 20000 });
             }
 
