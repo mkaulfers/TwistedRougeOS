@@ -56,7 +56,7 @@ export class Scientist extends CreepRole {
                 // Switches working value if full or empty
                 if (creep.memory.working == undefined) creep.memory.working = false;
                 if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
-                    (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                    (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && creep.memory.working == false)) {
                     creep.memory.working = !creep.memory.working;
                 }
                 const working = creep.memory.working;
@@ -67,7 +67,8 @@ export class Scientist extends CreepRole {
                 if (!controller) return ProcessResult.FAILED;
 
                 let result: number | undefined;
-                if (!working) {
+                result = creep.praise(controller);
+                if (!working || creep.store.getUsedCapacity(RESOURCE_ENERGY) < (creep.store.getCapacity(RESOURCE_ENERGY) * 0.2)) {
                     // Link targeting
                     if (!creep.cache.supply && Game.time % 50 === 0) {
                         let foundLink: StructureLink | undefined = controller.pos.findInRange(controller.room.links, 3)[0];
@@ -76,13 +77,10 @@ export class Scientist extends CreepRole {
                     let link = creep.cache.supply ? Game.getObjectById(creep.cache.supply) : undefined;
                     if (link && link.store.getUsedCapacity(RESOURCE_ENERGY) > 0) result = creep.take(link, RESOURCE_ENERGY);
                     else result = OK;
-                } else {
-                    result = creep.praise(controller);
                 }
 
-                if (result === OK || result === ERR_NOT_ENOUGH_ENERGY) {
-                    return ProcessResult.RUNNING;
-                }
+
+                if (result === OK || result === ERR_NOT_ENOUGH_ENERGY) return ProcessResult.RUNNING;
                 Utils.Logger.log(`${creep.name} generated error code ${result} while attempting to praise ${controller.structureType}${JSON.stringify(controller.pos)}.`, LogLevel.ERROR);
                 return ProcessResult.INCOMPLETE;
             }
