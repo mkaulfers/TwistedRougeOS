@@ -1,3 +1,4 @@
+import { DangerLevel } from "utils/Enums"
 import { InvaderDetail } from "./InvaderDetail"
 import { MineralDetail } from "./MineralDetail"
 import { PlayerDetail } from "./PlayerDetail"
@@ -31,7 +32,7 @@ export class RoomStatistics {
         plainCount: number,
         wallCount: number,
         highestDT: number,
-        threatLevel: number,
+        threatLevel: DangerLevel,
         sourcesIds?: string[],
         powerBankId?: string,
         publicTerminalId?: string,
