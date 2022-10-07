@@ -135,7 +135,7 @@ export default class Creep_Extended extends Creep {
         Utils.Logger.log("Creep -> give()", LogLevel.TRACE)
 
         this.travel(target.pos);
-        let result: number = this.transfer(target, resource, quantity);
+        let result = this.transfer(target, resource, quantity);
 
         switch (result) {
             case OK: case ERR_BUSY: case ERR_NOT_IN_RANGE:
