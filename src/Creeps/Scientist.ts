@@ -56,7 +56,7 @@ export class Scientist extends CreepRole {
                 // Switches working value if full or empty
                 if (creep.memory.working == undefined) creep.memory.working = false;
                 if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
-                    (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                    (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && creep.memory.working == false)) {
                     creep.memory.working = !creep.memory.working;
                 }
                 const working = creep.memory.working;

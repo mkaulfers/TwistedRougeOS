@@ -26,14 +26,3 @@ export default class MarketManager {
     }
 
 }
-
-
-
-
-
-
-
-
-
-
-
