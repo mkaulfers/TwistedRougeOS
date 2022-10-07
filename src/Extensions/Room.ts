@@ -621,11 +621,11 @@ export default class Room_Extended extends Room {
                     this._rampartHPTarget = 1000000;
                     break;
                 case 6:
-                    this._rampartHPTarget = 5000000;
+                    this._rampartHPTarget = 1500000;
                     break;
                 case 7:
                 case 8:
-                    this._rampartHPTarget = 10000000;
+                    this._rampartHPTarget = 2000000;
                     break;
                 default:
                     this._rampartHPTarget = 0;
