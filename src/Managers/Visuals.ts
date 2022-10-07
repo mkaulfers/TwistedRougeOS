@@ -23,7 +23,6 @@ declare global {
     interface Cache {
         distanceTransform: {[roomName: string]: number[]};
         worldRoomScoring: {[roomName: string]: worldRoomScoring};
-        worldPathfinding: {[roomname: string]: worldPathfinding};
     }
     namespace NodeJS {
         interface Global {
@@ -154,12 +153,14 @@ export default class Visuals {
 
     static worldPathfinding() {
         Utils.Logger.log(`Visuals -> worldPathfinding()`, LogLevel.TRACE);
-        if (!global.tempForVisuals || !global.tempForVisuals.worldPathfinding) return;
-        for (const roomName in global.tempForVisuals.worldPathfinding) {
-            let pathData = global.tempForVisuals.worldPathfinding[roomName];
-            switch (pathData.danger) {
+        if (!Memory.rooms) return;
+        for (const roomName in Memory.rooms) {
+            let pathData = Memory.rooms[roomName].intel;
+            if (!pathData) continue;
+            let color = '#000000';
+            switch (pathData.threatLevel) {
                 case DangerLevel.PEACEFUL:
-                    var color = '#00ff00';
+                    color = '#00ff00';
                     break;
                 case DangerLevel.INVADERS:
                     color = '#ccff33';
@@ -170,28 +171,28 @@ export default class Visuals {
                 case DangerLevel.DANGER:
                     color = '#ff9900';
                     break;
-                case DangerLevel.NUKETHIS:
+                case DangerLevel.DEATH:
                     color = '#ff0000';
                     break;
             }
             Game.map.visual.rect(new RoomPosition(0,0,roomName), 50, 50, {fill: color, stroke: color, opacity: 0.1});
 
-            for (let exit of pathData.validExits) {
-                switch (exit) {
-                    case FIND_EXIT_TOP:
-                        Game.map.visual.line(new RoomPosition(0,1,roomName), new RoomPosition(49,1,roomName), {color: '#00ff00', width: 2.0});
-                        break;
-                    case FIND_EXIT_RIGHT:
-                        Game.map.visual.line(new RoomPosition(49,0,roomName), new RoomPosition(49,49,roomName), {color: '#00ff00', width: 2.0});
-                        break;
-                    case FIND_EXIT_BOTTOM:
-                        Game.map.visual.line(new RoomPosition(49,49,roomName), new RoomPosition(0,49,roomName), {color: '#00ff00', width: 2.0});
-                        break;
-                    case FIND_EXIT_LEFT:
-                        Game.map.visual.line(new RoomPosition(1,0,roomName), new RoomPosition(1,49,roomName), {color: '#00ff00', width: 2.0});
-                        break;
-                }
-            }
+            // for (let exit of pathData.validExits) {
+            //     switch (exit) {
+            //         case FIND_EXIT_TOP:
+            //             Game.map.visual.line(new RoomPosition(0,1,roomName), new RoomPosition(49,1,roomName), {color: '#00ff00', width: 2.0});
+            //             break;
+            //         case FIND_EXIT_RIGHT:
+            //             Game.map.visual.line(new RoomPosition(49,0,roomName), new RoomPosition(49,49,roomName), {color: '#00ff00', width: 2.0});
+            //             break;
+            //         case FIND_EXIT_BOTTOM:
+            //             Game.map.visual.line(new RoomPosition(49,49,roomName), new RoomPosition(0,49,roomName), {color: '#00ff00', width: 2.0});
+            //             break;
+            //         case FIND_EXIT_LEFT:
+            //             Game.map.visual.line(new RoomPosition(1,0,roomName), new RoomPosition(1,49,roomName), {color: '#00ff00', width: 2.0});
+            //             break;
+            //     }
+            // }
         }
     }
 }

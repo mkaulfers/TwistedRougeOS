@@ -70,11 +70,21 @@ export enum StampType {
 }
 
 export enum DangerLevel {
-    PEACEFUL = 0,               // #00ff00
-    INVADERS = 1,               // #ccff33
-    WARY = 2,                   // #ffff1a
-    DANGER = 3,                 // #ff9900
-    NUKETHIS = 4,               // #ff0000
+    /** #00ff00 - Start Here. */
+    PEACEFUL = 0,
+    /** #ccff33 - Invaders or Invader Cores. */
+    INVADERS = 1,
+    /** #ffff1a - Any threat greater than Invaders (e.g. Invader Base, player). */
+    WARY = 2,
+    /** #ff9900 - 1800 Damage Output Potential. */
+    DANGER = 3,
+    /** #ff0000 - 3600 Damage Output Potential. */
+    DEATH = 4,
+}
+
+export enum Developer {
+    ROUGEAYRN = 'Rougeayrn',
+    XTWISTEDX = 'xTwisteDx'
 }
 
 export enum LinkState {

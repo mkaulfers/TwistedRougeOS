@@ -300,12 +300,7 @@ export default class Creep_Extended extends Creep {
                 opacity: .2
             },
             routeCallback: (roomName: string) => {
-                let room = Game.rooms[roomName]
-                if (!room || !room.memory || !room.memory.intel) return
-                if (room.memory.intel.threatLevel > 0) {
-                    return Infinity
-                }
-                return
+                return Utils.Utility.checkRoomSafety(roomName);
             },
             roomCallback(roomName) {
                 console.log(`roomCallback ran`)
@@ -324,12 +319,7 @@ export default class Creep_Extended extends Creep {
                 opacity: .2
             },
             routeCallback: (roomName: string) => {
-                let room = Game.rooms[roomName]
-                if (!room || !room.memory || !room.memory.intel) return
-                if (room.memory.intel.threatLevel > 0) {
-                    return Infinity
-                }
-                return
+                return Utils.Utility.checkRoomSafety(roomName);
             },
             roomCallback(roomName) {
                 return Utils.Utility.genPathfindingCM(roomName);

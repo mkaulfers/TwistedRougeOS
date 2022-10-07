@@ -12,15 +12,16 @@ export default class ThreatManager {
         const monitorTask = () => {
             Utils.Logger.log(`ThreatManager -> ${roomProcessId}`, LogLevel.TRACE)
             let room = Game.rooms[roomName]
+            if (!room) return ProcessResult.FAILED;
 
-            if (global.recentlyAttacked == undefined) {
-                global.recentlyAttacked = false
-                global.attackedTime = -1
+            if (room.cache.recentlyAttacked == undefined) {
+                room.cache.recentlyAttacked = false
+                room.cache.attackedTime = -1
             }
 
-            if (global.recentlyAttacked == true && Game.time - global.attackedTime  <= 19999) {
-                global.recentlyAttacked = false
-                global.attackedTime = -1
+            if (room.cache.recentlyAttacked == true && room.cache.attackedTime && Game.time - room.cache.attackedTime  <= 19999) {
+                room.cache.recentlyAttacked = false
+                room.cache.attackedTime = -1
             }
 
             // Handle Turrets
@@ -109,8 +110,8 @@ export default class ThreatManager {
                 case EVENT_OBJECT_DESTROYED:
                     if (eventItem.data.type == 'creep' || !structuresToSafeFor.includes(eventItem.data.type)) continue;
                     shouldSafeMode = true;
-                    global.recentlyAttacked = true;
-                    global.attackedTime = Game.time;
+                    room.cache.recentlyAttacked = true;
+                    room.cache.attackedTime = Game.time;
                     break;
                 case EVENT_ATTACK:
                     let target = Game.getObjectById(eventItem.data.targetId as Id<AnyCreep | AnyStructure>);
@@ -118,22 +119,22 @@ export default class ThreatManager {
                         if (target.structureType !== STRUCTURE_RAMPART && target.structureType !== STRUCTURE_WALL) {
                             if (target.hits <= (target.hitsMax * 0.25)) {
                                 shouldSafeMode = true;
-                                global.recentlyAttacked = true;
-                                global.attackedTime = Game.time;
+                                room.cache.recentlyAttacked = true;
+                                room.cache.attackedTime = Game.time;
                             }
                         } else {
                             if (target.hits <= (room.rampartHPTarget * 0.25)) {
                                 shouldSafeMode = true;
-                                global.recentlyAttacked = true;
-                                global.attackedTime = Game.time;
+                                room.cache.recentlyAttacked = true;
+                                room.cache.attackedTime = Game.time;
                             }
                         }
                     }
                     break;
                 case EVENT_ATTACK_CONTROLLER:
                     shouldSafeMode = true
-                    global.recentlyAttacked = true;
-                    global.attackedTime = Game.time;
+                    room.cache.recentlyAttacked = true;
+                    room.cache.attackedTime = Game.time;
                     break;
             }
         }

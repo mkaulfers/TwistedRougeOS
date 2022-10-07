@@ -5,7 +5,7 @@ import { DefenseStructuresDetail, HostileStructuresDetail, PlayerDetail, Storage
 import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
-import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
+import { DangerLevel, Developer, LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
 import { Logger } from "utils/Logger"
 import { Z_PARTIAL_FLUSH } from "zlib"
@@ -188,25 +188,34 @@ export class Agent extends CreepRole {
         return highestDT
     }
 
-    private static getThreatLevel(targetRoom: Room): number {
-        let controller = targetRoom.controller
-        if (controller && controller.owner && controller.owner.username != "Invader") {
-            return controller.level
-        }
-
-        let allStructures = targetRoom.find(FIND_STRUCTURES)
+    private static getThreatLevel(targetRoom: Room): DangerLevel {
+        const controller = targetRoom.controller
 
         if (!controller) {
-            let structures = allStructures.filter(structure => structure.structureType == STRUCTURE_INVADER_CORE) as StructureInvaderCore[]
-            if (structures.length > 0) {
-                return structures[0].level
+            //Check for invaders, stronghold
+            for (const core of targetRoom.invaderCores) {
+                if (core.level === 0) return DangerLevel.INVADERS;
+                if (core.level < 3) return DangerLevel.WARY;
+                if (core.level < 5) return DangerLevel.DANGER;
+                return DangerLevel.DEATH;
             }
+            if (targetRoom.keeperLairs.length > 0) return DangerLevel.INVADERS;
+            else if (targetRoom.find(FIND_HOSTILE_CREEPS, {filter: (c) => c.owner.username !== 'invader'}).length > 1 || targetRoom.find(FIND_HOSTILE_POWER_CREEPS).length > 0) return DangerLevel.WARY;
+            else return DangerLevel.PEACEFUL;
         } else {
-            let towers = allStructures.filter(structure => structure.structureType == STRUCTURE_TOWER) as StructureTower[]
-            let ramparts = allStructures.filter(structure => structure.structureType == STRUCTURE_RAMPART) as StructureRampart[]
-            return towers.length / 2 + ramparts.length > 6 ? 1 : 0
+            // Check reservations and owners
+            if (controller.reservation) {
+                if (controller.reservation.username === 'invader') return DangerLevel.PEACEFUL;
+                if (Object.values(Developer).includes(controller.reservation.username as Developer)) return DangerLevel.PEACEFUL;
+                return DangerLevel.WARY;
+            } else if (controller.owner) {
+                if (Object.values(Developer).includes(controller.owner.username as Developer)) return DangerLevel.PEACEFUL;
+                if (targetRoom.towers.length < 3) return DangerLevel.WARY;
+                if (targetRoom.towers.length < 6) return DangerLevel.DANGER;
+                return DangerLevel.DEATH;
+            } else return DangerLevel.PEACEFUL;
         }
-        return 0
+
     }
 
     private static getDistanceBetweenSources(targetRoom: Room): number {
