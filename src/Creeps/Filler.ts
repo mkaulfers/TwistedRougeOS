@@ -145,7 +145,8 @@ export class Filler extends CreepRole {
     }
 
     private static nearbyFillThese(creep: Creep): AnyStoreStructure[] {
-        let creepAssignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos!, creep.memory.homeRoom)
+        if (!creep.memory.assignedPos) return []
+        let creepAssignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom)
         let room = Game.rooms[creep.memory.homeRoom]
         let structures = room.lookForAtArea(
             LOOK_STRUCTURES,

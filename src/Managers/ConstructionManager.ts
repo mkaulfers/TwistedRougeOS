@@ -21,14 +21,14 @@ export default class ConstructionManager {
             let controller = room.controller
             if (!controller) { return }
 
-            if (room.cache.recentlyAttacked) {
+            if (room.cache.recentlyAttacked && room.memory.blueprint) {
                 let constructionSites = room.constructionSites()
                 for (let site of constructionSites) {
                     if (site.structureType != STRUCTURE_RAMPART) {
                         site.remove()
                     }
 
-                    let packedRamparts = room.memory.blueprint!.ramparts
+                    let packedRamparts = room.memory.blueprint.ramparts
                     for (let rampart of packedRamparts) {
                         let pos = Utils.Utility.unpackPostionToRoom(rampart, room.name)
                         pos.createConstructionSite(STRUCTURE_RAMPART)

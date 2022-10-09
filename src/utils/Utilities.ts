@@ -71,7 +71,6 @@ export class Utility {
      * @returns An array of approved targets or undefined
      */
     static organizeTargets(targets: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite | Ruin)[], options?: {
-
         hits?: boolean,
         resource?: ResourceConstant,
         rNeed?: boolean,

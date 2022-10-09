@@ -82,10 +82,11 @@
          this.level[from] = 0;
          const q = []; // queue with s as starting point
          q.push(from);
-         let u = 0;
+         let u: number | undefined = 0;
          let edge = null;
          while (q.length) {
-             u = q.shift()!;
+             u = q.shift();
+             if (!u) continue;
              for (edge of this.edges[u]) {
                  if (this.level[edge.to] < 0 && edge.flow < edge.capacity) {
                      this.level[edge.to] = this.level[u] + 1;
@@ -140,10 +141,11 @@
          this.level[from] = 1;
          const q = [];
          q.push(from);
-         let u = 0;
+         let u: number | undefined = 0;
          let edge: Edge;
          while (q.length) {
-             u = q.shift()!;
+             u = q.shift();
+             if (!u) continue;
              for (edge of this.edges[u]) {
                  if (edge.flow < edge.capacity) {
                      if (this.level[edge.to] < 1) {
@@ -471,11 +473,12 @@
      }
      // Iterate over all unvisited EXIT tiles and mark neigbours as EXIT tiles if walkable, add to unvisited
      const surr = [[0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1]];
-     let currPos: number;
+     let currPos: number | undefined;
      let dx: number;
      let dy: number;
      while (unvisited.length > 0) {
-         currPos = unvisited.pop()!;
+         currPos = unvisited.pop();
+         if (!currPos) continue;
          x = currPos % 50;
          y = Math.floor(currPos / 50);
          for (let i = 0; i < 8; i++) {
