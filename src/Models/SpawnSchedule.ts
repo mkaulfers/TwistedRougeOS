@@ -67,7 +67,8 @@ export default class SpawnSchedule {
                 potCreep ? relCreep = potCreep : undefined;
             }
 
-            let preSpawnOffset = Math.ceil(spawnOrder.spawnTime + Roles[spawnOrder.memory.role]!.preSpawnBy(room, Game.spawns[this.spawnName], relCreep));
+            const theRole = Roles[spawnOrder.memory.role]
+            let preSpawnOffset = Math.ceil(spawnOrder.spawnTime + (theRole ? theRole.preSpawnBy(room, Game.spawns[this.spawnName], relCreep) : 0));
             let relCFreeSpace: [number, number] | undefined;
             if (relCreep && relCreep.spawning === true) {
                 relCFreeSpace = [...this.freeSpaces].reverse().find(freeSpace => freeSpace[0] <= (freeSpace[1] + freeSpace [0] - (preSpawnOffset + spawnOrder.spawnTime)) &&
