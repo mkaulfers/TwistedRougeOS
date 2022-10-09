@@ -12,10 +12,10 @@ export class NetworkHarvester extends CreepRole {
     readonly partLimits = [5]
 
     dispatch(room: Room): void {
-        let networkHarvesters = room.localCreeps.network_harvester;
+        let networkHarvesters = room.localCreeps.nHarvester;
         for (let harv of networkHarvesters) {
             if (!harv.memory.task) {
-                global.scheduler.swapProcess(harv, Task.NETWORK_HARVESTING);
+                global.scheduler.swapProcess(harv, Task.nHARVESTING);
             }
         }
     }
@@ -23,7 +23,7 @@ export class NetworkHarvester extends CreepRole {
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean | undefined): number {
         if (min && min == true) return 0;
 
-        let networkHarvesters = rolesNeeded.filter(x => x == Role.NETWORK_HARVESTER).length
+        let networkHarvesters = rolesNeeded.filter(x => x == Role.nHARVESTER).length
         let remotes = room.memory.remoteSites || {}
         let sourceCount = 0
 
@@ -36,7 +36,7 @@ export class NetworkHarvester extends CreepRole {
     }
 
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
-        network_harvesting: function (creep: Creep) {
+        nHarvesting: function (creep: Creep) {
             let creepId = creep.id
 
             const networkHarvesterTask = () => {
@@ -78,7 +78,7 @@ export class NetworkHarvester extends CreepRole {
                 return ProcessResult.RUNNING
             }
 
-            creep.memory.task = Task.NETWORK_HARVESTING
+            creep.memory.task = Task.nHARVESTING
             let newProcess = new Process(creep.name, ProcessPriority.LOW, networkHarvesterTask)
             global.scheduler.addProcess(newProcess)
         }
@@ -88,7 +88,7 @@ export class NetworkHarvester extends CreepRole {
         if (!baseRoom.memory.remoteSites) return
         this.validateRemoteHarvesters(baseRoom)
 
-        let stationedNetHarvs = baseRoom.stationedCreeps.network_harvester
+        let stationedNetHarvs = baseRoom.stationedCreeps.nHarvester
         let remotes = baseRoom.memory.remoteSites || {}
 
         let harvesterSourceTarget: { [roomName: string]: Id<any> } = {}
@@ -97,15 +97,15 @@ export class NetworkHarvester extends CreepRole {
             let harvsAssignedToRemote = stationedNetHarvs.filter(x => x.memory.remoteTarget && Object.keys(x.memory.remoteTarget).includes(remote))
             let sourceIds = remotes[remote].sourceIds
 
-            for (let assignedHarvs of harvsAssignedToRemote) {
-                if (!assignedHarvs.memory.remoteTarget) continue
-                sourceIds.splice(sourceIds.indexOf(assignedHarvs.memory.remoteTarget[remote]), 1)
+            for (let assignedHarvester of harvsAssignedToRemote) {
+                if (!assignedHarvester.memory.remoteTarget) continue
+                sourceIds.splice(sourceIds.indexOf(assignedHarvester.memory.remoteTarget[remote]), 1)
             }
 
             if (sourceIds.length > 0) {
                 harvesterSourceTarget[remote] = sourceIds[0]
                 creep.memory.remoteTarget = harvesterSourceTarget
-                baseRoom.memory.remoteSites[Object.keys(harvesterSourceTarget)[0]].assignedHarvesters.push(creep.id)
+                baseRoom.memory.remoteSites[remote].assignedHarvesters.push(creep.id)
                 return
             }
         }

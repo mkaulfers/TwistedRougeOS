@@ -14,7 +14,7 @@ export class RoomStatistics {
     highestDT: number
     threatLevel: number
 
-    sourcesIds?: Id<Source>[]
+    sourceIds?: Id<Source>[]
     powerBankId?: string
     publicTerminalId?: string
 
@@ -34,7 +34,7 @@ export class RoomStatistics {
         wallCount: number,
         highestDT: number,
         threatLevel: number,
-        sourcesIds?: Id<Source>[],
+        sourceIds?: Id<Source>[],
         powerBankId?: string,
         publicTerminalId?: string,
         portal?: PortalDetail,
@@ -51,7 +51,7 @@ export class RoomStatistics {
         this.wallCount = wallCount
         this.highestDT = highestDT
         this.threatLevel = threatLevel
-        this.sourcesIds = sourcesIds
+        this.sourceIds = sourceIds
         this.powerBankId = powerBankId
         this.publicTerminalId = publicTerminalId
         this.portal = portal

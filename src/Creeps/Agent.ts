@@ -7,8 +7,6 @@ import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
 import { DangerLevel, Developer, LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
-import { Logger } from "utils/Logger"
-import { Z_PARTIAL_FLUSH } from "zlib"
 
 export class Agent extends CreepRole {
 

@@ -32,7 +32,7 @@ export default class RemoteManager {
         if (!roomFrontiers) { return }
 
         roomsInMemory.sort((a, b) => { return Game.map.getRoomLinearDistance(room.name, a.intel!.name) - Game.map.getRoomLinearDistance(room.name, b.intel!.name) })
-        let remotes: RoomStatistics[] = []
+        let selectedRemotes: RoomStatistics[] = []
 
         /**
          * Primary Pass - Looking for any rooms that contain two sources.
@@ -42,15 +42,15 @@ export default class RemoteManager {
             let existsInFrontiers = roomFrontiers.includes(intel.name)
 
             if (existsInFrontiers) {
-                let sourceIds = intel.sourcesIds
+                if (selectedRemotes.length >= this.allowedNumberOfRemotes) break
+                let sourceIds = intel.sourceIds
                 let threatLevel = intel.threatLevel
                 let distance = Game.map.getRoomLinearDistance(room.name, intel.name)
 
-                if (sourceIds && sourceIds.length > 1 && threatLevel < 1 && distance < 2) {
-                    remotes.push(intel)
+                if (sourceIds && sourceIds.length > 1 && threatLevel < 1 && distance < 3) {
+                    selectedRemotes.push(intel)
                 }
 
-                if (remotes.length >= this.allowedNumberOfRemotes) break
             }
         }
 
@@ -62,45 +62,30 @@ export default class RemoteManager {
             let existsInFrontiers = roomFrontiers.includes(intel.name)
 
             if (existsInFrontiers) {
-                let sourceIds = intel.sourcesIds
+                if (selectedRemotes.length >= this.allowedNumberOfRemotes) break
+                let sourceIds = intel.sourceIds
                 let threatLevel = intel.threatLevel
                 let distance = Game.map.getRoomLinearDistance(room.name, intel.name)
 
-                if (sourceIds && sourceIds.length > 0 && threatLevel < 1 && distance < 4) {
-                    if (remotes.includes(intel)) continue
-                    remotes.push(intel)
+                if (sourceIds && sourceIds.length > 0 && threatLevel < 1 && distance < 3) {
+                    if (selectedRemotes.includes(intel)) continue
+                    selectedRemotes.push(intel)
                 }
-
-                if (remotes.length >= this.allowedNumberOfRemotes) break
             }
         }
 
         //TODO: Add a pass that checks our remotes as they stand, if their PathFinder.path(x -> y) is greater than 4 * 50 = 200 then remove them and do a final pass.
         //TODO: Alternatively, create a function that checks via Pathfinder to and never allows it to be greater than 200.
 
-        for (let remote of remotes) {
+        for (let remote of selectedRemotes) {
             if (!room.memory.remoteSites) room.memory.remoteSites = {}
             room.memory.remoteSites[remote.name] = {
-                sourceIds: [...remote.sourcesIds ?? []],
+                sourceIds: [...remote.sourceIds ?? []],
                 assignedHarvesters: [],
                 assignedHaulers: [],
                 assignedEngineers: [],
                 assignedClaimers: []
             }
         }
-    }
-
-    private static get ownedRooms(): string[] {
-        let rooms: string[] = []
-
-        for (let roomName in Game.rooms) {
-            let room = Game.rooms[roomName]
-
-            if (room.controller && room.controller.my) {
-                rooms.push(roomName)
-            }
-        }
-
-        return rooms
     }
 }

@@ -12,7 +12,7 @@ import { Anchor } from './Anchor';
 var Roles: {[key in Role]?: CreepRole} = {
     harvester: new Harvester,
     trucker: new Trucker,
-    network_harvester: new NetworkHarvester,
+    nHarvester: new NetworkHarvester,
     filler: new Filler,
     anchor: new Anchor,
     engineer: new Engineer,
