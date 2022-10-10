@@ -110,7 +110,7 @@ export default class Room_Extended extends Room {
         return this._constructionSites['all']
     }
 
-    private _structures: { [key: string]: Structure[] } | undefined;
+    private _structures: { [key: string]: AnyStructure[] } | undefined;
     structures(ofType?: StructureConstant) {
         if (!this._structures) {
             this._structures = {};
