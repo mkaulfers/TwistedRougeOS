@@ -131,8 +131,8 @@ export class Harvester extends CreepRole {
                     if (creep.store.energy > (creep.store.getCapacity() * 0.8)) {
                         if (!creep.cache.dump) {
                             let dumps = closestSource.pos.findInRange(FIND_STRUCTURES, 2);
-                            let link = dumps.filter(function (d) { return d.structureType == STRUCTURE_LINK && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureLink | undefined;
-                            let container = dumps.filter(function (d) { return d.structureType == STRUCTURE_CONTAINER && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureContainer | undefined;
+                            let link: StructureLink | undefined = dumps.filter(function (d) { return Utils.Typeguards.isStructureLink(d) && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureLink | undefined;
+                            let container = dumps.filter(function (d) { return Utils.Typeguards.isStructureContainer(d) && d.store.getFreeCapacity(RESOURCE_ENERGY) > 0 })[0] as StructureContainer | undefined;
 
                             if (link) {
                                 creep.cache.dump = link.id;

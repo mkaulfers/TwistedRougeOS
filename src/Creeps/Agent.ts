@@ -114,7 +114,7 @@ export class Agent extends CreepRole {
         let powerBankId = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_POWER_BANK })[0]?.id
         let publicTerminalId = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_TERMINAL })[0]?.id
 
-        let portal = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_PORTAL })[0] as StructurePortal
+        let portal = room.find(FIND_STRUCTURES, { filter: Utils.Typeguards.isStructurePortal })[0]
         let portalDetails: PortalDetail | undefined = undefined
         if (portal) {
             portalDetails = new PortalDetail(portal.id, portal.ticksToDecay ? portal.ticksToDecay : 0)
@@ -320,10 +320,10 @@ export class Agent extends CreepRole {
 
     private static getContentsOfStore(structure: AnyStoreStructure): [ResourceConstant, number][] {
         let resources: [ResourceConstant, number][] = []
-        for (let resourceType of Object.keys(RESOURCES_ALL)) {
-            let amount = structure.store.getUsedCapacity(resourceType as ResourceConstant)
+        for (let resourceType of RESOURCES_ALL) {
+            let amount = structure.store.getUsedCapacity(resourceType)
             if (amount) {
-                resources.push([resourceType as ResourceConstant, amount])
+                resources.push([resourceType, amount])
             }
         }
 

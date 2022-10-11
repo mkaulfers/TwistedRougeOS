@@ -158,8 +158,8 @@ export class Filler extends CreepRole {
 
         let filteredStructures: AnyStoreStructure[] = []
         for (let structure of structures) {
-            if (structure.structure.structureType === STRUCTURE_EXTENSION || structure.structure.structureType === STRUCTURE_SPAWN) {
-                let struct = structure.structure as StructureExtension | StructureSpawn;
+            if (Utils.Typeguards.isStructureExtension(structure.structure) || Utils.Typeguards.isStructureSpawn(structure.structure)) {
+                let struct = structure.structure;
                 struct.store.getFreeCapacity(RESOURCE_ENERGY) > 0 ? filteredStructures.push(struct) : undefined;
             }
         }
