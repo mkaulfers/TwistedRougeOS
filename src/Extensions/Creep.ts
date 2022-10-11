@@ -2,6 +2,7 @@ import 'ts-polyfill/lib/es2019-array';
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 import { moveTo, MoveOpts, MoveTarget } from 'screeps-cartographer';
 import { Utils } from 'utils/Index';
+import { Logger } from 'utils/Logger';
 
 declare global {
     interface Creep {
@@ -190,7 +191,6 @@ export default class Creep_Extended extends Creep {
             avoidCreeps: true,
         };
         fallbackOpts = Object.assign(defaultFallbackOpts, fallbackOpts)
-
         return moveTo(this, targets, opts, defaultFallbackOpts);
     }
 

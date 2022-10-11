@@ -8,7 +8,7 @@ export default class RemoteManager {
      * Computes the maximum number of remotes to run.
      */
     private static get allowedNumberOfRemotes(): number {
-        return 4
+        return 6
     }
 
     static scheduleRemoteMonitor(room: Room): void | ProcessResult {
@@ -27,16 +27,25 @@ export default class RemoteManager {
     }
 
     private static setRemotes(room: Room) {
-        let roomsInMemory = Object.values(Memory.rooms).filter(x => x.intel)
+        let roomsInMemory = Object.values(Memory.rooms).filter(
+            x => x.intel &&
+                Game.map.getRoomLinearDistance(room.name, x.intel?.name ?? "") <= 3 &&
+                x.intel && x.intel.sourceIds &&
+                x.intel.sourceIds.length < 3
+        )
+
         let roomFrontiers = room.memory.frontiers
         if (!roomFrontiers) { return }
 
-        roomsInMemory.sort((a, b) => { return Game.map.getRoomLinearDistance(room.name, a.intel!.name) - Game.map.getRoomLinearDistance(room.name, b.intel!.name) })
+        roomsInMemory.sort((a, b) => {
+            if (!a.intel || !b.intel) { return 0 }
+            let aPath = PathFinder.search(new RoomPosition(25, 25, room.name), new RoomPosition(25, 25, a.intel.name)).path
+            let bPath = PathFinder.search(new RoomPosition(25, 25, room.name), new RoomPosition(25, 25, b.intel.name)).path
+            return aPath.length - bPath.length
+        })
+
         let selectedRemotes: RoomStatistics[] = []
 
-        /**
-         * Primary Pass - Looking for any rooms that contain two sources.
-         */
         for (let roomIntel of roomsInMemory) {
             let intel = roomIntel.intel!
             let existsInFrontiers = roomFrontiers.includes(intel.name)
@@ -45,29 +54,8 @@ export default class RemoteManager {
                 if (selectedRemotes.length >= this.allowedNumberOfRemotes) break
                 let sourceIds = intel.sourceIds
                 let threatLevel = intel.threatLevel
-                let distance = Game.map.getRoomLinearDistance(room.name, intel.name)
 
-                if (sourceIds && sourceIds.length > 1 && threatLevel < 1 && distance < 3) {
-                    selectedRemotes.push(intel)
-                }
-
-            }
-        }
-
-        /**
-         * Fallback Pass If 2 Sources Don't Exist
-         */
-        for (let roomIntel of roomsInMemory) {
-            let intel = roomIntel.intel!
-            let existsInFrontiers = roomFrontiers.includes(intel.name)
-
-            if (existsInFrontiers) {
-                if (selectedRemotes.length >= this.allowedNumberOfRemotes) break
-                let sourceIds = intel.sourceIds
-                let threatLevel = intel.threatLevel
-                let distance = Game.map.getRoomLinearDistance(room.name, intel.name)
-
-                if (sourceIds && sourceIds.length > 0 && threatLevel < 1 && distance < 3) {
+                if (sourceIds && sourceIds.length > 0 && threatLevel < 1) {
                     if (selectedRemotes.includes(intel)) continue
                     selectedRemotes.push(intel)
                 }

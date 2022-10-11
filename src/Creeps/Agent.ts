@@ -1,3 +1,4 @@
+import { isArray } from "lodash"
 import CreepRole from "Models/CreepRole"
 import { InvaderDetail } from "Models/InvaderDetail"
 import { MineralDetail } from "Models/MineralDetail"
@@ -5,8 +6,10 @@ import { DefenseStructuresDetail, HostileStructuresDetail, PlayerDetail, Storage
 import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
+import { MoveOpts, moveTo } from "screeps-cartographer"
 import { DangerLevel, Developer, LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
+import { Logger } from "utils/Logger"
 
 export class Agent extends CreepRole {
 
@@ -36,7 +39,7 @@ export class Agent extends CreepRole {
     }
 
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
-        agent: function(creep: Creep) {
+        agent: function (creep: Creep) {
             let creepId = creep.id
 
             const agentTask = () => {
@@ -199,7 +202,7 @@ export class Agent extends CreepRole {
                 return DangerLevel.DEATH;
             }
             if (targetRoom.keeperLairs.length > 0) return DangerLevel.INVADERS;
-            else if (targetRoom.find(FIND_HOSTILE_CREEPS, {filter: (c) => c.owner.username !== 'invader'}).length > 1 || targetRoom.find(FIND_HOSTILE_POWER_CREEPS).length > 0) return DangerLevel.WARY;
+            else if (targetRoom.find(FIND_HOSTILE_CREEPS, { filter: (c) => c.owner.username !== 'invader' }).length > 1 || targetRoom.find(FIND_HOSTILE_POWER_CREEPS).length > 0) return DangerLevel.WARY;
             else return DangerLevel.PEACEFUL;
         } else {
             // Check reservations and owners
@@ -303,7 +306,7 @@ export class Agent extends CreepRole {
     private static getInvaderDetails(targetRoom: Room): InvaderDetail | undefined {
         if (targetRoom.controller && !targetRoom.controller.my && targetRoom.controller.reservation?.username == "Invader") {
             let core = targetRoom.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_INVADER_CORE });
-            let coreId = core.length > 0 ? core[0].id: undefined
+            let coreId = core.length > 0 ? core[0].id : undefined
 
             let storageDetails: StorageDetail[] = []
             let storeStructures: AnyStoreStructure[] = targetRoom.find(FIND_STRUCTURES, { filter: function (s: AnyStructure) { return 'store' in s } })

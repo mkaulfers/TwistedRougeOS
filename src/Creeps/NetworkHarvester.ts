@@ -2,21 +2,20 @@ import { stat } from "fs";
 import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
 import { RoomStatistics } from "Models/RoomStatistics";
+import { MoveOpts, moveTo } from "screeps-cartographer";
 import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums";
 import { Utils } from "utils/Index";
 import { Logger } from "utils/Logger";
 
 export class NetworkHarvester extends CreepRole {
-    readonly baseBody = [CARRY, MOVE, MOVE, WORK, WORK]
-    readonly segment = [WORK]
-    readonly partLimits = [5]
+    readonly baseBody = [CARRY, MOVE, WORK]
+    readonly segment = [WORK, MOVE]
+    readonly partLimits = [6, 6]
 
     dispatch(room: Room): void {
-        let networkHarvesters = room.localCreeps.nHarvester;
+        let networkHarvesters = room.stationedCreeps.nHarvester;
         for (let harv of networkHarvesters) {
-            if (!harv.memory.task) {
-                global.scheduler.swapProcess(harv, Task.nHARVESTING);
-            }
+            global.scheduler.swapProcess(harv, Task.nHARVESTING);
         }
     }
 
@@ -66,7 +65,7 @@ export class NetworkHarvester extends CreepRole {
                     }
                 }
 
-                if (creep.ticksToLive&& creep.memory.remoteTarget && creep.ticksToLive < 1) {
+                if (creep.ticksToLive && creep.memory.remoteTarget && creep.ticksToLive < 1) {
                     let remoteRoomName = Object.keys(creep.memory.remoteTarget)[0]
                     let remoteRoom = Game.rooms[remoteRoomName]
                     if (remoteRoom && remoteRoom.memory.remoteSites) {
@@ -95,7 +94,7 @@ export class NetworkHarvester extends CreepRole {
 
         for (let remote in remotes) {
             let harvsAssignedToRemote = stationedNetHarvs.filter(x => x.memory.remoteTarget && Object.keys(x.memory.remoteTarget).includes(remote))
-            let sourceIds = remotes[remote].sourceIds
+            let sourceIds = [...remotes[remote].sourceIds]
 
             for (let assignedHarvester of harvsAssignedToRemote) {
                 if (!assignedHarvester.memory.remoteTarget) continue

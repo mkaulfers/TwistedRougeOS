@@ -291,10 +291,10 @@ export class Utility {
 
     /** Checks room's threat level for pathing purposes. */
     static checkRoomSafety(roomName: string) {
-        let room = Game.rooms[roomName]
-        if (!room || !room.memory || !room.memory.intel) return
-        if (room.memory.intel.threatLevel > 1) return Infinity
-        return
+        let roomMemory = Memory.rooms[roomName];
+        if (!roomMemory || !roomMemory.intel) return
+        if (roomMemory.intel.threatLevel > 1) return Infinity
+        return undefined
     }
 
     static genPathfindingCM(roomName: string): CostMatrix {
