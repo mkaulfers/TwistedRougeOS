@@ -199,12 +199,12 @@ export class Agent extends CreepRole {
                 return DangerLevel.DEATH;
             }
             if (targetRoom.keeperLairs.length > 0) return DangerLevel.INVADERS;
-            else if (targetRoom.find(FIND_HOSTILE_CREEPS, {filter: (c) => c.owner.username !== 'invader'}).length > 1 || targetRoom.find(FIND_HOSTILE_POWER_CREEPS).length > 0) return DangerLevel.WARY;
+            else if (targetRoom.find(FIND_HOSTILE_CREEPS, {filter: (c) => c.owner.username !== 'Invader'}).length > 1 || targetRoom.find(FIND_HOSTILE_POWER_CREEPS).length > 0) return DangerLevel.WARY;
             else return DangerLevel.PEACEFUL;
         } else {
             // Check reservations and owners
             if (controller.reservation) {
-                if (controller.reservation.username === 'invader') return DangerLevel.PEACEFUL;
+                if (controller.reservation.username === 'Invader') return DangerLevel.PEACEFUL;
                 if (Object.values(Developer).includes(controller.reservation.username as Developer)) return DangerLevel.PEACEFUL;
                 return DangerLevel.WARY;
             } else if (controller.owner) {

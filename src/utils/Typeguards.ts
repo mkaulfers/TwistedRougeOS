@@ -25,6 +25,8 @@ export default class Typeguards {
 
     static isStructureTower(structure: AnyStructure): structure is StructureTower { return structure instanceof StructureTower }
 
+    static isStructureObserver(structure: AnyStructure): structure is StructureObserver { return structure instanceof StructureObserver }
+
     static isStructureContainer(structure: AnyStructure): structure is StructureContainer { return structure instanceof StructureContainer }
 
 
