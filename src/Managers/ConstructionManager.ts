@@ -71,13 +71,13 @@ export default class ConstructionManager {
                         let danglingExtensions = blueprint.stamps.filter(stamp => { return stamp.type == StampType.EXTENSION })
                         for (let ext of danglingExtensions) {
                             let pos = Utils.Utility.unpackPostionToRoom(ext.stampPos, room.name)
-                            Stamps.buildStructure(pos, ext.type as StampType)
+                            Stamps.buildStructure(pos, ext.type)
                         }
 
                         let observer = blueprint.stamps.find(stamp => { return stamp.type == StampType.OBSERVER })
                         if (observer) {
                             let pos = Utils.Utility.unpackPostionToRoom(observer.stampPos, room.name)
-                            Stamps.buildStructure(pos, observer.type as StampType)
+                            Stamps.buildStructure(pos, observer.type)
                         }
                     case 7:
                         hubSkipped.splice(hubSkipped.indexOf(STRUCTURE_LINK), 1)
@@ -96,7 +96,7 @@ export default class ConstructionManager {
                         for (let lab of labs) {
                             if (labsCount + labsConstCount < room.maxLabsAvail) {
                                 let pos = Utils.Utility.unpackPostionToRoom(lab.stampPos, room.name)
-                                Stamps.buildStructure(pos, lab.type as StampType)
+                                Stamps.buildStructure(pos, lab.type)
                             }
                         }
 
@@ -191,7 +191,7 @@ export default class ConstructionManager {
                             if (room.areFastFillerExtensionsBuilt) {
                                 fastFillerStructuresSkipped.splice(fastFillerStructuresSkipped.indexOf(STRUCTURE_CONTAINER), 1)
                             }
-                            Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(fastFiller.stampPos, room.name), fastFiller.type as StampType, fastFillerStructuresSkipped)
+                            Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(fastFiller.stampPos, room.name), fastFiller.type, fastFillerStructuresSkipped)
                         }
                 }
             }

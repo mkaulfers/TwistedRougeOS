@@ -23,15 +23,13 @@ export default class CreepManager {
         const roomName = room.name
 
         const roomTaskMonitor = () => {
-            let room = Game.rooms[roomName]
-            let roles = _.keys(Roles) as Array<keyof typeof Roles>; // triage change to make this role-confirming section work.
-            if (!room) { return }
-            _.forEach(roles, function (role) {
-                if (room.localCreeps.all.length < 1) { return }
+            let room = Game.rooms[roomName];
+            if (!room) return;
 
-                let theRole = Roles[role];
-                if (theRole) theRole.dispatch(room);
-            });
+            for (const role of Object.values(Roles)) {
+                if (room.stationedCreeps.all.length < 1) return;
+                role.dispatch(room);
+            }
         }
 
         let process = new Process(`${roomName}_task_monitor`, ProcessPriority.CRITICAL, roomTaskMonitor)

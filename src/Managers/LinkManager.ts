@@ -21,11 +21,11 @@ export default class LinkManager {
                 (Game.time % 250 == 0 &&
                 room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_LINK } }).length !== Object.keys(room.cache.links).length)) {
                 room.cache.links = {};
-                let links = room.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LINK } });
+                let links = room.links;
 
                 // Define Link States
                 for (let link of links) {
-                    link = link as StructureLink;
+                    link = link;
 
                     if (link.pos.findInRange(FIND_SOURCES, 2).length > 0 || link.pos.findInRange(FIND_EXIT, 2).length > 0) {
                         room.cache.links[link.id] = LinkState.INPUT;

@@ -61,8 +61,8 @@ export default class ThreatManager {
                     }
                     let targetId = room.cache.towerTarget;
                     if (targetId && Game.getObjectById(targetId) !== null) {
-                        target = Game.getObjectById(targetId) as AnyCreep;
-                        this.towerAttack(target);
+                        target = Game.getObjectById(targetId)
+                        Utils.Typeguards.isAnyCreep(target) ? this.towerAttack(target) : undefined;
                     } else if (invaderAttackers.length > 0) {
                         this.towerAttack(invaderAttackers[0]);
                     }
@@ -189,7 +189,9 @@ export default class ThreatManager {
     static towerAttack(target: AnyCreep) {
         Utils.Logger.log(`ThreatManager -> towerAttack`, LogLevel.TRACE)
 
-        let room = target.room as Room;
+        let room = target.room
+        if (!room) return;
+
         let towers = room.towers;
 
         if (towers.length == 0) return;
