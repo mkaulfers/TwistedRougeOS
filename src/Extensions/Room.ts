@@ -128,14 +128,22 @@ export default class Room_Extended extends Room {
         return this._structures['all']
     }
 
+    private _containers: StructureContainer[] | undefined;
     get containers() {
-        const containers = this.structures(STRUCTURE_CONTAINER);
-        return containers ? containers as StructureContainer[] : [];
+        if (!this._containers) {
+            const containers = this.structures(STRUCTURE_CONTAINER);
+            if (containers.every(Utils.Typeguards.isStructureContainer)) this._containers = containers;
+        }
+        return this._containers ? this._containers : [];
     }
 
+    private _extensions: StructureExtension[] | undefined;
     get extensions() {
-        const extensions = this.structures(STRUCTURE_EXTENSION);
-        return extensions ? extensions as StructureExtension[] : [];
+        if (!this._extensions) {
+            const extensions = this.structures(STRUCTURE_EXTENSION);
+            if (extensions.every(Utils.Typeguards.isStructureExtension)) this._extensions = extensions;
+        }
+        return this._extensions ? this._extensions : [];
     }
 
     get extractor() {
