@@ -14,9 +14,7 @@ export class NetworkHarvester extends CreepRole {
 
     dispatch(room: Room): void {
         let networkHarvesters = room.stationedCreeps.nHarvester;
-        for (let harv of networkHarvesters) {
-            global.scheduler.swapProcess(harv, Task.nHARVESTING);
-        }
+        for (let harv of networkHarvesters) if (!harv.memory.task) global.scheduler.swapProcess(harv, Task.nHARVESTING);
     }
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean | undefined): number {
