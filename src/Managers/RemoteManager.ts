@@ -17,7 +17,11 @@ export default class RemoteManager {
             let room = Game.rooms[roomId]
             //If room doesn't have remotes, fetch them.
             //TODO: Modify so that remotes are added if the number of allowed remotes changes.
-            if (!room.memory || !room.memory.remoteSites || Object.keys(room.memory.remoteSites).length < this.allowedNumberOfRemotes) {
+            if ((!room.memory ||
+                !room.memory.remoteSites ||
+                Object.keys(room.memory.remoteSites).length < this.allowedNumberOfRemotes) &&
+                Game.time % 750 == 0 &&
+                Game.cpu.bucket > 150) {
                 this.setRemotes(room)
             }
         }
@@ -30,8 +34,8 @@ export default class RemoteManager {
         let roomsInMemory = Object.values(Memory.rooms).filter(
             x => x.intel &&
                 Game.map.getRoomLinearDistance(room.name, x.intel?.name ?? "") <= 3 &&
-                x.intel && x.intel.sourceIds &&
-                x.intel.sourceIds.length < 3
+                x.intel && x.intel.sources &&
+                x.intel.sources.length < 3
         )
 
         let roomFrontiers = room.memory.frontiers
@@ -39,8 +43,8 @@ export default class RemoteManager {
 
         roomsInMemory.sort((a, b) => {
             if (!a.intel || !b.intel) { return 0 }
-            let aPath = PathFinder.search(new RoomPosition(25, 25, room.name), new RoomPosition(25, 25, a.intel.name)).path
-            let bPath = PathFinder.search(new RoomPosition(25, 25, room.name), new RoomPosition(25, 25, b.intel.name)).path
+            let aPath = PathFinder.search(new RoomPosition(25, 25, room.name), { pos: new RoomPosition(25, 25, a.intel.name), range: 20 }).path
+            let bPath = PathFinder.search(new RoomPosition(25, 25, room.name), { pos: new RoomPosition(25, 25, b.intel.name), range: 20 }).path
             return aPath.length - bPath.length
         })
 
@@ -52,7 +56,7 @@ export default class RemoteManager {
 
             if (existsInFrontiers) {
                 if (selectedRemotes.length >= this.allowedNumberOfRemotes) break
-                let sourceIds = intel.sourceIds
+                let sourceIds = intel.sources
                 let threatLevel = intel.threatLevel
 
                 if (sourceIds && sourceIds.length > 0 && threatLevel < 1) {
@@ -68,7 +72,7 @@ export default class RemoteManager {
         for (let remote of selectedRemotes) {
             if (!room.memory.remoteSites) room.memory.remoteSites = {}
             room.memory.remoteSites[remote.name] = {
-                sourceIds: [...remote.sourceIds ?? []],
+                sourcePositions: remote.sources ?? [],
                 assignedHarvesters: [],
                 assignedHaulers: [],
                 assignedEngineers: [],

@@ -7,6 +7,7 @@ import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
 import { MoveOpts, moveTo } from "screeps-cartographer"
+import { Coord } from "screeps-cartographer/dist/utils/packrat"
 import { DangerLevel, Developer, LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
 import { Logger } from "utils/Logger"
@@ -71,7 +72,7 @@ export class Agent extends CreepRole {
                     }
 
                     if (creep.room.name != targetFrontier) {
-                        let opts =  {
+                        let opts = {
                             avoidCreeps: true,
                             plainCost: 2,
                             swampCost: 2,
@@ -113,7 +114,13 @@ export class Agent extends CreepRole {
         let highestDT = this.getHighestDT(room)
         let threatLevel = this.getThreatLevel(room)
 
-        let sourcesIds = room.sources.map(source => source.id)
+        let sources = room.sources
+        let sourceInfo: { targetId: Id<any>, x: number, y: number }[] = []
+
+        for (let source of sources) {
+            sourceInfo.push({ targetId: source.id, x: source.pos.x, y: source.pos.y })
+        }
+
         let powerBankId = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_POWER_BANK })[0]?.id
         let publicTerminalId = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_TERMINAL })[0]?.id
 
@@ -126,10 +133,10 @@ export class Agent extends CreepRole {
         let mineral = room.find(FIND_MINERALS)[0]
         let mineralDetails: MineralDetail | undefined = undefined
         if (mineral) {
-            mineralDetails = new MineralDetail(mineral.id, mineral.mineralType)
+            mineralDetails = new MineralDetail(mineral.id, mineral.mineralType, mineral.pos)
         }
 
-        let controllerId = room.controller?.id
+        let controllerPos = room.controller?.pos
         let distanceBetweenSources = this.getDistanceBetweenSources(room)
         let largestDistanceToController = this.largestDistanceToController(room)
         let playerDetails = this.getPlayerDetails(room)
@@ -143,12 +150,12 @@ export class Agent extends CreepRole {
             wallCount,
             highestDT,
             threatLevel,
-            sourcesIds,
+            sourceInfo,
             powerBankId,
             publicTerminalId,
             portalDetails,
             mineralDetails,
-            controllerId,
+            controllerPos,
             distanceBetweenSources,
             largestDistanceToController,
             playerDetails,
@@ -202,12 +209,12 @@ export class Agent extends CreepRole {
                 return DangerLevel.DEATH;
             }
             if (targetRoom.keeperLairs.length > 0) return DangerLevel.INVADERS;
-            else if (targetRoom.find(FIND_HOSTILE_CREEPS, { filter: (c) => c.owner.username !== 'invader' }).length > 1 || targetRoom.find(FIND_HOSTILE_POWER_CREEPS).length > 0) return DangerLevel.WARY;
+            else if (targetRoom.find(FIND_HOSTILE_CREEPS, { filter: (c) => c.owner.username !== 'Invader' }).length > 1 || targetRoom.find(FIND_HOSTILE_POWER_CREEPS).length > 0) return DangerLevel.WARY;
             else return DangerLevel.PEACEFUL;
         } else {
             // Check reservations and owners
             if (controller.reservation) {
-                if (controller.reservation.username === 'invader') return DangerLevel.PEACEFUL;
+                if (controller.reservation.username === 'Invader') return DangerLevel.PEACEFUL;
                 if (Object.values(Developer).includes(controller.reservation.username as Developer)) return DangerLevel.PEACEFUL;
                 return DangerLevel.WARY;
             } else if (controller.owner) {
@@ -275,7 +282,7 @@ export class Agent extends CreepRole {
             let storeStructures: AnyStoreStructure[] = targetRoom.find(FIND_STRUCTURES, { filter: function (s: AnyStructure) { return 'store' in s } })
             for (let structure of storeStructures) {
                 if (structure.store) {
-                    storageDetails.push(new StorageDetail(structure.id, this.getContentsOfStore(structure)))
+                    storageDetails.push(new StorageDetail(structure.id, this.getContentsOfStore(structure), structure.pos))
                 }
             }
 
@@ -288,13 +295,13 @@ export class Agent extends CreepRole {
             )
             for (let structure of hostileStructures) {
 
-                hostileDetails.push(new HostileStructuresDetail(structure.id, structure.structureType, structure.hits))
+                hostileDetails.push(new HostileStructuresDetail(structure.id, structure.structureType, structure.hits, structure.pos))
             }
 
             let defenseDetails: DefenseStructuresDetail[] = []
             let defensiveStructures = targetRoom.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_RAMPART || structure.structureType == STRUCTURE_WALL })
             for (let structure of defensiveStructures) {
-                defenseDetails.push(new DefenseStructuresDetail(structure.id, structure.structureType, structure.hits))
+                defenseDetails.push(new DefenseStructuresDetail(structure.id, structure.structureType, structure.hits, structure.pos))
             }
 
             return new PlayerDetail(username, rclLevel, reserved, storageDetails, hostileDetails, defenseDetails)
@@ -312,7 +319,7 @@ export class Agent extends CreepRole {
             let storeStructures: AnyStoreStructure[] = targetRoom.find(FIND_STRUCTURES, { filter: function (s: AnyStructure) { return 'store' in s } })
             for (let structure of storeStructures) {
                 if (structure.store) {
-                    storageDetails.push(new StorageDetail(structure.id, this.getContentsOfStore(structure)))
+                    storageDetails.push(new StorageDetail(structure.id, this.getContentsOfStore(structure), structure.pos))
                 }
             }
 

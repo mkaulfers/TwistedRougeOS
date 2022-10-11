@@ -3,13 +3,14 @@ import SpawnSchedule from 'Models/SpawnSchedule';
 import { RoomStatistics } from 'Models/RoomStatistics';
 import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from 'utils/Enums';
 import { Utils } from '../utils/Index';
+import { Coord } from 'screeps-cartographer/dist/utils/packrat';
 
 // Add new Memory or Cache properties in this file.
 declare global {
     interface CreepMemory {
         assignedPos?: number
         homeRoom: string
-        remoteTarget?: {[roomName: string]: Id<any>}
+        remoteTarget?: { [roomName: string]: { targetId: Id<any>, x: number, y: number } }
         role: Role
         target?: Id<any>
         task?: Task
@@ -40,7 +41,7 @@ declare global {
         // remotes?: RoomStatistics[]
         remoteSites?: {
             [roomName: string]: {
-                sourceIds: Id<Source>[],
+                sourcePositions: { targetId: Id<any>, x: number, y: number }[],
                 assignedHarvesters: Id<Creep>[],
                 assignedHaulers: Id<Creep>[],
                 assignedEngineers: Id<Creep>[],

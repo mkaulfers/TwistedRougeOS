@@ -16,7 +16,7 @@ declare global {
         firstaid(target: Creep): number
         getOffExit(): number
         give(target: AnyStoreStructure | Creep, resource: ResourceConstant, quantity?: number): number
-        mine(target: Source | Mineral): number
+        mine(target: Source | Mineral | RoomPosition): number
         /** Non-Civilian pathing defaults */
         moveToDefault(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number
         nMRController(target: string): number

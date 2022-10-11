@@ -14,7 +14,8 @@ export class NetworkHarvester extends CreepRole {
 
     dispatch(room: Room): void {
         let networkHarvesters = room.stationedCreeps.nHarvester;
-        for (let harv of networkHarvesters) if (!harv.memory.task) global.scheduler.swapProcess(harv, Task.nHARVESTING);
+        for (let harv of networkHarvesters)
+            if (!harv.memory.task) global.scheduler.swapProcess(harv, Task.nHARVESTING);
     }
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean | undefined): number {
@@ -26,7 +27,7 @@ export class NetworkHarvester extends CreepRole {
 
         for (let remoteName in remotes) {
             let remote = remotes[remoteName]
-            sourceCount += remote.sourceIds ? remote.sourceIds.length : 0
+            sourceCount += remote.sourcePositions ? remote.sourcePositions.length : 0
         }
 
         return sourceCount - networkHarvesters;
@@ -51,19 +52,20 @@ export class NetworkHarvester extends CreepRole {
 
                 let remoteTarget = creep.memory.remoteTarget
                 if (remoteTarget) {
-                    let targetRoom = new RoomPosition(25, 25, Object.keys(remoteTarget)[0])
+                    let targetRoomName = Object.keys(remoteTarget)[0]
+                    let targetRoom = new RoomPosition(remoteTarget[targetRoomName].x, remoteTarget[targetRoomName].y, targetRoomName)
 
                     if (creep.pos.roomName != targetRoom.roomName) {
                         creep.travel(targetRoom)
                     } else {
-                        let target = Game.getObjectById(remoteTarget[targetRoom.roomName])
+                        let target = Game.getObjectById(remoteTarget[targetRoom.roomName].targetId)
                         if (target) {
                             creep.mine(target)
                         }
                     }
                 }
 
-                if (creep.ticksToLive && creep.memory.remoteTarget && creep.ticksToLive < 1) {
+                if (creep.ticksToLive && creep.memory.remoteTarget && creep.ticksToLive < 1 && creep.hits >= creep.hitsMax / 2) {
                     let remoteRoomName = Object.keys(creep.memory.remoteTarget)[0]
                     let remoteRoom = Game.rooms[remoteRoomName]
                     if (remoteRoom && remoteRoom.memory.remoteSites) {
@@ -88,11 +90,11 @@ export class NetworkHarvester extends CreepRole {
         let stationedNetHarvs = baseRoom.stationedCreeps.nHarvester
         let remotes = baseRoom.memory.remoteSites || {}
 
-        let harvesterSourceTarget: { [roomName: string]: Id<any> } = {}
+        let harvesterSourceTarget: { [roomName: string]: { targetId: Id<any>, x: number, y: number } } = {}
 
         for (let remote in remotes) {
             let harvsAssignedToRemote = stationedNetHarvs.filter(x => x.memory.remoteTarget && Object.keys(x.memory.remoteTarget).includes(remote))
-            let sourceIds = [...remotes[remote].sourceIds]
+            let sourceIds = [...remotes[remote].sourcePositions]
 
             for (let assignedHarvester of harvsAssignedToRemote) {
                 if (!assignedHarvester.memory.remoteTarget) continue
