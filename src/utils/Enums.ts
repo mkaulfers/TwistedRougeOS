@@ -28,6 +28,7 @@ export enum Task {
 
     AGENT = 'agent',
     nHARVESTING = 'nHarvesting',
+    nTRUCKER = 'nTrucker',
     ANCHOR = 'anchor'
 }
 

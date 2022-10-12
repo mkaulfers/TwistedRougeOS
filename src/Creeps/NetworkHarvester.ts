@@ -83,7 +83,7 @@ export class NetworkHarvester extends CreepRole {
         }
     }
 
-    private static setRemoteSource(baseRoom: Room, creep: Creep) {
+    static setRemoteSource(baseRoom: Room, creep: Creep) {
         if (!baseRoom.memory.remoteSites) return
         this.validateRemoteHarvesters(baseRoom)
 
