@@ -199,11 +199,22 @@ export default class SpawnManager {
     private static addToSchedules(room: Room, spawnOrders: SpawnOrder[] | undefined): SpawnOrder[] | undefined {
         let spawnSchedules = room.cache.spawnSchedules;
         if (!spawnSchedules) return;
+        // Exact Prespawn only additions
         for (let spawnSchedule of spawnSchedules) {
             if (spawnSchedule.isFull() == true || !spawnOrders || spawnOrders.length == 0) continue;
-            spawnOrders = spawnSchedule.add(spawnOrders);
+            spawnOrders = spawnSchedule.add(spawnOrders, {preSpawnOnly: true});
             if (spawnSchedule.activeELimit !== room.spawnEnergyLimit) spawnSchedule.activeELimit = room.spawnEnergyLimit;
         }
+
+        // Any additions
+        if (spawnOrders && spawnOrders.length > 0) {
+            for (let spawnSchedule of spawnSchedules) {
+                if (spawnSchedule.isFull() == true || !spawnOrders || spawnOrders.length == 0) continue;
+                spawnOrders = spawnSchedule.add(spawnOrders);
+                if (spawnSchedule.activeELimit !== room.spawnEnergyLimit) spawnSchedule.activeELimit = room.spawnEnergyLimit;
+            }
+        }
+
         room.cache.spawnSchedules = spawnSchedules;
         return spawnOrders;
     }
