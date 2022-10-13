@@ -2,6 +2,7 @@ import { Process } from "Models/Process";
 import { Utils } from "../utils/Index";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel } from '../utils/Enums'
 import { Stamps } from 'Models/Stamps'
+import { RoomStatistics } from "Models/RoomStatistics";
 
 declare global {
 
@@ -141,11 +142,12 @@ export default class Visuals {
         Utils.Logger.log(`Visuals -> worldRemotes()`, LogLevel.TRACE);
         for (let roomName in Game.rooms) {
             let roomMem = Memory.rooms[roomName]
-            if (!roomMem || !roomMem.remotes || roomMem.remotes.length == 0) continue;
+            if (!roomMem || !roomMem.remoteSites || Object.keys(roomMem.remoteSites).length == 0) continue;
             let home = new RoomPosition(25,25,roomName);
-            let remotes = roomMem.remotes;
-            for (let remote of remotes) {
-                let rPos = new RoomPosition(25,25,remote.name);
+            let remotes = Memory.rooms[roomName].remoteSites;
+            for (let key in remotes) {
+                let remote = remotes[key];
+                let rPos = new RoomPosition(25,25, key);
                 Game.map.visual.line(rPos, home, {color: '#ffffff', width: 2.0});
             }
         }

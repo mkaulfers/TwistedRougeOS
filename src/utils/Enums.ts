@@ -4,9 +4,9 @@ export enum Role {
     AGENT = 'agent',
     FILLER = 'filler',
     ANCHOR = 'anchor',
-    NETWORK_HARVESTER = 'network_harvester',
-    NETWORK_HAULER = 'network_hauler',
-    NETWORK_ENGINEER = 'network_engineer',
+    nHARVESTER = 'nHarvester',
+    nTRUCKER = 'nTrucker',
+    nENGINEER = 'nEngineer',
     ENGINEER = 'engineer',
     SCIENTIST = 'scientist'
 }
@@ -26,9 +26,10 @@ export enum Task {
 
     FILLER = 'filler_working',
 
-    ANCHOR = 'anchor',
-
-    AGENT = 'agent'
+    AGENT = 'agent',
+    nHARVESTING = 'nHarvesting',
+    nTRUCKER = 'nTrucker',
+    ANCHOR = 'anchor'
 }
 
 export enum ProcessPriority {

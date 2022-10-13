@@ -56,7 +56,7 @@ export class Stamps {
 
     static buildStructureRoads(room: Room) {
         let blueprint = room.memory.blueprint
-        if (!blueprint) return;
+        if (!blueprint) return
         for (let stamp of blueprint.stamps) {
             let pos = Utils.Utility.unpackPostionToRoom(stamp.stampPos, room.name)
             let stampType = stamp.type

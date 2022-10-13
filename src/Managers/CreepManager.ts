@@ -6,7 +6,7 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, Danger
 export default class CreepManager {
     static scheduleCreepTask(room: Room) {
         Utils.Logger.log("Room -> scheduleCreepTask()", LogLevel.TRACE)
-        let creeps = room.localCreeps.all
+        let creeps = room.stationedCreeps.all
         for (let i = 0; i < creeps.length; i++) {
             let creep = creeps[i]
             if (global.scheduler.processQueue.has(creep.name)) { continue }
