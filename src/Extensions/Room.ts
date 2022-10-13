@@ -109,7 +109,7 @@ export default class Room_Extended extends Room {
         return this._constructionSites['all']
     }
 
-    private _structures: { [key: string]: Structure[] } | undefined;
+    private _structures: { [key: string]: AnyStructure[] } | undefined;
     structures(ofType?: StructureConstant) {
         if (!this._structures) {
             this._structures = {};
@@ -127,34 +127,58 @@ export default class Room_Extended extends Room {
         return this._structures['all']
     }
 
+    private _containers: StructureContainer[] | undefined;
     get containers() {
-        const containers = this.structures(STRUCTURE_CONTAINER);
-        return containers ? containers as StructureContainer[] : [];
+        if (!this._containers) {
+            const containers = this.structures(STRUCTURE_CONTAINER);
+            if (containers.every(Utils.Typeguards.isStructureContainer)) this._containers = containers;
+        }
+        return this._containers ? this._containers : [];
     }
 
+    private _extensions: StructureExtension[] | undefined;
     get extensions() {
-        const extensions = this.structures(STRUCTURE_EXTENSION);
-        return extensions ? extensions as StructureExtension[] : [];
+        if (!this._extensions) {
+            const extensions = this.structures(STRUCTURE_EXTENSION);
+            if (extensions.every(Utils.Typeguards.isStructureExtension)) this._extensions = extensions;
+        }
+        return this._extensions ? this._extensions : [];
     }
 
+    private _extractor: StructureExtractor | undefined;
     get extractor() {
-        const extractors = this.structures(STRUCTURE_EXTRACTOR);
-        return extractors[0] !== undefined ? extractors[0] as StructureExtractor : undefined;
+        if (!this._extractor) {
+            const extractors = this.structures(STRUCTURE_EXTRACTOR);
+            if (extractors[0] && Utils.Typeguards.isStructureExtractor(extractors[0])) this._extractor = extractors[0];
+        }
+        return this._extractor;
     }
 
+    private _factory: StructureFactory | undefined;
     get factory() {
-        const factories = this.structures(STRUCTURE_FACTORY);
-        return factories[0] !== undefined ? factories[0] as StructureFactory : undefined;
+        if (!this._factory) {
+            const factories = this.structures(STRUCTURE_FACTORY);
+            if (factories[0] && Utils.Typeguards.isStructureFactory(factories[0])) this._factory = factories[0];
+        }
+        return this._factory;
     }
 
+    private _invaderCores: StructureInvaderCore[] | undefined;
     get invaderCores() {
-        const invaderCores = this.structures(STRUCTURE_EXTENSION);
-        return invaderCores ? invaderCores as StructureInvaderCore[] : [];
+        if (!this._invaderCores) {
+            const invaderCores = this.structures(STRUCTURE_INVADER_CORE);
+            if (invaderCores.every(Utils.Typeguards.isStructureInvaderCore)) this._invaderCores = invaderCores;
+        }
+        return this._invaderCores ? this._invaderCores : [];
     }
 
+    private _keeperLairs: StructureKeeperLair[] | undefined;
     get keeperLairs() {
-        const keeperLairs = this.structures(STRUCTURE_EXTENSION);
-        return keeperLairs ? keeperLairs as StructureKeeperLair[] : [];
+        if (!this._keeperLairs) {
+            const keeperLairs = this.structures(STRUCTURE_KEEPER_LAIR);
+            if (keeperLairs.every(Utils.Typeguards.isStructureKeeperLair)) this._keeperLairs = keeperLairs;
+        }
+        return this._keeperLairs ? this._keeperLairs : [];
     }
 
     private _mineral: Mineral | undefined;
@@ -164,66 +188,110 @@ export default class Room_Extended extends Room {
         return this._mineral = minerals[0] !== undefined ? minerals[0] : undefined;
     }
 
+    private _nuker: StructureNuker | undefined;
     get nuker() {
-        const nukers = this.structures(STRUCTURE_NUKER);
-        return nukers[0] !== undefined ? nukers[0] as StructureNuker : undefined;
+        if (!this._nuker) {
+            const nukers = this.structures(STRUCTURE_NUKER);
+            if (nukers[0] && Utils.Typeguards.isStructureNuker(nukers[0])) this._nuker = nukers[0];
+        }
+        return this._nuker;
     }
 
+    private _labs: StructureLab[] | undefined;
     get labs() {
-        const labs = this.structures(STRUCTURE_LAB);
-        return labs ? labs as StructureLab[] : [];
+        if (!this._labs) {
+            const labs = this.structures(STRUCTURE_LAB);
+            if (labs.every(Utils.Typeguards.isStructureLab)) this._labs = labs;
+        }
+        return this._labs ? this._labs : [];
     }
 
+    private _links: StructureLink[] | undefined;
     get links() {
-        const links = this.structures(STRUCTURE_LINK);
-        return links ? links as StructureLink[] : [];
+        if (!this._links) {
+            const links = this.structures(STRUCTURE_LINK);
+            if (links.every(Utils.Typeguards.isStructureLink)) this._links = links;
+        }
+        return this._links ? this._links : [];
     }
 
+    private _observer: StructureObserver | undefined;
     get observer() {
-        const observers = this.structures(STRUCTURE_OBSERVER);
-        return observers[0] !== undefined ? observers[0] as StructureObserver : undefined;
+        if (!this._observer) {
+            const observers = this.structures(STRUCTURE_OBSERVER);
+            if (observers[0] && Utils.Typeguards.isStructureObserver(observers[0])) this._observer = observers[0];
+        }
+        return this._observer;
     }
 
+    private _portals: StructurePortal[] | undefined;
     get portals() {
-        const portals = this.structures(STRUCTURE_PORTAL);
-        return portals ? portals as StructurePortal[] : [];
+        if (!this._portals) {
+            const portals = this.structures(STRUCTURE_PORTAL);
+            if (portals.every(Utils.Typeguards.isStructurePortal)) this._portals = portals;
+        }
+        return this._portals ? this._portals : [];
     }
 
+    private _powerBank: StructurePowerBank | undefined;
     get powerBank() {
-        const powerBanks = this.structures(STRUCTURE_POWER_BANK);
-        return powerBanks[0] !== undefined ? powerBanks[0] as StructurePowerBank : undefined;
+        if (!this._powerBank) {
+            const powerBanks = this.structures(STRUCTURE_POWER_BANK);
+            if (powerBanks[0] && Utils.Typeguards.isStructurePowerBank(powerBanks[0])) this._powerBank = powerBanks[0];
+        }
+        return this._powerBank;
     }
 
+    private _powerSpawn: StructurePowerSpawn | undefined;
     get powerSpawn() {
-        const powerSpawns = this.structures(STRUCTURE_POWER_SPAWN);
-        return powerSpawns[0] !== undefined ? powerSpawns[0] as StructurePowerSpawn : undefined;
+        if (!this._powerSpawn) {
+            const powerSpawns = this.structures(STRUCTURE_POWER_SPAWN);
+            if (powerSpawns[0] && Utils.Typeguards.isStructurePowerSpawn(powerSpawns[0])) this._powerSpawn = powerSpawns[0];
+        }
+        return this._powerSpawn;
     }
 
+    private _roads: StructureRoad[] | undefined;
     get roads() {
-        const roads = this.structures(STRUCTURE_ROAD);
-        return roads ? roads as StructureRoad[] : [];
+        if (!this._roads) {
+            const roads = this.structures(STRUCTURE_ROAD);
+            if (roads.every(Utils.Typeguards.isStructureRoad)) this._roads = roads;
+        }
+        return this._roads ? this._roads : [];
     }
 
     private _sources: Source[] | undefined
     get sources() {
         if (this._sources) return this._sources;
         let sources = this.find(FIND_SOURCES);
-        return this._sources = sources ? sources as Source[] : [];
+        return this._sources = sources ? sources : [];
     }
 
+    private _spawns: StructureSpawn[] | undefined;
     get spawns() {
-        const spawns = this.structures(STRUCTURE_SPAWN);
-        return spawns ? spawns as StructureSpawn[] : [];
+        if (!this._spawns) {
+            const spawns = this.structures(STRUCTURE_SPAWN);
+            if (spawns.every(Utils.Typeguards.isStructureSpawn)) this._spawns = spawns;
+        }
+        return this._spawns ? this._spawns : [];
     }
 
+    private _towers: StructureTower[] | undefined;
     get towers() {
-        const towers = this.structures(STRUCTURE_TOWER);
-        return towers ? towers as StructureTower[] : [];
+        if (!this._towers) {
+            const towers = this.structures(STRUCTURE_TOWER);
+            if (towers.every(Utils.Typeguards.isStructureTower)) this._towers = towers;
+        }
+        return this._towers ? this._towers : [];
     }
 
+    private _walls: StructureWall[] | undefined;
     get walls() {
-        const walls = this.structures(STRUCTURE_WALL);
-        return walls ? walls as StructureWall[] : [];
+        if (!this._walls) {
+            const walls = this.structures(STRUCTURE_WALL);
+            if (walls.every(Utils.Typeguards.isStructureWall)) this._walls = walls;
+        }
+        return this._walls ? this._walls : [];
     }
 
     private _localCreeps: CreepFind | undefined;
@@ -238,10 +306,10 @@ export default class Room_Extended extends Room {
 
             for (const creep of this.find(FIND_MY_CREEPS)) {
                 const role = creep.memory.role;
-                if (!role || !(Object.values(Role).includes(role as Role))) {
+                if (!role || !(Object.values(Role).includes(role))) {
                     this._localCreeps.unknown.push(creep);
                 } else {
-                    this._localCreeps[role as Role].push(creep);
+                    this._localCreeps[role].push(creep);
                 }
                 this._localCreeps.all.push(creep);
             }
@@ -263,10 +331,10 @@ export default class Room_Extended extends Room {
             for (const creep of Object.values(Game.creeps)) {
                 if (creep.memory.homeRoom !== this.name) continue;
                 const role = creep.memory.role;
-                if (!role || !(Object.values(Role).includes(role as Role))) {
+                if (!role || !(Object.values(Role).includes(role))) {
                     this._stationedCreeps.unknown.push(creep);
                 } else {
-                    this._stationedCreeps[role as Role].push(creep);
+                    this._stationedCreeps[role].push(creep);
                 }
                 this._stationedCreeps.all.push(creep);
             }

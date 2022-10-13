@@ -81,7 +81,7 @@ export default class Visuals {
 
             for (let stamp of blueprint.stamps) {
                 let pos = Utils.Utility.unpackPostionToRoom(stamp.stampPos, roomName)
-                Stamps.plan(pos, stamp.type as StampType, [], rVis)
+                Stamps.plan(pos, stamp.type, [], rVis)
             }
 
             for (let step of blueprint.highways) {

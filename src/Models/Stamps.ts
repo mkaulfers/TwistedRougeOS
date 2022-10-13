@@ -59,7 +59,7 @@ export class Stamps {
         if (!blueprint) return
         for (let stamp of blueprint.stamps) {
             let pos = Utils.Utility.unpackPostionToRoom(stamp.stampPos, room.name)
-            let stampType = stamp.type as StampType
+            let stampType = stamp.type
             let stampParts = this.getStampParts(stampType)
 
             for (let part of stampParts) {

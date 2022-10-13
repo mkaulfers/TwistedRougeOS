@@ -297,7 +297,7 @@ export default class Creep_Extended extends Creep {
                 strokeWidth: .15,
                 opacity: .2
             },
-            routeCallback: (roomName: string) => {
+            routeCallback: (roomName: string, fromRoomName: string) => {
                 return Utils.Utility.checkRoomSafety(roomName);
             },
             roomCallback(roomName) {
@@ -315,7 +315,7 @@ export default class Creep_Extended extends Creep {
                 strokeWidth: .15,
                 opacity: .2
             },
-            routeCallback: (roomName: string) => {
+            routeCallback: (roomName: string, fromRoomName: string) => {
                 return Utils.Utility.checkRoomSafety(roomName);
             },
             roomCallback(roomName) {

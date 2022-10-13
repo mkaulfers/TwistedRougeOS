@@ -1,7 +1,7 @@
 import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
 import { RoomStatistics } from 'Models/RoomStatistics';
-import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from 'utils/Enums';
+import { LogLevel, ProcessPriority, ProcessResult, Role, StampType, Task } from 'utils/Enums';
 import { Utils } from '../utils/Index';
 
 // Add new Memory or Cache properties in this file.
@@ -24,7 +24,7 @@ declare global {
             highways: number[],
             ramparts: number[],
             stamps: {
-                type: string,
+                type: StampType,
                 stampPos: number,
                 completed: boolean
             }[]
