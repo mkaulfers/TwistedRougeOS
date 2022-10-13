@@ -110,7 +110,7 @@ export default class SpawnManager {
             room.cache.spawnSchedules = spawnSchedules;
         }
 
-        let newProcess = new Process(`${room.name}_spawn_monitor`, ProcessPriority.CRITICAL, spawnMonitorTask)
+        let newProcess = new Process(`${room.name}_spawn_monitor`, ProcessPriority.HIGH, spawnMonitorTask)
         global.scheduler.addProcess(newProcess)
     }
 
