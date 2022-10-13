@@ -1,6 +1,6 @@
 import { Utils } from '../utils/Index'
 import Roles from '../Creeps/Index';
-import { Role, Task, LogLevel, ProcessPriority } from '../utils/Enums'
+import { Role, LogLevel, ProcessPriority } from '../utils/Enums'
 import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
 

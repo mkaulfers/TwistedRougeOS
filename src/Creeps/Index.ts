@@ -6,11 +6,15 @@ import { Filler } from './Filler';
 import { Role } from 'utils/Enums';
 import { Agent } from './Agent';
 import CreepRole from 'Models/CreepRole';
+import { NetworkHarvester } from './NetworkHarvester';
 import { Anchor } from './Anchor';
+import { NetworkTrucker } from './NetworkTrucker';
 
 var Roles: {[key in Role]?: CreepRole} = {
     harvester: new Harvester,
     trucker: new Trucker,
+    nHarvester: new NetworkHarvester,
+    nTrucker: new NetworkTrucker,
     filler: new Filler,
     anchor: new Anchor,
     engineer: new Engineer,

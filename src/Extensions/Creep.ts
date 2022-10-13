@@ -1,5 +1,4 @@
-import 'ts-polyfill/lib/es2019-array';
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
+import { LogLevel } from '../utils/Enums'
 import { moveTo, MoveOpts, MoveTarget } from 'screeps-cartographer';
 import { Utils } from 'utils/Index';
 
@@ -15,7 +14,7 @@ declare global {
         firstaid(target: Creep): number
         getOffExit(): number
         give(target: AnyStoreStructure | Creep, resource: ResourceConstant, quantity?: number): number
-        mine(target: Source | Mineral): number
+        mine(target: Source | Mineral | RoomPosition): number
         /** Non-Civilian pathing defaults */
         moveToDefault(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number
         nMRController(target: string): number
@@ -190,8 +189,7 @@ export default class Creep_Extended extends Creep {
             avoidCreeps: true,
         };
         fallbackOpts = Object.assign(defaultFallbackOpts, fallbackOpts)
-
-        return moveTo(this, targets, opts, fallbackOpts);
+        return moveTo(this, targets, opts, defaultFallbackOpts);
     }
 
     nMRController(roomName: string): number {
@@ -326,7 +324,6 @@ export default class Creep_Extended extends Creep {
         };
 
         fallbackOpts = Object.assign(defaultFallbackOpts, fallbackOpts)
-
         return this.moveToDefault(targets, opts, fallbackOpts);
     }
 
