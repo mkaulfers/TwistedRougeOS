@@ -82,16 +82,16 @@ export default class SpawnSchedule {
                 spawnOrder.scheduleTick = foundFreeSpace ? targetTick : undefined;
             }
             // Find Last freespace with enough space for spawntime before the targeted schedule tick. Final fallback requiring a relevant creep.
-            if (opts?.preSpawnOnly !== true && !foundFreeSpace && relCreep && relCreep.spawning !== true) {
+            if ((!opts || opts.preSpawnOnly !== true) && !foundFreeSpace && relCreep && relCreep.spawning !== true) {
                 let targetTick = relCreep && relCreep.ticksToLive ? relCreep.ticksToLive - preSpawnOffset : -1;
                 foundFreeSpace = reversedFreeSpaces.find(freeSpace => freeSpace[0] <= targetTick && freeSpace[1] > spawnOrder.spawnTime + 1 &&
                     freeSpace[0] + freeSpace[1] - (spawnOrder.spawnTime + 1) < targetTick);
                 spawnOrder.scheduleTick = foundFreeSpace ? foundFreeSpace[0] + foundFreeSpace[1] - (spawnOrder.spawnTime + 1) : undefined;
             }
             // Find First freespace with enough space for spawntime. Final fallback period.
-            if (opts?.preSpawnOnly !== true && !foundFreeSpace) {
+            if ((!opts || opts.preSpawnOnly !== true || (opts.preSpawnOnly === true && !relCreep)) && !foundFreeSpace) {
                 foundFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[1] > spawnOrder.spawnTime);
-                spawnOrder.scheduleTick = foundFreeSpace ? foundFreeSpace[0] : undefined;
+                spawnOrder.scheduleTick = (foundFreeSpace ? foundFreeSpace[0] : undefined);
             }
 
             // Update freespaces
@@ -106,18 +106,18 @@ export default class SpawnSchedule {
             }
 
             // Handle schedule addition
-            if (spawnOrder.scheduleTick) {
+            if (typeof spawnOrder.scheduleTick === 'number' && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500) {
                 // Add to schedule, adjust numbers, remove SpawnOrder from externalSpawnOrders
                 this.usedSpace += spawnOrder.spawnTime + 1;
                 this.schedule.push(spawnOrder);
                 externalSpawnOrders.shift();
                 Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.INFO);
             } else {
+                console.log(`Failed check. \n Overall: ${spawnOrder.scheduleTick && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500} \n spawnOrder.scheduleTick: ${!!(spawnOrder.scheduleTick)} \n spawnOrder.scheduleTick >= 0: ${spawnOrder.scheduleTick! >= 0} \n spawnOrder.scheduleTick < 1500 ${spawnOrder.scheduleTick! < 1500}`)
                 let order = externalSpawnOrders.shift();
                 if (order) externalSpawnOrders.push(order);
                 Utils.Logger.log(`${this.spawnName} failed to add ${spawnOrder.id} due to no scheduleTick being set.`, LogLevel.INFO);
             }
-            Utils.Logger.log(`${this.spawnName} schedule's freespaces: ${JSON.stringify(this.freeSpaces)}.`, LogLevel.INFO);
         }
 
         // Sort for easy legibility
