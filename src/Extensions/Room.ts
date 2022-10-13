@@ -29,10 +29,11 @@ declare global {
         factory: StructureFactory | undefined;
         invaderCores: StructureInvaderCore[];
         keeperLairs: StructureKeeperLair[];
-        mineral: Mineral | undefined;
-        nuker: StructureNuker | undefined;
         labs: StructureLab[];
         links: StructureLink[];
+        localCreeps: CreepFind;
+        mineral: Mineral | undefined;
+        nuker: StructureNuker | undefined;
         observer: StructureObserver | undefined;
         portals: StructurePortal[];
         powerBank: StructurePowerBank | undefined;
@@ -41,11 +42,9 @@ declare global {
         roads: StructureRoad[];
         sources: Source[];
         spawns: StructureSpawn[];
+        stationedCreeps: CreepFind;
         towers: StructureTower[];
         walls: StructureWall[];
-
-        localCreeps: CreepFind;
-        stationedCreeps: CreepFind;
 
         /* Custom Getters */
         getAvailableSpawn: StructureSpawn | undefined
@@ -361,6 +360,7 @@ export default class Room_Extended extends Room {
         Managers.CreepManager.scheduleRoomTaskMonitor(this)
         Managers.LinkManager.schedule(this);
         Managers.ConstructionManager.scheduleConstructionMonitor(this)
+        Managers.RemoteManager.scheduleRemoteMonitor(this)
         Managers.MarketManager.schedule(this);
     }
 
