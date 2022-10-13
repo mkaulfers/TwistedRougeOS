@@ -96,7 +96,7 @@ export default class SpawnManager {
 
                     if (spawn) {
                         let name = missingSpawnOrder.id + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false);
-                        spawn.spawnCreep(missingSpawnOrder.body, name, { memory: missingSpawnOrder.memory });
+                        spawn.spawnCreep(missingSpawnOrder.body, name, { memory: missingSpawnOrder.memory, energyStructures: (room.spawnEnergyStructures.length > 0 ? room.spawnEnergyStructures : undefined) });
                         Utils.Logger.log(`Found missing Creep: ${missingSpawnOrder.id}. Attempting spawn on ${spawn.name}.`, LogLevel.INFO);
 
                         // WARNING: Currently makes freespace-breaking changes to spawn schedule. Currently, shifts and reschedules cover it, but will need fixed.
@@ -311,7 +311,8 @@ export default class SpawnManager {
         // Handle Spawning
         if (spawnOrder) {
             let name = spawnOrder.id + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false);
-            Game.spawns[spawnSchedule.spawnName].spawnCreep(spawnOrder.body, name, { memory: spawnOrder.memory });
+            let spawn = Game.spawns[spawnSchedule.spawnName];
+            spawn.spawnCreep(spawnOrder.body, name, { memory: spawnOrder.memory, energyStructures: (spawn.room.spawnEnergyStructures.length > 0 ? spawn.room.spawnEnergyStructures : undefined) });
         }
         // Increment tick, reseting to 0 when 1500 is reached.
         spawnSchedule.tick >= 1500 ? spawnSchedule.tick = 0 : spawnSchedule.tick++;
