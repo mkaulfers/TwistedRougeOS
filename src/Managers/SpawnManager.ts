@@ -246,7 +246,7 @@ export default class SpawnManager {
                     body.push(...segment);
                 }
 
-                let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 'RE' + role, { memory: {role: role, working: false, homeRoom: room.name } })
+                let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 'RE' + role, { memory: {role: role, working: false, homeRoom: room.name }, energyStructures: (room.spawnEnergyStructures.length > 0 ? room.spawnEnergyStructures : undefined)})
                 Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, LogLevel.DEBUG);
             }
 
@@ -277,4 +277,6 @@ export default class SpawnManager {
         spawnSchedule.tick >= 1500 ? spawnSchedule.tick = 0 : spawnSchedule.tick++;
         return spawnSchedule;
     }
+
+
 }
