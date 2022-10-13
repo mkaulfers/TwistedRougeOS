@@ -188,7 +188,7 @@ export default class SpawnSchedule {
      */
     shift(): void {
 
-        let externalSchedule: SpawnOrder[] = [];
+        let externalSchedule: SpawnOrder[] | undefined = [];
         let rolesNeeded = this.rolesNeeded;
         let activeELimit = this.activeELimit;
 
@@ -208,8 +208,10 @@ export default class SpawnSchedule {
         this.reset();
         this.activeELimit = activeELimit;
         this.rolesNeeded = rolesNeeded;
+        this.needsScheduled = false;
 
         // Reschedule each spawn order for prespawn
-        this.add(externalSchedule);
+        externalSchedule = this.add(externalSchedule, { preSpawnOnly: true });
+        if (externalSchedule && externalSchedule.length > 0) this.add(externalSchedule);
     }
 }
