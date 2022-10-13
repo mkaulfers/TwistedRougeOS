@@ -94,8 +94,10 @@ export default class SpawnSchedule {
                 spawnOrder.scheduleTick = (foundFreeSpace ? foundFreeSpace[0] : undefined);
             }
 
-            // Update freespaces
-            if (spawnOrder.scheduleTick && foundFreeSpace) {
+
+            if (foundFreeSpace && typeof spawnOrder.scheduleTick === 'number' && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500) {
+
+                // Update freespaces
                 if (foundFreeSpace[0] === spawnOrder.scheduleTick) {
                     this.freeSpaces[this.freeSpaces.indexOf(foundFreeSpace)] = [foundFreeSpace[0] + spawnOrder.spawnTime + 1, foundFreeSpace[1] - (spawnOrder.spawnTime + 1)];
                 } else {
@@ -103,10 +105,7 @@ export default class SpawnSchedule {
                     this.freeSpaces[i] = [foundFreeSpace[0], spawnOrder.scheduleTick - (foundFreeSpace[0] + 1)];
                     this.freeSpaces.splice(i + 1, 0, [spawnOrder.scheduleTick + spawnOrder.spawnTime + 1, foundFreeSpace[1] - (spawnOrder.spawnTime + this.freeSpaces[i][1] + 2)]);
                 }
-            }
 
-            // Handle schedule addition
-            if (typeof spawnOrder.scheduleTick === 'number' && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500) {
                 // Add to schedule, adjust numbers, remove SpawnOrder from externalSpawnOrders
                 this.usedSpace += spawnOrder.spawnTime + 1;
                 this.schedule.push(spawnOrder);
