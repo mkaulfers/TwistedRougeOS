@@ -67,10 +67,50 @@ export default class SpawnManager {
                 }
             }
 
+            // History Check: Respawn prematurely dead creeps if room.
+            if (Game.time % 25 === 0) {
+                // Find missing creep's spawn order
+                let missingSpawnOrder: SpawnOrder | undefined;
+                let missingFoundIn: SpawnSchedule | undefined;
+                for (const spawnSchedule of spawnSchedules) {
+                    if (missingSpawnOrder) break;
+                    if (spawnSchedule.pausedTicks !== 0) continue;
+                    for (const spawnOrder of spawnSchedule.schedule) {
+                        if (missingSpawnOrder) break;
+                        const foundCreep = room.stationedCreeps[spawnOrder.memory.role].find(s => s.name.includes(spawnOrder.id));
+                        if (foundCreep) continue;
+                        missingSpawnOrder = spawnOrder;
+                        missingFoundIn = spawnSchedule;
+                    }
+                }
+
+                // Handle missing creep's spawn order
+                if (missingSpawnOrder) {
+                    // Find available spawn
+                    let spawn: StructureSpawn | undefined;
+                    for (const spawnSchedule of spawnSchedules) {
+                        if (spawn || spawnSchedule.pausedTicks !== 0) continue;
+                        let nextOrder = spawnSchedule.schedule.find(o => o.scheduleTick && o.scheduleTick > spawnSchedule.tick);
+                        if (!nextOrder || (nextOrder.scheduleTick && nextOrder.scheduleTick - spawnSchedule.tick > missingSpawnOrder.spawnTime)) spawn = Game.spawns[spawnSchedule.spawnName];
+                    }
+
+                    if (spawn) {
+                        let name = missingSpawnOrder.id + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false);
+                        spawn.spawnCreep(missingSpawnOrder.body, name, { memory: missingSpawnOrder.memory });
+                        Utils.Logger.log(`Found missing Creep: ${missingSpawnOrder.id}. Attempting spawn on ${spawn.name}.`, LogLevel.INFO);
+
+                        // WARNING: Currently makes freespace-breaking changes to spawn schedule. Currently, shifts and reschedules cover it, but will need fixed.
+                        // TODO: Make this adjustment not break the spawn schedule's internal data.
+                        // Adjust spawn order's scheduled tick IFF necessary
+                        if (missingSpawnOrder.scheduleTick && missingFoundIn && missingSpawnOrder.scheduleTick >= missingFoundIn.tick) missingSpawnOrder.scheduleTick = missingFoundIn.tick - 1;
+                    }
+                }
+            }
+
             room.cache.spawnSchedules = spawnSchedules;
         }
 
-        let newProcess = new Process(`${room.name}_spawn_monitor`, ProcessPriority.LOW, spawnMonitorTask)
+        let newProcess = new Process(`${room.name}_spawn_monitor`, ProcessPriority.CRITICAL, spawnMonitorTask)
         global.scheduler.addProcess(newProcess)
     }
 
