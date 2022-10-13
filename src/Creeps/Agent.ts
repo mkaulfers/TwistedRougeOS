@@ -1,4 +1,3 @@
-import { isArray } from "lodash"
 import CreepRole from "Models/CreepRole"
 import { InvaderDetail } from "Models/InvaderDetail"
 import { MineralDetail } from "Models/MineralDetail"
@@ -6,11 +5,8 @@ import { DefenseStructuresDetail, HostileStructuresDetail, PlayerDetail, Storage
 import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
-import { MoveOpts, moveTo } from "screeps-cartographer"
-import { Coord } from "screeps-cartographer/dist/utils/packrat"
 import { DangerLevel, Developer, LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
-import { Logger } from "utils/Logger"
 
 export class Agent extends CreepRole {
 

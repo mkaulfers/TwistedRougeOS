@@ -2,7 +2,6 @@ import { Process } from "Models/Process";
 import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums";
 import { Utils } from "utils/Index";
 import { Logger } from "utils/Logger";
-import { NetworkHarvester } from "./NetworkHarvester";
 import { Trucker } from "./Trucker";
 
 export class NetworkTrucker extends Trucker {

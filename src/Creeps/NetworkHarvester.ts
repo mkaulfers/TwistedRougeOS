@@ -1,11 +1,7 @@
-import { stat } from "fs";
 import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
-import { RoomStatistics } from "Models/RoomStatistics";
-import { MoveOpts, moveTo } from "screeps-cartographer";
 import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums";
 import { Utils } from "utils/Index";
-import { Logger } from "utils/Logger";
 
 export class NetworkHarvester extends CreepRole {
     readonly baseBody = [CARRY, MOVE, WORK]
@@ -60,6 +56,37 @@ export class NetworkHarvester extends CreepRole {
                     } else {
                         let target = Game.getObjectById(remoteTarget[targetRoom.roomName].targetId)
                         if (target) {
+                            let usedCapacity = creep.store.getUsedCapacity(RESOURCE_ENERGY)
+                            let creepEnergyMax = creep.store.getCapacity(RESOURCE_ENERGY)
+
+                            if (creep.pos.inRangeTo(target, 1) && creep.memory.working) {
+                                let doesContainerExist = NetworkHarvester.getContainer(target.pos) == undefined ? false : true
+
+                                if (doesContainerExist) {
+                                    let shouldRepairContainer = NetworkHarvester.shouldRepairContainer(target.pos)
+                                    if (shouldRepairContainer) {
+                                        let container = NetworkHarvester.getContainer(target.pos)
+                                        if (container) creep.work(container)
+                                    }
+                                }
+
+                                if (!doesContainerExist) {
+                                    let containerConstructionSite = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 1)[0]
+                                    if (!containerConstructionSite) creep.pos.createConstructionSite(STRUCTURE_CONTAINER)
+                                    creep.work(containerConstructionSite)
+                                }
+                            }
+
+                            // False means the creep is now empty.
+                            if ((creep.memory.working == undefined || creep.memory.working == true) && usedCapacity == 0) {
+                                creep.memory.working = false
+                            }
+
+                            // True means the creep is now full.
+                            if (creep.memory.working == false && usedCapacity == creepEnergyMax) {
+                                creep.memory.working = true
+                            }
+
                             creep.mine(target)
                         }
                     }
@@ -83,6 +110,12 @@ export class NetworkHarvester extends CreepRole {
         }
     }
 
+    /**
+     *
+     * @param baseRoom The room to get the remote source from. Typically the home room.
+     * @param creep The creep to assign the remote source to.
+     * @returns void
+     */
     static setRemoteSource(baseRoom: Room, creep: Creep) {
         if (!baseRoom.memory.remoteSites) return
         this.validateRemoteHarvesters(baseRoom)
@@ -110,6 +143,10 @@ export class NetworkHarvester extends CreepRole {
         }
     }
 
+    /**
+     * Ensures that the remote memory matches the actual harvesters stationed from the base room.
+     * @param baseRoom Typically the home room of the creep.
+     */
     private static validateRemoteHarvesters(baseRoom: Room) {
         let updatedAssignedHarvesters: Id<any>[] = []
 
@@ -126,6 +163,26 @@ export class NetworkHarvester extends CreepRole {
             baseRoom.memory.remoteSites[remote].assignedHarvesters = updatedAssignedHarvesters
             updatedAssignedHarvesters = []
         }
+    }
+
+    /**
+     *
+     * @param sourcePos The position of the source to check the container.
+     * @returns True if the container should be repaired, false if no container exists or the container hp is below 100%.
+     */
+    private static shouldRepairContainer(sourcePos: RoomPosition): boolean {
+        let container = this.getContainer(sourcePos)
+        return (container?.hits ?? 0) < (container?.hitsMax ?? 0)
+    }
+
+    /**
+     *
+     * @param sourcePos The position of the source to get the container for.
+     * @returns a container object if one exists, otherwise undefined.
+     */
+    private static getContainer(sourcePos: RoomPosition): Structure<STRUCTURE_CONTAINER> | undefined {
+        let container = sourcePos.findInRange(FIND_STRUCTURES, 1, { filter: x => x.structureType == STRUCTURE_CONTAINER })[0]
+        return container as Structure<STRUCTURE_CONTAINER> | undefined
     }
 }
 

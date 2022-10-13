@@ -1,10 +1,8 @@
 import { Coord } from "screeps-cartographer/dist/utils/packrat"
-import { DangerLevel } from "utils/Enums"
 import { InvaderDetail } from "./InvaderDetail"
 import { MineralDetail } from "./MineralDetail"
 import { PlayerDetail } from "./PlayerDetail"
 import { PortalDetail } from "./PortalDetail"
-import { RemoteAssignments } from "./RemoteAssignments"
 
 export class RoomStatistics {
     exploredTime: number

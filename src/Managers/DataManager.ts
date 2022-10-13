@@ -3,7 +3,6 @@ import SpawnSchedule from 'Models/SpawnSchedule';
 import { RoomStatistics } from 'Models/RoomStatistics';
 import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from 'utils/Enums';
 import { Utils } from '../utils/Index';
-import { Coord } from 'screeps-cartographer/dist/utils/packrat';
 
 // Add new Memory or Cache properties in this file.
 declare global {

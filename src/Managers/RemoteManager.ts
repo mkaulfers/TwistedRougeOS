@@ -1,7 +1,6 @@
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
 import { LogLevel, ProcessPriority, ProcessResult } from "utils/Enums"
-import { Logger } from "utils/Logger"
 
 export default class RemoteManager {
     /**
