@@ -1,7 +1,6 @@
-import CreepRole from "Models/CreepRole";
-import { Process } from "Models/Process";
+import CreepRole from "Models/CreepRole"
+import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
-import { Logger } from "utils/Logger";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export class Trucker extends CreepRole {
@@ -90,7 +89,6 @@ export class Trucker extends CreepRole {
 
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         Trucker.storageTruckerWorkingTargeting(creep);
-                        if (creep.name == "nTr04_0353") Logger.log(`Made it to 93`, LogLevel.DEBUG)
                         if (!creep.memory.target) return ProcessResult.RUNNING;
                     }
                     let target = Game.getObjectById(creep.memory.target);

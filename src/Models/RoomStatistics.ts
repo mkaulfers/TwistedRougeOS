@@ -1,4 +1,5 @@
 import { Coord } from "screeps-cartographer/dist/utils/packrat"
+import { DangerLevel } from "utils/Enums"
 import { InvaderDetail } from "./InvaderDetail"
 import { MineralDetail } from "./MineralDetail"
 import { PlayerDetail } from "./PlayerDetail"
@@ -11,7 +12,7 @@ export class RoomStatistics {
     plainCount: number
     wallCount: number
     highestDT: number
-    threatLevel: number
+    threatLevel: DangerLevel
 
     sources?: {
         targetId: Id<any>,

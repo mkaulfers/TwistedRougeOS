@@ -1,7 +1,6 @@
 import Roles from "Creeps/Index"
 import { LogLevel, Role } from "utils/Enums"
 import { Utils } from "utils/Index"
-import { Logger } from "utils/Logger"
 
 export default class SpawnSchedule {
     roomName: string
