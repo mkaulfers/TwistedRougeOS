@@ -23,7 +23,6 @@ export default class CreepManager {
         const roomName = room.name
 
         const roomTaskMonitor = () => {
-
             let room = Game.rooms[roomName];
             if (!room) return;
 

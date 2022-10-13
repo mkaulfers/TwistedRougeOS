@@ -67,10 +67,50 @@ export default class SpawnManager {
                 }
             }
 
+            // History Check: Respawn prematurely dead creeps if room.
+            if (Game.time % 25 === 0) {
+                // Find missing creep's spawn order
+                let missingSpawnOrder: SpawnOrder | undefined;
+                let missingFoundIn: SpawnSchedule | undefined;
+                for (const spawnSchedule of spawnSchedules) {
+                    if (missingSpawnOrder) break;
+                    if (spawnSchedule.pausedTicks !== 0) continue;
+                    for (const spawnOrder of spawnSchedule.schedule) {
+                        if (missingSpawnOrder) break;
+                        const foundCreep = room.stationedCreeps[spawnOrder.memory.role].find(s => s.name.includes(spawnOrder.id));
+                        if (foundCreep) continue;
+                        missingSpawnOrder = spawnOrder;
+                        missingFoundIn = spawnSchedule;
+                    }
+                }
+
+                // Handle missing creep's spawn order
+                if (missingSpawnOrder) {
+                    // Find available spawn
+                    let spawn: StructureSpawn | undefined;
+                    for (const spawnSchedule of spawnSchedules) {
+                        if (spawn || spawnSchedule.pausedTicks !== 0) continue;
+                        let nextOrder = spawnSchedule.schedule.find(o => o.scheduleTick && o.scheduleTick > spawnSchedule.tick);
+                        if (!nextOrder || (nextOrder.scheduleTick && nextOrder.scheduleTick - spawnSchedule.tick > missingSpawnOrder.spawnTime)) spawn = Game.spawns[spawnSchedule.spawnName];
+                    }
+
+                    if (spawn) {
+                        let name = missingSpawnOrder.id + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false);
+                        spawn.spawnCreep(missingSpawnOrder.body, name, { memory: missingSpawnOrder.memory, energyStructures: (room.spawnEnergyStructures.length > 0 ? room.spawnEnergyStructures : undefined) });
+                        Utils.Logger.log(`Found missing Creep: ${missingSpawnOrder.id}. Attempting spawn on ${spawn.name}.`, LogLevel.INFO);
+
+                        // WARNING: Currently makes freespace-breaking changes to spawn schedule. Currently, shifts and reschedules cover it, but will need fixed.
+                        // TODO: Make this adjustment not break the spawn schedule's internal data.
+                        // Adjust spawn order's scheduled tick IFF necessary
+                        if (missingSpawnOrder.scheduleTick && missingFoundIn && missingSpawnOrder.scheduleTick >= missingFoundIn.tick) missingSpawnOrder.scheduleTick = missingFoundIn.tick - 1;
+                    }
+                }
+            }
+
             room.cache.spawnSchedules = spawnSchedules;
         }
 
-        let newProcess = new Process(`${room.name}_spawn_monitor`, ProcessPriority.LOW, spawnMonitorTask)
+        let newProcess = new Process(`${room.name}_spawn_monitor`, ProcessPriority.HIGH, spawnMonitorTask)
         global.scheduler.addProcess(newProcess)
     }
 
@@ -199,11 +239,22 @@ export default class SpawnManager {
     private static addToSchedules(room: Room, spawnOrders: SpawnOrder[] | undefined): SpawnOrder[] | undefined {
         let spawnSchedules = room.cache.spawnSchedules;
         if (!spawnSchedules) return;
+        // Exact Prespawn only additions
         for (let spawnSchedule of spawnSchedules) {
             if (spawnSchedule.isFull() == true || !spawnOrders || spawnOrders.length == 0) continue;
-            spawnOrders = spawnSchedule.add(spawnOrders);
+            spawnOrders = spawnSchedule.add(spawnOrders, {preSpawnOnly: true});
             if (spawnSchedule.activeELimit !== room.spawnEnergyLimit) spawnSchedule.activeELimit = room.spawnEnergyLimit;
         }
+
+        // Any additions
+        if (spawnOrders && spawnOrders.length > 0) {
+            for (let spawnSchedule of spawnSchedules) {
+                if (spawnSchedule.isFull() == true || !spawnOrders || spawnOrders.length == 0) continue;
+                spawnOrders = spawnSchedule.add(spawnOrders);
+                if (spawnSchedule.activeELimit !== room.spawnEnergyLimit) spawnSchedule.activeELimit = room.spawnEnergyLimit;
+            }
+        }
+
         room.cache.spawnSchedules = spawnSchedules;
         return spawnOrders;
     }
@@ -235,7 +286,7 @@ export default class SpawnManager {
                     body.push(...segment);
                 }
 
-                let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 'RE' + role, { memory: {role: role, working: false, homeRoom: room.name } })
+                let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 'RE' + role, { memory: {role: role, working: false, homeRoom: room.name }, energyStructures: (room.spawnEnergyStructures.length > 0 ? room.spawnEnergyStructures : undefined)})
                 Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, LogLevel.DEBUG);
             }
 
@@ -260,10 +311,13 @@ export default class SpawnManager {
         // Handle Spawning
         if (spawnOrder) {
             let name = spawnOrder.id + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false);
-            Game.spawns[spawnSchedule.spawnName].spawnCreep(spawnOrder.body, name, { memory: spawnOrder.memory });
+            let spawn = Game.spawns[spawnSchedule.spawnName];
+            spawn.spawnCreep(spawnOrder.body, name, { memory: spawnOrder.memory, energyStructures: (spawn.room.spawnEnergyStructures.length > 0 ? spawn.room.spawnEnergyStructures : undefined) });
         }
         // Increment tick, reseting to 0 when 1500 is reached.
         spawnSchedule.tick >= 1500 ? spawnSchedule.tick = 0 : spawnSchedule.tick++;
         return spawnSchedule;
     }
+
+
 }

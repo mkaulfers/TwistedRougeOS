@@ -44,70 +44,84 @@ export default class SpawnSchedule {
      * @param opts.force To ignore the schedule's built in percentage limiter. Will only allow to 100% usage.
      * @returns SpawnOrders it couldn't add to the schedule or undefined if successful.
      */
-    add(spawnOrders: SpawnOrder[], opts?: {pack?: boolean, force?: boolean}): SpawnOrder[] | undefined {
-        // TODO: Modify to handle gaps between spawnOrders
+    add(spawnOrders: SpawnOrder[], opts?: {preSpawnOnly?: boolean, pack?: boolean, force?: boolean}): SpawnOrder[] | undefined {
 
+        // Create external spawnOrder array to edit and return without screwing up the for loop
         let externalSpawnOrders = [...spawnOrders];
         // Schedule each spawnOrder
         for (const spawnOrder of spawnOrders) {
-            // SpawnOrder already exists check
+            // SpawnOrder already exists in schedule check
             if (this.schedule.findIndex((o) => o.id === spawnOrder.id) >= 0) continue;
             // Over limiter check
             if ((opts && !opts.force || !opts) && this.usedSpace >= (this.limiter * 1500)) return externalSpawnOrders;
 
-            // TODO: Consider spawning creeps too
-            // Check for existing creep to match spawnOrder
+            // Target newest creep with matching id
             const room = Game.rooms[this.roomName];
-            let relCreep = room.stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id);
-            // Catch prespawning, currently spawning creeps catching the almost dead creep first
+            let relCreeps = room.stationedCreeps.all.filter((c) => c.name.substring(0, 5) === spawnOrder.id);
+            let relCreep: Creep | undefined;
+            for (const c of relCreeps) if (c.spawning === true || (c.ticksToLive && c.ticksToLive > (relCreep ? relCreep.ticksToLive ? relCreep.ticksToLive : 1501 : 0))) relCreep = c;
 
-            if (relCreep && relCreep.spawning === false) {
-                let potCreep = room.stationedCreeps.all.find((c) => c.name.substring(0, 5) === spawnOrder.id && c.spawning == true);
-                potCreep ? relCreep = potCreep : undefined;
-            }
-
+            // Calculate preSpawnOffset
             const theRole = Roles[spawnOrder.memory.role]
             let preSpawnOffset = Math.ceil(spawnOrder.spawnTime + (theRole ? theRole.preSpawnBy(room, Game.spawns[this.spawnName], relCreep) : 0));
-            let relCFreeSpace: [number, number] | undefined;
+
+            // Determine freespace, scheduleTick
+            const reversedFreeSpaces = [...this.freeSpaces].reverse();
+            let foundFreeSpace: [number, number] | undefined;
+
+            // Find Last freespace with enough space for spawntime
             if (relCreep && relCreep.spawning === true) {
-                relCFreeSpace = [...this.freeSpaces].reverse().find(freeSpace => freeSpace[0] <= (freeSpace[1] + freeSpace [0] - (preSpawnOffset + spawnOrder.spawnTime)) &&
-                    (freeSpace[1] - (preSpawnOffset + spawnOrder.spawnTime + 1)) >= 0);
-            } else if (relCreep && relCreep.spawning === false) {
-                relCFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[0] <= (relCreep!.ticksToLive! - preSpawnOffset) &&
-                    (freeSpace[1] - ((relCreep!.ticksToLive! - preSpawnOffset) - freeSpace[0])) >= spawnOrder.spawnTime);
+                foundFreeSpace = reversedFreeSpaces.find(freeSpace => freeSpace[1] > spawnOrder.spawnTime);
+                spawnOrder.scheduleTick = foundFreeSpace ? foundFreeSpace[0] + foundFreeSpace[1] - (spawnOrder.spawnTime + 1) : undefined;
+            }
+            // Find First freepsace with the targeted schedule tick and enough space for spawntime
+            if (relCreep && relCreep.spawning === false) {
+                let targetTick = relCreep && relCreep.ticksToLive ? relCreep.ticksToLive - preSpawnOffset : -1;
+                foundFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[0] <= targetTick &&
+                    freeSpace[0] + freeSpace[1] - (spawnOrder.spawnTime + 1) >= targetTick);
+                spawnOrder.scheduleTick = foundFreeSpace ? targetTick : undefined;
+            }
+            // Find Last freespace with enough space for spawntime before the targeted schedule tick. Final fallback requiring a relevant creep.
+            if ((!opts || opts.preSpawnOnly !== true) && !foundFreeSpace && relCreep && relCreep.spawning !== true) {
+                let targetTick = relCreep && relCreep.ticksToLive ? relCreep.ticksToLive - preSpawnOffset : -1;
+                foundFreeSpace = reversedFreeSpaces.find(freeSpace => freeSpace[0] <= targetTick && freeSpace[1] > spawnOrder.spawnTime + 1 &&
+                    freeSpace[0] + freeSpace[1] - (spawnOrder.spawnTime + 1) < targetTick);
+                spawnOrder.scheduleTick = foundFreeSpace ? foundFreeSpace[0] + foundFreeSpace[1] - (spawnOrder.spawnTime + 1) : undefined;
+            }
+            // Find First freespace with enough space for spawntime. Final fallback period.
+            if ((!opts || opts.preSpawnOnly !== true || (opts.preSpawnOnly === true && !relCreep)) && !foundFreeSpace) {
+                foundFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[1] > spawnOrder.spawnTime);
+                spawnOrder.scheduleTick = (foundFreeSpace ? foundFreeSpace[0] : undefined);
             }
 
-            // TODO: Modify for travel time.
-            // Set scheduleTick to PreSpawn IFF possible
-            if (relCreep && relCFreeSpace && !(opts?.pack === true)) {
-                spawnOrder.scheduleTick = relCreep.spawning === false ? relCreep.ticksToLive! - preSpawnOffset : relCFreeSpace[0] + relCFreeSpace[1] - (preSpawnOffset + spawnOrder.spawnTime + 1);
-                if (relCFreeSpace[0] == spawnOrder.scheduleTick) {
-                    this.freeSpaces[this.freeSpaces.indexOf(relCFreeSpace)] = [relCFreeSpace[0] + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + 1)];
-                }
-                else {
-                    let i = this.freeSpaces.indexOf(relCFreeSpace);
-                    this.freeSpaces[i] = [relCFreeSpace[0], spawnOrder.scheduleTick - (relCFreeSpace[0] + 1)];
-                    this.freeSpaces.splice(i + 1, 0, [spawnOrder.scheduleTick + spawnOrder.spawnTime + 1, relCFreeSpace[1] - (spawnOrder.spawnTime + this.freeSpaces[i][1] + 2)]);
-                }
-            }
-            else {
-                // Set scheduleTick in first open slot
-                let firstFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[1] >= spawnOrder.spawnTime);
-                if (!firstFreeSpace) return externalSpawnOrders;
-                spawnOrder.scheduleTick = firstFreeSpace[0];
-                this.freeSpaces[this.freeSpaces.indexOf(firstFreeSpace)] = [firstFreeSpace[0] + spawnOrder.spawnTime + 1, firstFreeSpace[1] - (spawnOrder.spawnTime + 1)];
-            }
 
-            // Add to schedule, adjust numbers, remove SpawnOrder from externalSpawnOrders
-            this.usedSpace += spawnOrder.spawnTime + 1;
-            this.schedule.push(spawnOrder);
-            externalSpawnOrders.shift();
-            Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.INFO);
+            if (foundFreeSpace && typeof spawnOrder.scheduleTick === 'number' && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500) {
+
+                // Update freespaces
+                if (foundFreeSpace[0] === spawnOrder.scheduleTick) {
+                    this.freeSpaces[this.freeSpaces.indexOf(foundFreeSpace)] = [foundFreeSpace[0] + spawnOrder.spawnTime + 1, foundFreeSpace[1] - (spawnOrder.spawnTime + 1)];
+                } else {
+                    let i = this.freeSpaces.indexOf(foundFreeSpace);
+                    this.freeSpaces[i] = [foundFreeSpace[0], spawnOrder.scheduleTick - (foundFreeSpace[0] + 1)];
+                    this.freeSpaces.splice(i + 1, 0, [spawnOrder.scheduleTick + spawnOrder.spawnTime + 1, foundFreeSpace[1] - (spawnOrder.spawnTime + this.freeSpaces[i][1] + 2)]);
+                }
+
+                // Add to schedule, adjust numbers, remove SpawnOrder from externalSpawnOrders
+                this.usedSpace += spawnOrder.spawnTime + 1;
+                this.schedule.push(spawnOrder);
+                externalSpawnOrders.shift();
+                Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.INFO);
+            } else {
+                console.log(`Failed check. \n Overall: ${spawnOrder.scheduleTick && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500} \n spawnOrder.scheduleTick: ${!!(spawnOrder.scheduleTick)} \n spawnOrder.scheduleTick >= 0: ${spawnOrder.scheduleTick! >= 0} \n spawnOrder.scheduleTick < 1500 ${spawnOrder.scheduleTick! < 1500}`)
+                let order = externalSpawnOrders.shift();
+                if (order) externalSpawnOrders.push(order);
+                Utils.Logger.log(`${this.spawnName} failed to add ${spawnOrder.id} due to no scheduleTick being set.`, LogLevel.INFO);
+            }
         }
 
         // Sort for easy legibility
         this.schedule = _.sortBy(this.schedule, (o) => o.scheduleTick);
-        return undefined;
+        return externalSpawnOrders.length > 0 ? externalSpawnOrders : undefined;
     }
 
     /**
@@ -120,7 +134,8 @@ export default class SpawnSchedule {
     }
 
     /**
-     * Removes SpawnOrders from the schedule. UNTESTED
+     * UNTESTED
+     * Removes SpawnOrders from the schedule.
      * @param spawnOrders All SpawnOrders you wish to remove.
      */
     remove(spawnOrders: SpawnOrder[]): void {
@@ -173,7 +188,7 @@ export default class SpawnSchedule {
      */
     shift(): void {
 
-        let externalSchedule: SpawnOrder[] = [];
+        let externalSchedule: SpawnOrder[] | undefined = [];
         let rolesNeeded = this.rolesNeeded;
         let activeELimit = this.activeELimit;
 
@@ -187,11 +202,16 @@ export default class SpawnSchedule {
             externalSchedule.push(...this.schedule);
         }
 
+        // Remove scheduleTicks
+        for (const spawnOrder of externalSchedule) spawnOrder.scheduleTick = undefined;
+
         this.reset();
         this.activeELimit = activeELimit;
         this.rolesNeeded = rolesNeeded;
+        this.needsScheduled = false;
 
         // Reschedule each spawn order for prespawn
-        this.add(externalSchedule);
+        externalSchedule = this.add(externalSchedule, { preSpawnOnly: true });
+        if (externalSchedule && externalSchedule.length > 0) this.add(externalSchedule);
     }
 }
