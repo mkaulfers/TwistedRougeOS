@@ -64,6 +64,7 @@ declare global {
         links?: { [key: Id<StructureLink>]: string };
         pauseSpawning?: boolean;
         spawnSchedules?: SpawnSchedule[];
+        spawnEnergyStructIds?: Id<StructureSpawn | StructureExtension>[];
         towerTarget?: Id<AnyCreep>;
 
         recentlyAttacked?: boolean,
