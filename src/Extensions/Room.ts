@@ -54,6 +54,7 @@ declare global {
         lowestScientist: Creep | undefined
         lowestSpawn: StructureSpawn | undefined
         lowestTower: StructureTower | undefined
+        spawnEnergyStructures: (StructureSpawn | StructureExtension)[]
 
         /* Other Functions */
         scheduleTasks(): void
@@ -413,6 +414,85 @@ export default class Room_Extended extends Room {
             for (const tower of this.towers) if (tower.store.energy < (this._lowestTower ? this._lowestTower.store : tower.store.getCapacity(RESOURCE_ENERGY))) this._lowestTower = tower;
         }
         return this._lowestTower;
+    }
+
+    private _spawnEnergyStructures: (StructureSpawn | StructureExtension)[] | undefined;
+    get spawnEnergyStructures() {
+        if (!this.cache.spawnEnergyStructIds || Game.time % 100 === 0) {
+            let spawns = [...this.spawns];
+            let extensions = [...this.extensions];
+            let structures: (StructureSpawn | StructureExtension)[] = [];
+
+            // FastFiller and Anchor Structures
+            if (this.memory.blueprint && this.memory.blueprint.anchor && this.memory.blueprint.anchor !== 0) {
+                let anchorPos = Utils.Utility.unpackPostionToRoom(this.memory.blueprint.anchor, this.name);
+
+                // FF Spawns
+                for (const spawn of this.spawns) {
+                    if (spawn.pos.getRangeTo(anchorPos) <= 2) {
+                        let theSpawn = spawns.splice(spawns.indexOf(spawn), 1)[0]
+                        if (theSpawn) structures.push(theSpawn);
+                        console.log(`${theSpawn} was added as FF Spawn.`)
+                    }
+                }
+
+                // FF Extensions
+                for (const extension of this.extensions) {
+                    if (extension.pos.getRangeTo(anchorPos) <= 2) {
+                        let theExtension = extensions.splice(extensions.indexOf(extension), 1)[0]
+                        if (theExtension) structures.push(theExtension);
+                        console.log(`${theExtension} was added as FF Extension.`)
+                    }
+                }
+
+                // Anchor Spawn
+                if (spawns.length > 0) {
+                    let anchorStamp = this.memory.blueprint.stamps.find(stamp => stamp.type == StampType.ANCHOR)
+                    let anchorStampPos: RoomPosition | undefined;
+                    let theSpawn: StructureSpawn | undefined;
+                    if (anchorStamp) anchorStampPos = Utils.Utility.unpackPostionToRoom(anchorStamp.stampPos, this.name);
+                    if (anchorStampPos) theSpawn = anchorStampPos.findInRange(spawns, 1)[0];
+                    if (theSpawn) theSpawn = spawns.splice(spawns.indexOf(theSpawn), 1)[0];
+                    if (theSpawn) structures.push(theSpawn);
+                    console.log(`${theSpawn} was added as Anchor Spawn.`)
+
+                }
+            }
+
+            // All remaining based on storage distance. Fallback: Spawn Distance
+            if (spawns.length > 0 || extensions.length > 0) {
+                let leftovers = [...spawns, ...extensions];
+                const target = this.storage ? this.storage.pos : this.spawns[0] ? this.spawns[0].pos : undefined;
+                if (!target) structures.push(...leftovers);
+                else {
+                    console.log(`Target existed for leftovers.`)
+                    leftovers = _.sortBy(leftovers, (s) => s.pos.getRangeTo(target));
+                    structures.push(...leftovers);
+                }
+            }
+
+            // Build Id Array
+            let ids: Id<StructureSpawn | StructureExtension>[] = [];
+            for (const s of structures) ids.push(s.id);
+            this._spawnEnergyStructures = structures;
+            this.cache.spawnEnergyStructIds = ids;
+
+        }
+
+        if (!this._spawnEnergyStructures && this.cache.spawnEnergyStructIds && this.cache.spawnEnergyStructIds.length > 0) {
+            let structures: (StructureSpawn | StructureExtension)[] = [];
+            for (const id of this.cache.spawnEnergyStructIds) {
+                let struct = Game.getObjectById(id);
+                if (struct) structures.push(struct);
+                else {
+                    delete this.cache.spawnEnergyStructIds;
+                    return [];
+                }
+            }
+            this._spawnEnergyStructures = structures;
+        }
+
+        return this._spawnEnergyStructures ? this._spawnEnergyStructures : [];
     }
 
     /*
