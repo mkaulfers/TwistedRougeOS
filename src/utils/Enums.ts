@@ -5,7 +5,7 @@ export enum Role {
     FILLER = 'filler',
     ANCHOR = 'anchor',
     nHARVESTER = 'nHarvester',
-    nHAULER = 'rHauler',
+    nTRUCKER = 'nTrucker',
     nENGINEER = 'nEngineer',
     ENGINEER = 'engineer',
     SCIENTIST = 'scientist'

@@ -1,6 +1,7 @@
 import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
 import { Utils } from "utils/Index"
+import { Logger } from "utils/Logger";
 import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export class Trucker extends CreepRole {
@@ -86,8 +87,10 @@ export class Trucker extends CreepRole {
 
                 if (working) {
                     // Determines new target
+
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         Trucker.storageTruckerWorkingTargeting(creep);
+                        if (creep.name == "nTr04_0353") Logger.log(`Made it to 93`, LogLevel.DEBUG)
                         if (!creep.memory.target) return ProcessResult.RUNNING;
                     }
                     let target = Game.getObjectById(creep.memory.target);
@@ -226,10 +229,10 @@ export class Trucker extends CreepRole {
         }
     }
 
-    private static storageTruckerWorkingTargeting(creep: Creep) {
+    static storageTruckerWorkingTargeting(creep: Creep) {
         let oldTarget: Structure | undefined = undefined;
         if (creep.memory.target) oldTarget = Game.getObjectById(creep.memory.target);
-        let potentialTargets: Structure[] = creep.room.find(FIND_STRUCTURES, {
+        let potentialTargets: Structure[] = Game.rooms[creep.memory.homeRoom].find(FIND_STRUCTURES, {
             filter: function (s) {
                 // Limits find to the below structureTypes
                 switch (s.structureType) {
@@ -264,14 +267,14 @@ export class Trucker extends CreepRole {
         let potTarget = creep.pos.findClosestByRange(potentialTargets);
         if (potTarget) {
             creep.memory.target = potTarget.id;
-        } else if (creep.room.storage) {
-            creep.memory.target = creep.room.storage.id;
-        } else if (creep.room.terminal) {
-            creep.memory.target = creep.room.terminal.id;
+        } else if (Game.rooms[creep.memory.homeRoom].storage) {
+            creep.memory.target = Game.rooms[creep.memory.homeRoom].storage?.id;
+        } else if (Game.rooms[creep.memory.homeRoom].terminal) {
+            creep.memory.target = Game.rooms[creep.memory.homeRoom].terminal?.id;
         }
     }
 
-    private static needEnergyTargeting(creep: Creep) {
+    static needEnergyTargeting(creep: Creep) {
         let potentialTargets: (AnyStoreStructure | Resource | Tombstone | Ruin)[] = [];
         // Finds structures, tombstones, and dropped resources
         let nearbyInterests = Array.prototype.concat(

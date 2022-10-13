@@ -74,7 +74,7 @@ export default class RemoteManager {
             room.memory.remoteSites[remote.name] = {
                 sourcePositions: remote.sources ?? [],
                 assignedHarvesters: [],
-                assignedHaulers: [],
+                assignedTruckers: [],
                 assignedEngineers: [],
                 assignedClaimers: []
             }

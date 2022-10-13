@@ -67,10 +67,10 @@ export class NetworkHarvester extends CreepRole {
 
                 if (creep.ticksToLive && creep.memory.remoteTarget && creep.ticksToLive < 1 && creep.hits >= creep.hitsMax / 2) {
                     let remoteRoomName = Object.keys(creep.memory.remoteTarget)[0]
-                    let remoteRoom = Game.rooms[remoteRoomName]
-                    if (remoteRoom && remoteRoom.memory.remoteSites) {
-                        let remoteHarvesters = remoteRoom.memory.remoteSites[remoteRoomName].assignedHarvesters
-                        remoteRoom.memory.remoteSites[remoteRoomName].assignedHarvesters.splice(remoteHarvesters.indexOf(creep.id), 1)
+                    let remoteRoom = Memory.rooms[remoteRoomName]
+                    if (remoteRoom && remoteRoom.remoteSites) {
+                        let remoteHarvesters = remoteRoom.remoteSites[remoteRoomName].assignedHarvesters
+                        remoteRoom.remoteSites[remoteRoomName].assignedHarvesters.splice(remoteHarvesters.indexOf(creep.id), 1)
                     }
                 }
 

@@ -43,7 +43,7 @@ declare global {
             [roomName: string]: {
                 sourcePositions: { targetId: Id<any>, x: number, y: number }[],
                 assignedHarvesters: Id<Creep>[],
-                assignedHaulers: Id<Creep>[],
+                assignedTruckers: Id<Creep>[],
                 assignedEngineers: Id<Creep>[],
                 assignedClaimers: Id<Creep>[]
             }
