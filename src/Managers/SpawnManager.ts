@@ -193,6 +193,7 @@ export default class SpawnManager {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
+                    console.log(`Role being considered: ${role}.`)
 
                     const theRole = Roles[role];
                     if (!theRole) continue;
@@ -200,6 +201,13 @@ export default class SpawnManager {
 
                     if (count > 0) allFound = false;
                     for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
+
+                    // Role info
+                    console.log(`${role} count returned: ${count}.`)
+                    console.log(`${JSON.stringify(rolesNeeded)}.`)
+                    // Heap info
+                    let heap = Game.cpu.getHeapStatistics ? Game.cpu.getHeapStatistics() : undefined;
+                    heap ? console.log(`Used ${heap.total_heap_size} / ${heap.heap_size_limit}`) : undefined;
                 }
             }
         }
