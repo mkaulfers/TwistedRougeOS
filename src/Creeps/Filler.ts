@@ -179,6 +179,6 @@ export class Filler extends CreepRole {
                 result.structure.structureType == STRUCTURE_LINK
         )
         Logger.log(`${room.name} has ${results.length} structures`, LogLevel.INFO)
-        return results.length >= 16
+        return results.length >= 18
     }
 }
