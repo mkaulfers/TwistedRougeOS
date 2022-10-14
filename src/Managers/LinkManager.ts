@@ -59,7 +59,7 @@ export default class LinkManager {
 
             for (let link of links) {
                 let target: StructureLink | undefined;
-                if (link.store.getUsedCapacity(RESOURCE_ENERGY) > (link.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt)) continue;
+                if (!(link.store.getUsedCapacity(RESOURCE_ENERGY) > (link.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt))) continue;
                 switch (linkStates[link.id]) {
                     case LinkState.OUTPUT:
                         continue;
