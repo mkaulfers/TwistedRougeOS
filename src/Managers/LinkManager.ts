@@ -37,7 +37,7 @@ export default class LinkManager {
                             room.cache.links[link.id] = LinkState.OUTPUT;
                         }
                     }
-                    if (room.storage && link.pos.getRangeTo(room.storage.pos.x, room.storage.pos.y) < 2) {
+                    if (room.storage && link.pos.getRangeTo(room.storage.pos.x, room.storage.pos.y) <= 2) {
                         room.cache.links[link.id] = LinkState.BOTH;
                     }
                     if (!room.cache.links[link.id]) {
@@ -58,10 +58,17 @@ export default class LinkManager {
             targetLinks = _.sortByOrder(targetLinks, (t: StructureLink) => t.store.energy, 'asc');
 
             for (let link of links) {
-                if ((linkStates[link.id] == LinkState.INPUT || linkStates[link.id] == LinkState.BOTH) && link.store.getUsedCapacity(RESOURCE_ENERGY) > (link.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt)) {
-                    let target = targetLinks.shift();
-                    if (!target) return ProcessResult.RUNNING;
-                    link.transferEnergy(target);
+                let target: StructureLink | undefined;
+                if (link.store.getUsedCapacity(RESOURCE_ENERGY) > (link.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt)) continue;
+                switch (linkStates[link.id]) {
+                    case LinkState.OUTPUT:
+                        continue;
+                    case LinkState.BOTH:
+                        if (targetLinks[0] === link && targetLinks.length > 1) target = targetLinks.pop();
+                    case LinkState.INPUT:
+                        if (!target && targetLinks[0] !== link) target = targetLinks.shift();
+                        if (!target) return ProcessResult.RUNNING;
+                        link.transferEnergy(target);
                 }
             }
             return ProcessResult.RUNNING;
