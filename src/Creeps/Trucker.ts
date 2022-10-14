@@ -307,8 +307,12 @@ export class Trucker extends CreepRole {
             } else {
                 creep.memory.target = potentialTargets[0].id;
             }
-        } else if (creep.room.storage) {
+        } else if (creep.room.storage && creep.room.storage.store.energy > 0) {
             creep.memory.target = creep.room.storage.id;
+        } else if (creep.room.factory && creep.room.factory.store.energy > 0) {
+            creep.memory.target = creep.room.factory.id;
+        } else if (creep.room.terminal && creep.room.terminal.store.energy > 0) {
+            creep.memory.target = creep.room.terminal.id;
         }
     }
 }
