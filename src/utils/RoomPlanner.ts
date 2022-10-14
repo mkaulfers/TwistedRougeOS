@@ -273,26 +273,6 @@ function getValidPositionAroundPosition(position: PathStep | RoomPosition, room:
         }
 
     return undefined
-    // let range = 2
-    // if (position instanceof RoomPosition) {
-    //     range = 5
-    // }
-    // let validPositions: RoomPosition[] = []
-    // for (let x = position.x - range; x <= position.x + range; x++) {
-    //     for (let y = position.y - range; y <= position.y + range; y++) {
-    //         if (room.lookForAt(LOOK_TERRAIN, x, y).includes('wall') || roadPositions.some(pos => pos.x == x && pos.y == y)) {
-    //             continue
-    //         }
-
-    //         //if the position is near a source continue
-    //         if (new RoomPosition(x, y, room.name).findInRange(FIND_SOURCES, 1).length > 0) {
-    //             continue
-    //         }
-
-    //         validPositions.push(new RoomPosition(x, y, room.name))
-    //     }
-    // }
-    // return validPositions[0]
 }
 
 function floodFillSearch(room: Room, startPosition: RoomPosition, structure: StampType, plannedPositions?: RoomPosition[]): RoomPosition | undefined {
