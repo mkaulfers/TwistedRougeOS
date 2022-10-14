@@ -68,7 +68,6 @@ export default class SpawnManager {
                     // Adjust for prespawning at 1500
                     for (const spawnSchedule of spawnSchedules) spawnSchedule.shift();
                 }
-                // asdf
             }
 
             // History Check: Respawn prematurely dead creeps if room.
