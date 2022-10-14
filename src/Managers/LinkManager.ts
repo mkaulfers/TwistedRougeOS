@@ -5,7 +5,7 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, Danger
 
 export default class LinkManager {
 
-    static get linksTriggerAt(): number { return 0.1 } // Percent full links send energy at
+    static get linksTriggerAt(): number { return 0.4 } // Percent full links send energy at
 
     static schedule(room: Room) {
         let roomName = room.name;
