@@ -67,7 +67,7 @@ function generateNewPlan(room: Room) {
 
     let roadPositions: PathStep[] = []
     let sources = room.sources
-    let minerals = room.sources
+    let mineral = room.mineral
 
     let leftExits = getLeftExits(room)
     for (let exit of leftExits) {
@@ -113,7 +113,7 @@ function generateNewPlan(room: Room) {
 
         let linkPos = sourcePath[sourcePath.length - 2]
         let adjustedPos = getValidPositionAroundPosition(linkPos, room, roadPositions)
-        room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(adjustedPos.x, adjustedPos.y, room.name)))
+        if (adjustedPos) room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(adjustedPos.x, adjustedPos.y, room.name)))
 
         sourcePath.splice(sourcePath.length - 2, 2)
         roadPositions = roadPositions.concat(sourcePath)
@@ -128,7 +128,7 @@ function generateNewPlan(room: Room) {
         roadPositions = roadPositions.concat(pathBetweenSources)
     }
 
-    for (let mineral of minerals) {
+    if (mineral) {
         let mineralPath: PathStep[] = blueprintAnchor.findPathTo(mineral, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
 
         let containerPos = mineralPath[mineralPath.length - 2]
@@ -142,9 +142,9 @@ function generateNewPlan(room: Room) {
     pathToController.splice(pathToController.length - 1, 1)
     roadPositions = roadPositions.concat(pathToController)
 
-    let controllerLink = pathToController[pathToController.length - 3]
+    let controllerLink = pathToController[pathToController.length - 2]
     let adjustedPos = getValidPositionAroundPosition(controllerLink, room, roadPositions)
-    room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(adjustedPos.x, adjustedPos.y, room.name)))
+    if (adjustedPos) room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(adjustedPos.x, adjustedPos.y, room.name)))
 
     /**
      * Find paths to remove.
@@ -191,7 +191,7 @@ function generateNewPlan(room: Room) {
             case StampType.FAST_FILLER:
             case StampType.ANCHOR:
             case StampType.LABS:
-                modifier = 2; break
+                modifier = 3; break
             case StampType.EXTENSIONS:
             case StampType.TOWER:
             case StampType.EXTENSION:
@@ -257,28 +257,42 @@ function generateNewPlan(room: Room) {
     }
 }
 
-function getValidPositionAroundPosition(position: PathStep | RoomPosition, room: Room, roadPositions: PathStep[] | RoomPosition[]): RoomPosition {
-    //Get a position around the provided position that is not a wall or a road fromRoadPositions.
-    let range = 2
-    if (position instanceof RoomPosition) {
-        range = 5
-    }
-    let validPositions: RoomPosition[] = []
-    for (let x = position.x - range; x <= position.x + range; x++) {
-        for (let y = position.y - range; y <= position.y + range; y++) {
-            if (room.lookForAt(LOOK_TERRAIN, x, y).includes('wall') || roadPositions.some(pos => pos.x == x && pos.y == y)) {
-                continue
+/**
+ * This function will return a single position that is valid to place a link, undefined if nothing is found. It will check out to a range of 5.
+ * @param position The position to look around.
+ * @param room The room that the position exists in.
+ * @param roadPositions The previously calculated road positions.
+ * @returns
+ */
+function getValidPositionAroundPosition(position: PathStep | RoomPosition, room: Room, roadPositions: PathStep[] | RoomPosition[]): RoomPosition | undefined {
+        let positions: LookAtResultWithPos<LookConstant>[] = room.lookAtArea(position.y - 1, position.x - 1, position.y + 1, position.x + 1, true)
+        for (let pos of positions) {
+            if (pos.type == LOOK_TERRAIN && pos.terrain != 'wall' && !roadPositions.some(roadPos => roadPos.x == pos.x && roadPos.y == pos.y)) {
+                return new RoomPosition(pos.x, pos.y, room.name)
             }
-
-            //if the position is near a source continue
-            if (new RoomPosition(x, y, room.name).findInRange(FIND_SOURCES, 1).length > 0) {
-                continue
-            }
-
-            validPositions.push(new RoomPosition(x, y, room.name))
         }
-    }
-    return validPositions[0]
+
+    return undefined
+    // let range = 2
+    // if (position instanceof RoomPosition) {
+    //     range = 5
+    // }
+    // let validPositions: RoomPosition[] = []
+    // for (let x = position.x - range; x <= position.x + range; x++) {
+    //     for (let y = position.y - range; y <= position.y + range; y++) {
+    //         if (room.lookForAt(LOOK_TERRAIN, x, y).includes('wall') || roadPositions.some(pos => pos.x == x && pos.y == y)) {
+    //             continue
+    //         }
+
+    //         //if the position is near a source continue
+    //         if (new RoomPosition(x, y, room.name).findInRange(FIND_SOURCES, 1).length > 0) {
+    //             continue
+    //         }
+
+    //         validPositions.push(new RoomPosition(x, y, room.name))
+    //     }
+    // }
+    // return validPositions[0]
 }
 
 function floodFillSearch(room: Room, startPosition: RoomPosition, structure: StampType, plannedPositions?: RoomPosition[]): RoomPosition | undefined {
@@ -309,6 +323,10 @@ function doesStampFitAtPosition(x: number, y: number, room: Room, structure: Sta
         let controllerPos = controller.pos
         let roomPos = new RoomPosition(x, y, room.name)
         if (roomPos.inRangeTo(controllerPos, 4)) return false
+
+        for (let source in room.sources) {
+            if (roomPos.inRangeTo(room.sources[source].pos, 2)) return false
+        }
     }
 
 
