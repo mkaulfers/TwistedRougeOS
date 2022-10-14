@@ -25,7 +25,7 @@ Fire up your preferred editor with typescript installed and you are good to go!
 
 TwistedRougeOS uses rollup to compile your typescript and upload it to a screeps server.
 
-Move or copy `screeps.sample.json` to `screeps.json` and edit it, changing the credentials and optionally adding or removing some of the destinations.
+Move or copy `screeps.test.json` to `screeps.json` and edit it, changing the credentials and optionally adding or removing some of the destinations.
 
 Running `rollup -c` will compile your code and do a "dry run", preparing the code for upload but not actually pushing it. Running `rollup -c --environment DEST:main` will compile your code, and then upload it to a screeps server using the `main` config from `screeps.json`.
 

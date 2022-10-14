@@ -5,7 +5,7 @@ import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, Danger
 
 export default class LinkManager {
 
-    static get linksTriggerAt(): number { return 0.1 } // Percent full links send energy at
+    static get linksTriggerAt(): number { return 0.4 } // Percent full links send energy at
 
     static schedule(room: Room) {
         let roomName = room.name;
@@ -59,7 +59,7 @@ export default class LinkManager {
 
             for (let link of links) {
                 let target: StructureLink | undefined;
-                if (!(link.store.getUsedCapacity(RESOURCE_ENERGY) > (link.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt))) continue;
+                if ((link.store.getUsedCapacity(RESOURCE_ENERGY) < (link.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt)) || link.cooldown > 0) continue;
                 switch (linkStates[link.id]) {
                     case LinkState.OUTPUT:
                         continue;
@@ -67,6 +67,7 @@ export default class LinkManager {
                         if (targetLinks[0] === link && targetLinks.length > 1) target = targetLinks.pop();
                     case LinkState.INPUT:
                         if (!target && targetLinks[0] !== link) target = targetLinks.shift();
+                        Utils.Logger.log(`Link ${link.id} target: ${target ? target.id : undefined}`, LogLevel.OFF);
                         if (!target) return ProcessResult.RUNNING;
                         link.transferEnergy(target);
                 }

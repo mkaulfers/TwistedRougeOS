@@ -100,7 +100,7 @@ export class Anchor extends CreepRole {
                             qty = terminal ? 20000 - (terminal.store.energy ?? 0) : undefined;
                             result = creep.take(storage!, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined);
                             break;
-                        case terminal && storage && storage.store.energy > 500000:
+                        case terminal && storage && storage.store.energy > 500000 && terminal.store.energy < 150000:
                             // `storage!` and `terminal!` used because TS required it.. It is obviously checked above.
                             qty = storage ? (storage.store.energy ?? 0) - 500000 : undefined;
                             result = creep.take(storage!, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined);
@@ -138,7 +138,7 @@ export class Anchor extends CreepRole {
                             // `terminal!` used because TS required it.. It is obviously checked above.
                             result = creep.give(terminal!, RESOURCE_ENERGY);
                             break;
-                        case terminal && storage && storage.store.energy > 499999:
+                        case terminal && storage && storage.store.energy > 499999 && terminal.store.energy < 150000:
                             // `storage!` and `terminal!` used because TS required it.. It is obviously checked above.
                             result = creep.give(terminal!, RESOURCE_ENERGY);
                             break;
