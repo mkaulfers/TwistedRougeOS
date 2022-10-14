@@ -37,7 +37,7 @@ export default class LinkManager {
                             room.cache.links[link.id] = LinkState.OUTPUT;
                         }
                     }
-                    if (room.storage && link.pos.getRangeTo(room.storage.pos.x, room.storage.pos.y) < 2) {
+                    if (room.storage && link.pos.getRangeTo(room.storage.pos.x, room.storage.pos.y) <= 2) {
                         room.cache.links[link.id] = LinkState.BOTH;
                     }
                     if (!room.cache.links[link.id]) {

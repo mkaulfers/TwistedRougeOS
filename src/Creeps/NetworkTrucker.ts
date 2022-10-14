@@ -62,7 +62,6 @@ export class NetworkTrucker extends Trucker {
 
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         Trucker.storageTruckerWorkingTargeting(creep);
-                        if (creep.name == "nTr04_0353") Logger.log(`Made it to 93`, LogLevel.DEBUG)
                         if (!creep.memory.target) return ProcessResult.RUNNING;
                     }
                     let target = Game.getObjectById(creep.memory.target);
@@ -158,7 +157,7 @@ export class NetworkTrucker extends Trucker {
         if (remoteTarget) {
             let remoteSourceTarget = new RoomPosition(remoteTarget.x, remoteTarget.y, remoteTargetKey)
 
-            if (creep.pos.roomName != remoteSourceTarget.roomName) {
+            if (creep.pos.roomName != remoteSourceTarget.roomName || creep.pos.getRangeTo(remoteSourceTarget) > 3) {
                 creep.travel(remoteSourceTarget)
             } else {
                 let container: StructureContainer | undefined = remoteSourceTarget.findInRange(creep.room.containers, 1)[0]

@@ -14,6 +14,7 @@ export default class RemoteManager {
         const roomId = room.name
         const remoteTask = () => {
             let room = Game.rooms[roomId]
+            if (!room) return ProcessResult.FAILED
             //If room doesn't have remotes, fetch them.
             //TODO: Modify so that remotes are added if the number of allowed remotes changes.
             if ((!room.memory ||
@@ -23,6 +24,7 @@ export default class RemoteManager {
                 Game.cpu.bucket > 150) {
                 this.setRemotes(room)
             }
+            return ProcessResult.RUNNING
         }
 
         let process = new Process(`${room.name}_remote_monitor`, ProcessPriority.CRITICAL, remoteTask)

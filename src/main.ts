@@ -1,7 +1,11 @@
+// Put here to force prototype creation first.
+import prototypeExtender from "./Extensions/Index";
+prototypeExtender();
+
+// Imports
 import { Utils } from './utils/Index';
 import { LogLevel } from './utils/Enums'
 import { OS } from "OS/Index";
-import prototypeExtender from "./Extensions/Index";
 import { memHack } from "Models/MemHack";
 
 import { colors } from "Models/Process";
@@ -21,7 +25,6 @@ declare global {
 }
 
 // Once and Done code here
-prototypeExtender();
 
 // DEV MODE LOGGING
 Utils.Logger.devLogLevel = LogLevel.DEBUG;
