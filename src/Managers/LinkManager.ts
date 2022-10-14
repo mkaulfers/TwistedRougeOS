@@ -59,6 +59,7 @@ export default class LinkManager {
 
             for (let link of links) {
                 let target: StructureLink | undefined;
+                if (link.store.getUsedCapacity(RESOURCE_ENERGY) > (link.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt)) continue;
                 switch (linkStates[link.id]) {
                     case LinkState.OUTPUT:
                         continue;
@@ -66,13 +67,8 @@ export default class LinkManager {
                         if (targetLinks[0] === link && targetLinks.length > 1) target = targetLinks.pop();
                     case LinkState.INPUT:
                         if (!target && targetLinks[0] !== link) target = targetLinks.shift();
-                        Utils.Logger.log(`Link ${link.id} targeted ${target ? target.id : undefined}`, LogLevel.INFO);
                         if (!target) return ProcessResult.RUNNING;
                         link.transferEnergy(target);
-                }
-
-                if ((linkStates[link.id] == LinkState.INPUT || linkStates[link.id] == LinkState.BOTH) && link.store.getUsedCapacity(RESOURCE_ENERGY) > (link.store.getCapacity(RESOURCE_ENERGY) * this.linksTriggerAt)) {
-
                 }
             }
             return ProcessResult.RUNNING;
