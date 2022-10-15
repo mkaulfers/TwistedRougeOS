@@ -16,7 +16,7 @@
 /typings
 
 # Screeps Config
-# screeps.json
+screeps.json
 
 # ScreepsServer data from integration tests
 /server

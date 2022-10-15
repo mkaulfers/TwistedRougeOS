@@ -59,7 +59,10 @@ export default class SpawnManager {
 
             // Reconsider schedule every 1500 ticks
             if (_.any(spawnSchedules, (s) => s.tick == 1500)) {
-                if (_.any(spawnSchedules, (s) => s.activeELimit !== room.spawnEnergyLimit || s.rolesNeeded !== this.genRolesNeeded(room))) {
+                let freshRolesNeeded = this.genRolesNeeded(room);
+                if (_.any(spawnSchedules, (s) => s.activeELimit !== room.spawnEnergyLimit ||
+                    s.rolesNeeded?.length !== freshRolesNeeded.length ||
+                    s.rolesNeeded?.every(function(role, i) { return role === freshRolesNeeded[i] }))) {
                     for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
                 } else {
                     // Adjust for prespawning at 1500
@@ -172,6 +175,7 @@ export default class SpawnManager {
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
                     console.log(`Role being considered: ${role}.`)
+                    let cpu = Game.cpu.getUsed();
                     const theRole = Roles[role];
                     if (!theRole) continue;
                     let count: number = theRole.quantityWanted(room, rolesNeeded, true);
@@ -184,6 +188,7 @@ export default class SpawnManager {
                     // Heap info
                     let heap = Game.cpu.getHeapStatistics ? Game.cpu.getHeapStatistics() : undefined;
                     heap ? console.log(`Used ${heap.total_heap_size} / ${heap.heap_size_limit}`) : undefined;
+                    console.log(`CPU for this cycle: ${Game.cpu.getUsed() - cpu} \n CPU Total: ${Game.cpu.getUsed()}`)
                 }
             }
         }
@@ -194,7 +199,7 @@ export default class SpawnManager {
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
                     console.log(`Role being considered: ${role}.`)
-
+                    let cpu = Game.cpu.getUsed();
                     const theRole = Roles[role];
                     if (!theRole) continue;
                     let count: number = theRole.quantityWanted(room, rolesNeeded, false);
@@ -208,6 +213,8 @@ export default class SpawnManager {
                     // Heap info
                     let heap = Game.cpu.getHeapStatistics ? Game.cpu.getHeapStatistics() : undefined;
                     heap ? console.log(`Used ${heap.total_heap_size} / ${heap.heap_size_limit}`) : undefined;
+                    console.log(`CPU for this cycle: ${Game.cpu.getUsed() - cpu} \n CPU Total: ${Game.cpu.getUsed()}`)
+
                 }
             }
         }
