@@ -24,7 +24,7 @@ export class NetworkTrucker extends Trucker {
     }
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        // return 0;
+        if (!room.storage) return 0
         if (min && min == true) return 0;
 
         let networkHaulers = rolesNeeded.filter(x => x == Role.nTRUCKER).length

@@ -27,6 +27,7 @@ export enum Task {
     FILLER = 'filler_working',
 
     AGENT = 'agent',
+    nHARVESTING_EARLY = 'nHarvesting_early',
     nHARVESTING = 'nHarvesting',
     nTRUCKER = 'nTrucker',
     ANCHOR = 'anchor'
