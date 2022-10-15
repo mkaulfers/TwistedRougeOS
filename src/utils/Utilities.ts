@@ -8,7 +8,7 @@ interface IPrototype {
 
 export class Utility {
     static packPosition(pos: RoomPosition): number
-    static packPosition(pos: {wx: number, wy: number}): number
+    static packPosition(pos: { wx: number, wy: number }): number
     static packPosition(pos: any): number {
         return pos.x * 50 + pos.y
     }
@@ -182,7 +182,7 @@ export class Utility {
      * @param sortOrder Sort order override, in ascending order numerically.
      * Defaults to TOUGH, WORK, ATTACK, RANGED_ATTACK, CARRY, MOVE, HEAL, and CLAIM with values ranging from 0-7 respectively.
      */
-    static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], override?: boolean, sortOrder?: {[key in BodyPartConstant]?: number}): BodyPartConstant[] {
+    static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], override?: boolean, sortOrder?: { [key in BodyPartConstant]?: number }): BodyPartConstant[] {
         Logger.log("SpawnManager -> getBodyFor()", LogLevel.TRACE)
 
         let tempBody = baseBody;
@@ -216,7 +216,7 @@ export class Utility {
             // Built partCounts
             let partCounts: number[] = [];
             refPartLimitsArray.forEach((p, i) => partCounts[i] = 0);
-            tempBody.forEach(function(p) {
+            tempBody.forEach(function (p) {
                 let i = refPartLimitsArray.indexOf(p);
                 if (i >= 0) partCounts[i]++;
             });
@@ -234,7 +234,7 @@ export class Utility {
         }
 
         // Sort tempBody
-        tempBody = _.sortBy(tempBody, function(p) {
+        tempBody = _.sortBy(tempBody, function (p) {
             switch (p) {
                 case TOUGH:
                     return sortOrder && sortOrder.tough ? sortOrder.tough : 0;
@@ -272,12 +272,12 @@ export class Utility {
         let partLimits: number[] = [];
 
         refPartLimitsArray.forEach((p, i) => partLimits[i] = 0);
-        tempBody.forEach(function(p) {
+        tempBody.forEach(function (p) {
             let i = refPartLimitsArray.indexOf(p);
             if (i >= 0) partLimits[i] += partLimits[i]
         });
 
-        tempSegment.forEach(function(p) {
+        tempSegment.forEach(function (p) {
             partLimits[refPartLimitsArray.indexOf(p)] += freePartsPortion;
         })
         let unusedParts = 50 - (tempBody.length + (partLimits.reduce((previousValue, currentValue) => previousValue + currentValue)));
@@ -326,21 +326,11 @@ export class Utility {
             if (room.memory.blueprint && room.areFastFillerExtensionsBuilt) {
                 let anchorPos = this.unpackPostionToRoom(room.memory.blueprint.anchor, room.name)
                 for (let x = -2; x <= 2; x++) {
-                    if (x == 0) {
-                        for (let y = -2; Math.abs(y) == 2; y += 4) {
-                            console.log(anchorPos.x,anchorPos.y + y);
-                            cm.set(anchorPos.x, anchorPos.y + y, 50);
-                        }
-                    } else if (Math.abs(x / 2) == 1) {
-                        console.log(anchorPos.x + x,anchorPos.y);
-                        cm.set(anchorPos.x + x, anchorPos.y, 50);
-                    } else {
-                        for (let y = -1; Math.abs(y) == 1; y += 2) {
-                            console.log(anchorPos.x,anchorPos.y + y);
-                            cm.set(anchorPos.x + x, anchorPos.y + y, 50);
-                        }
+                    for (let y = -2; y <= 2; y++) {
+                        cm.set(anchorPos.x + x, anchorPos.y + y, 50);
                     }
                 }
+                cm.set(anchorPos.x, anchorPos.y, 50);
             }
 
             room.cache.pathfindingCM = JSON.stringify(cm.serialize());

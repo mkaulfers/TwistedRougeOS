@@ -45,17 +45,21 @@ export class Trucker extends CreepRole {
     }
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        if (rolesNeeded.filter(x => x == Role.HARVESTER).length < 1) return 0;
         let harCount = rolesNeeded.filter(x => x == Role.HARVESTER).length
+        if (harCount < 1) return 0;
         let truckerCount = rolesNeeded.filter(x => x == Role.TRUCKER).length
         if (min && min == true) return truckerCount < harCount ? harCount - truckerCount : 0;
 
         // Utils.Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.INFO)  TODO: Remove dead function
         Utils.Logger.log(`Demand to Meet: ${room.sources.length * 10 * (room.averageDistanceFromSourcesToStructures * this.carryModifier)}`, LogLevel.INFO)
         if (!this.partLimits || this.partLimits.length == 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
+        console.log(`Got past partLimit generation / checks: ${JSON.stringify(this.partLimits)}`)
         if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
         let body = this[room.spawnEnergyLimit];
-        let shouldBe = Math.ceil((room.sources.length * 10 * room.averageDistanceFromSourcesToStructures * this.carryModifier) / (body.filter(p => p == CARRY).length * 50));
+        console.log(`Got past body generation: ${JSON.stringify(body)}. \n Args: ${room.name}, ${JSON.stringify(this.baseBody)}, ${JSON.stringify(this.segment)}, ${JSON.stringify(this.partLimits)}`)
+        let carryCount = body.filter(p => p == CARRY).length
+        if (carryCount === 0 || !carryCount) Utils.Logger.log(`Carry Count for truckers was ${carryCount}! This is a failure mode!`, LogLevel.FATAL);
+        let shouldBe = Math.ceil((room.sources.length * 10 * room.averageDistanceFromSourcesToStructures * this.carryModifier) / (carryCount * 50));
         if (shouldBe < 2) shouldBe = 2;
         return truckerCount < shouldBe ? shouldBe - truckerCount : 0;
     }

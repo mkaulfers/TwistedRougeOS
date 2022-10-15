@@ -1,9 +1,10 @@
-import { StampType } from "utils/Enums";
+import { LogLevel, StampType } from "utils/Enums";
 import { Utils } from "utils/Index";
+import { Logger } from "utils/Logger";
 
 export class Stamps {
 
-    static plan(startPos: RoomPosition, stamp: StampType, plannedPositions: RoomPosition[], roomVisual?: RoomVisual) {
+    static plan(startPos: RoomPosition, stamp: StampType, plannedPositions: RoomPosition[], roadPositions: RoomPosition[], roomVisual?: RoomVisual) {
         let site: { xMod: number, yMod: number, structureType: BuildableStructureConstant }[]
         switch (stamp) {
             case StampType.FAST_FILLER:
@@ -34,6 +35,10 @@ export class Stamps {
 
             if (part.structureType != STRUCTURE_ROAD) {
                 plannedPositions.push(new RoomPosition(startPos.x + part.xMod, startPos.y + part.yMod, startPos.roomName))
+            }
+
+            if (part.structureType == STRUCTURE_ROAD) {
+                roadPositions.push(new RoomPosition(startPos.x + part.xMod, startPos.y + part.yMod, startPos.roomName))
             }
         }
     }
