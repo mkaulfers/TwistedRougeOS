@@ -47,6 +47,7 @@ export class NetworkTrucker extends Trucker {
                 Utils.Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.TRACE)
                 let creep = Game.getObjectById(creepId);
                 if (!creep) return ProcessResult.FAILED;
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 // Switches working value if full or empty
                 if (creep.memory.working == undefined) creep.memory.working = false;
@@ -84,29 +85,6 @@ export class NetworkTrucker extends Trucker {
                     }
                     Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
                     return ProcessResult.INCOMPLETE
-                } else {
-                    // Determines new target
-                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
-                        Trucker.needEnergyTargeting(creep);
-                        if (!creep.memory.target) return ProcessResult.RUNNING
-                    }
-                    let target = Game.getObjectById(creep.memory.target);
-
-                    // Posterior check to change targets if the target can no longer fill the creep
-                    if (!target ||
-                        'store' in target && target.store.energy < 25 ||
-                        'amount' in target && target.amount < 25) {
-                        delete creep.memory.target;
-                        return ProcessResult.RUNNING;
-                    }
-
-                    // Runs take and returns running or incomplete on result
-                    result = creep.take(target, RESOURCE_ENERGY);
-                    if (result === OK) {
-                        return ProcessResult.RUNNING
-                    }
-                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
-                    return ProcessResult.INCOMPLETE
                 }
             }
 
@@ -123,6 +101,7 @@ export class NetworkTrucker extends Trucker {
                     Utils.Logger.log(creepId, LogLevel.FATAL);
                     return ProcessResult.FAILED;
                 }
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 if (!creep.memory.remoteTarget) {
                     //Referencing the NetworkHarvester class to set the remote source

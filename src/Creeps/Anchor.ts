@@ -48,6 +48,7 @@ export class Anchor extends CreepRole {
                     Utils.Logger.log(creepId, LogLevel.FATAL);
                     return ProcessResult.FAILED;
                 }
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 // Handle positioning
                 if (!creep.room.memory.blueprint || creep.room.memory.blueprint.anchor === 0) return ProcessResult.FAILED;

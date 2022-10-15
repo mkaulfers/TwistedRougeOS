@@ -102,6 +102,7 @@ export class Engineer extends CreepRole {
                 Utils.Logger.log("CreepTask -> builderTask()", LogLevel.TRACE)
                 let creep = Game.getObjectById(creepId);
                 if (!creep) return ProcessResult.FAILED;
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 if (creep.memory.working == undefined) creep.memory.working = false;
                 if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
@@ -191,6 +192,7 @@ export class Engineer extends CreepRole {
                 Utils.Logger.log("CreepTask -> repairTask()", LogLevel.TRACE)
                 let creep = Game.getObjectById(creepId);
                 if (!creep) return ProcessResult.FAILED;
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 if (creep.memory.working == undefined) creep.memory.working = false;
                 if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
@@ -290,6 +292,7 @@ export class Engineer extends CreepRole {
                 Utils.Logger.log("CreepTask -> eUpgradingTask()", LogLevel.TRACE)
                 let creep = Game.getObjectById(creepId);
                 if (!creep) return ProcessResult.FAILED;
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 if (creep.memory.working == undefined) creep.memory.working = false;
                 if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||

@@ -41,6 +41,7 @@ export class NetworkHarvester extends CreepRole {
                     Utils.Logger.log(creepId, LogLevel.FATAL);
                     return ProcessResult.FAILED;
                 }
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 if (!creep.memory.remoteTarget) {
                     NetworkHarvester.setRemoteSource(creep.room, creep)

@@ -78,6 +78,7 @@ export class Trucker extends CreepRole {
                 Utils.Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.TRACE)
                 let creep = Game.getObjectById(creepId);
                 if (!creep) return ProcessResult.FAILED;
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 // Switches working value if full or empty
                 if (creep.memory.working == undefined) creep.memory.working = false;
@@ -152,6 +153,7 @@ export class Trucker extends CreepRole {
                 Utils.Logger.log("CreepTask -> truckerScientistTask()", LogLevel.TRACE);
                 let creep = Game.getObjectById(creepId);
                 if (!creep) return ProcessResult.FAILED;
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 // Switches working value if full or empty
                 if (creep.memory.working == undefined) creep.memory.working = false;

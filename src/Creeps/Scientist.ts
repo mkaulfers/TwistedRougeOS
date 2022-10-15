@@ -52,6 +52,7 @@ export class Scientist extends CreepRole {
                     Utils.Logger.log(creepId, LogLevel.FATAL);
                     return ProcessResult.FAILED;
                 }
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 // Switches working value if full or empty
                 if (creep.memory.working == undefined) creep.memory.working = false;

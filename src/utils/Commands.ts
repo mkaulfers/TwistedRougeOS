@@ -158,8 +158,8 @@ Object.defineProperty(global, 'destroyStructures', {
     get() {
         global.Cache.cmd.destroyStructures = !global.Cache.cmd.destroyStructures;
         if (global.Cache.cmd.destroyStructures == true) {
-            for (const structure of Object.values(Game.structures)) {
-                structure.destroy();
+            for (const room of Object.values(Game.rooms)) {
+                for (const s of room.structures()) s.destroy();
             }
             return `All structures destroyed.`
         } else return `To confirm your choice to kill all structures, please resend the command.`
@@ -169,10 +169,9 @@ Object.defineProperty(global, 'destroyStructures', {
 global.destroyStructuresInRoom = function(name) {
     global.Cache.cmd.destroyStructuresInRoom = !global.Cache.cmd.destroyStructuresInRoom;
     if (global.Cache.cmd.destroyStructuresInRoom == true) {
-        for (const structure of Object.values(Game.structures)) {
-            if (structure.pos.roomName !== name) continue;
-            structure.destroy();
-        }
+        let room = Game.rooms[name];
+        if (!room) return `No vision on room. Must not have anything owned in there...`
+        for (const s of room.structures()) s.destroy();
         return `All structures for ${name} destroyed.`
     } else return `To confirm your choice to kill all structures for ${name}, please resend the command.`
 }
