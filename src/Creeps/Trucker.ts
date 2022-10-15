@@ -110,7 +110,7 @@ export class Trucker extends CreepRole {
                         if (creep.store.energy > 0 && creep.pos.getRangeTo(target) == 1 || target.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                             Trucker.storageTruckerWorkingTargeting(creep);
                             let newTarget = Game.getObjectById(creep.memory.target);
-                            if (target.id !== creep.memory.target && newTarget && creep.pos.getRangeTo(newTarget) > 1) creep.moveToDefault(newTarget);
+                            if (target.id !== creep.memory.target && newTarget && creep.pos.getRangeTo(newTarget) > 1) creep.travel(newTarget);
                         }
                         return ProcessResult.RUNNING
                     }
