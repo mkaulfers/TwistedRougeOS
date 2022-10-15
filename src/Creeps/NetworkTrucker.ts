@@ -86,6 +86,7 @@ export class NetworkTrucker extends Trucker {
                     Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
                     return ProcessResult.INCOMPLETE
                 }
+                return ProcessResult.RUNNING
             }
 
             creep.memory.task = Task.TRUCKER_STORAGE
