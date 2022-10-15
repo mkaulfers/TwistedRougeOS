@@ -314,7 +314,7 @@ export class Utility {
                         if (terrain.get(thing.pos.x + x, thing.pos.y + y) == TERRAIN_MASK_WALL) continue;
                         let lookArray = room.lookForAt(LOOK_STRUCTURES, thing.pos.x + x, thing.pos.y + y)
                         if (lookArray.findIndex((s) => s.structureType == STRUCTURE_CONTAINER) >= 0) {
-                            cm.set(thing.pos.x + x, thing.pos.y + y, 49);
+                            cm.set(thing.pos.x + x, thing.pos.y + y, 45);
                         } else {
                             cm.set(thing.pos.x + x, thing.pos.y + y, 50);
                         }
