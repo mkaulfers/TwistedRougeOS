@@ -64,6 +64,9 @@ export default class ConstructionManager {
 
             let blueprint = room.memory.blueprint
             if (blueprint) {
+
+                let containers = blueprint.containers
+
                 switch (controller.level) {
                     case 8:
                         fastFillerStructuresSkipped = []
@@ -105,6 +108,12 @@ export default class ConstructionManager {
 
                         let mineral = room.mineral;
                         if (mineral) mineral.pos.createConstructionSite(STRUCTURE_EXTRACTOR);
+                        for (let container of containers) {
+                            let containerPos = Utils.Utility.unpackPostionToRoom(container, room.name)
+                            if (containerPos.findInRange(FIND_MINERALS, 2).length > 0) {
+                                containerPos.createConstructionSite(STRUCTURE_CONTAINER)
+                            }
+                        }
                     case 5:
                         let packedRamparts = blueprint.ramparts
                         for (let rampart of packedRamparts) {
@@ -188,15 +197,10 @@ export default class ConstructionManager {
                             constPos.createConstructionSite(STRUCTURE_ROAD)
                         }
                     case 2:
-                        let containers = blueprint.containers
                         for (let container of containers) {
                             let containerPos = Utils.Utility.unpackPostionToRoom(container, room.name)
                             //If container is adjacent to a source build it.
                             if (containerPos.findInRange(FIND_SOURCES, 2).length > 0) {
-                                containerPos.createConstructionSite(STRUCTURE_CONTAINER)
-                            }
-
-                            if (containerPos.findInRange(FIND_MINERALS, 2).length > 0) {
                                 containerPos.createConstructionSite(STRUCTURE_CONTAINER)
                             }
                         }
