@@ -1,5 +1,6 @@
-import { StampType } from "utils/Enums";
+import { LogLevel, StampType } from "utils/Enums";
 import { Utils } from "utils/Index";
+import { Logger } from "utils/Logger";
 
 export class Stamps {
 

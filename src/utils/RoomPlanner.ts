@@ -213,19 +213,6 @@ function generateNewPlan(room: Room) {
         }
     }
 
-
-    //remove duplicate rampart positions
-    let uniqueRampartPositions: Coord[] = []
-    for (let rampart of rampartPositions) {
-        if (!uniqueRampartPositions.some(pos => pos.x == rampart.x && pos.y == rampart.y)) {
-            uniqueRampartPositions.push(rampart)
-        }
-    }
-
-    for (let rampartPos of uniqueRampartPositions) {
-        room.memory.blueprint.ramparts = room.memory.blueprint.ramparts.concat(Utils.Utility.packPosition(new RoomPosition(rampartPos.x, rampartPos.y, room.name)))
-    }
-
     let leftExitsPath = getLeftExits(room)
     let rightExitsPath = getRightExits(room)
     let topExitsPath = getTopExits(room)
@@ -255,6 +242,18 @@ function generateNewPlan(room: Room) {
                 }
             }
         }
+    }
+
+    //remove duplicate rampart positions
+    let uniqueRampartPositions: Coord[] = []
+    for (let rampart of rampartPositions) {
+        if (!uniqueRampartPositions.some(pos => pos.x == rampart.x && pos.y == rampart.y)) {
+            uniqueRampartPositions.push(rampart)
+        }
+    }
+
+    for (let rampartPos of uniqueRampartPositions) {
+        room.memory.blueprint.ramparts = room.memory.blueprint.ramparts.concat(Utils.Utility.packPosition(new RoomPosition(rampartPos.x, rampartPos.y, room.name)))
     }
 }
 
