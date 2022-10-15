@@ -1,6 +1,6 @@
 import { Utils } from '../utils/Index'
 import Roles from '../Creeps/Index';
-import { Role, LogLevel, ProcessPriority } from '../utils/Enums'
+import { Role, LogLevel, ProcessPriority, ProcessResult } from '../utils/Enums'
 import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
 
@@ -13,6 +13,8 @@ export default class SpawnManager {
             // TODO: Modify to allow for spawn-limiting due to security issues.
 
             let room = Game.rooms[roomId]
+            if (!room || !room.my) return ProcessResult.FATAL;
+
             Utils.Logger.log(`SpawnManager -> ${room.name}_spawn_monitor`, LogLevel.TRACE)
             let spawns = room.spawns;
             if (!room.cache.spawnSchedules) room.cache.spawnSchedules = [];
@@ -111,6 +113,7 @@ export default class SpawnManager {
             }
 
             room.cache.spawnSchedules = spawnSchedules;
+            return ProcessResult.RUNNING;
         }
 
         let newProcess = new Process(`${room.name}_spawn_monitor`, ProcessPriority.HIGH, spawnMonitorTask)

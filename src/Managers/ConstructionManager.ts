@@ -12,14 +12,14 @@ export default class ConstructionManager {
 
         const constructionMonitor = () => {
             let room = Game.rooms[roomName]
-            if (!room) { return }
+            if (!room || !room.my) return ProcessResult.FATAL;
 
             if (!room.memory.frontiers) {
                 room.setFrontiers(room)
             }
 
             let controller = room.controller
-            if (!controller) { return }
+            if (!controller) return ProcessResult.FATAL;
 
             if (room.cache.recentlyAttacked && room.memory.blueprint) {
                 let constructionSites = room.constructionSites()
@@ -211,6 +211,8 @@ export default class ConstructionManager {
                         }
                 }
             }
+
+            return ProcessResult.RUNNING;
         }
 
         let process = new Process(`${roomName}_construction_monitor`, ProcessPriority.MEDIUM, constructionMonitor)

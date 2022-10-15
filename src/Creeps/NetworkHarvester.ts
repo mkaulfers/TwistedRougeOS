@@ -37,10 +37,7 @@ export class NetworkHarvester extends CreepRole {
                 Utils.Logger.log("CreepTask -> networkHarvesterTask()", LogLevel.TRACE);
 
                 let creep = Game.getObjectById(creepId)
-                if (!creep) {
-                    Utils.Logger.log(creepId, LogLevel.FATAL);
-                    return ProcessResult.FAILED;
-                }
+                if (!creep) return ProcessResult.FATAL;
                 if (creep.spawning) return ProcessResult.RUNNING;
 
                 if (!creep.memory.remoteTarget) {

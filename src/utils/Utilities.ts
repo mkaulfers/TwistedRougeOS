@@ -277,8 +277,8 @@ export class Utility {
             if (i >= 0) partLimits[i] += partLimits[i]
         });
 
-        tempSegment.forEach(function (p) {
-            partLimits[refPartLimitsArray.indexOf(p)] += freePartsPortion;
+        partLimits.forEach(function (p) {
+            partLimits[p] += freePartsPortion;
         })
         let unusedParts = 50 - (tempBody.length + (partLimits.reduce((previousValue, currentValue) => previousValue + currentValue)));
         for (let i = 0; unusedParts < 50; i >= tempSegment.length ? i = 0 : i++) {

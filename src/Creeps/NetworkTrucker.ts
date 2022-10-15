@@ -46,7 +46,7 @@ export class NetworkTrucker extends Trucker {
             const truckerHarvesterTask = () => {
                 Utils.Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.TRACE)
                 let creep = Game.getObjectById(creepId);
-                if (!creep) return ProcessResult.FAILED;
+                if (!creep) return ProcessResult.FATAL;
                 if (creep.spawning) return ProcessResult.RUNNING;
 
                 // Switches working value if full or empty
@@ -98,10 +98,7 @@ export class NetworkTrucker extends Trucker {
 
             const networkHaulerTask = () => {
                 let creep = Game.getObjectById(creepId)
-                if (!creep) {
-                    Utils.Logger.log(creepId, LogLevel.FATAL);
-                    return ProcessResult.FAILED;
-                }
+                if (!creep) return ProcessResult.FATAL;
                 if (creep.spawning) return ProcessResult.RUNNING;
 
                 if (!creep.memory.remoteTarget) {

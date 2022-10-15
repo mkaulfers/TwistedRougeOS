@@ -44,10 +44,7 @@ export class Anchor extends CreepRole {
                 Utils.Logger.log("CreepTask -> anchor()", LogLevel.TRACE);
 
                 let creep = Game.getObjectById(creepId);
-                if (!creep) {
-                    Utils.Logger.log(creepId, LogLevel.FATAL);
-                    return ProcessResult.FAILED;
-                }
+                if (!creep) return ProcessResult.FATAL;
                 if (creep.spawning) return ProcessResult.RUNNING;
 
                 // Handle positioning

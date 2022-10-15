@@ -42,7 +42,7 @@ export class Filler extends CreepRole {
 
             const fastFillerTask = () => {
                 let creep = Game.getObjectById(creepId)
-                if (!creep) return ProcessResult.FAILED
+                if (!creep) return ProcessResult.FATAL;
                 if (creep.spawning) return ProcessResult.RUNNING;
                 let room = Game.rooms[creep.memory.homeRoom]
 

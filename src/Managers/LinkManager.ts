@@ -15,6 +15,7 @@ export default class LinkManager {
         const task = () => {
             Utils.Logger.log(`LinkManager -> ${roomProcessId}`, LogLevel.TRACE);
             let room = Game.rooms[roomName];
+            if (!room || !room.my) return ProcessResult.FATAL;
 
             // Identify links
             if (!room.cache.links ||

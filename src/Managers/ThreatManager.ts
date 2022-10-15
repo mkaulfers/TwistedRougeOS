@@ -12,7 +12,7 @@ export default class ThreatManager {
         const monitorTask = () => {
             Utils.Logger.log(`ThreatManager -> ${roomProcessId}`, LogLevel.TRACE)
             let room = Game.rooms[roomName]
-            if (!room) return ProcessResult.FAILED;
+            if (!room || !room.my) return ProcessResult.FATAL;
 
             if (room.cache.recentlyAttacked == undefined) {
                 room.cache.recentlyAttacked = false

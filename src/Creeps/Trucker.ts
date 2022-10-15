@@ -77,7 +77,7 @@ export class Trucker extends CreepRole {
             const truckerHarvesterTask = () => {
                 Utils.Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.TRACE)
                 let creep = Game.getObjectById(creepId);
-                if (!creep) return ProcessResult.FAILED;
+                if (!creep) return ProcessResult.FATAL;
                 if (creep.spawning) return ProcessResult.RUNNING;
 
                 // Switches working value if full or empty
@@ -152,7 +152,7 @@ export class Trucker extends CreepRole {
             const truckerScientistTask = () => {
                 Utils.Logger.log("CreepTask -> truckerScientistTask()", LogLevel.TRACE);
                 let creep = Game.getObjectById(creepId);
-                if (!creep) return ProcessResult.FAILED;
+                if (!creep) return ProcessResult.FATAL;
                 if (creep.spawning) return ProcessResult.RUNNING;
 
                 // Switches working value if full or empty
