@@ -20,6 +20,7 @@ export default class Kernel {
 
             switch (result) {
                 case ProcessResult.SUCCESS:
+                case ProcessResult.FATAL:
                     global.scheduler.removeProcess(value.id)
                     break
                 case ProcessResult.RUNNING:

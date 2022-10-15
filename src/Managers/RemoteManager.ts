@@ -14,7 +14,7 @@ export default class RemoteManager {
         const roomId = room.name
         const remoteTask = () => {
             let room = Game.rooms[roomId]
-            if (!room) return ProcessResult.FAILED
+            if (!room || !room.my) return ProcessResult.FATAL;
             //If room doesn't have remotes, fetch them.
             //TODO: Modify so that remotes are added if the number of allowed remotes changes.
             if ((!room.memory ||

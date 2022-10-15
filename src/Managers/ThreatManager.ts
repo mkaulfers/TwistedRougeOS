@@ -12,7 +12,7 @@ export default class ThreatManager {
         const monitorTask = () => {
             Utils.Logger.log(`ThreatManager -> ${roomProcessId}`, LogLevel.TRACE)
             let room = Game.rooms[roomName]
-            if (!room) return ProcessResult.FAILED;
+            if (!room || !room.my) return ProcessResult.FATAL;
 
             if (room.cache.recentlyAttacked == undefined) {
                 room.cache.recentlyAttacked = false
@@ -152,6 +152,7 @@ export default class ThreatManager {
         if ('rename' in creep) return true;
 
         let owner = creep.owner.username;
+        if (Utils.Typeguards.isDeveloper(owner)) return false;
 
         let towers = creep.room.towers;
         if (towers.length === 0) return false;

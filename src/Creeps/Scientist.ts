@@ -48,10 +48,8 @@ export class Scientist extends CreepRole {
                 Utils.Logger.log("CreepTask -> upgradingTask()", LogLevel.TRACE);
 
                 let creep = Game.getObjectById(creepId);
-                if (!creep) {
-                    Utils.Logger.log(creepId, LogLevel.FATAL);
-                    return ProcessResult.FAILED;
-                }
+                if (!creep) return ProcessResult.FATAL;
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 // Switches working value if full or empty
                 if (creep.memory.working == undefined) creep.memory.working = false;

@@ -1,5 +1,5 @@
 import { Logger } from './Logger';
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './Enums';
+import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from './Enums';
 import { Coord } from 'screeps-cartographer/dist/utils/packrat';
 
 interface IPrototype {
@@ -277,8 +277,8 @@ export class Utility {
             if (i >= 0) partLimits[i] += partLimits[i]
         });
 
-        tempSegment.forEach(function (p) {
-            partLimits[refPartLimitsArray.indexOf(p)] += freePartsPortion;
+        partLimits.forEach(function (p) {
+            partLimits[p] += freePartsPortion;
         })
         let unusedParts = 50 - (tempBody.length + (partLimits.reduce((previousValue, currentValue) => previousValue + currentValue)));
         for (let i = 0; unusedParts < 50; i >= tempSegment.length ? i = 0 : i++) {
@@ -330,7 +330,14 @@ export class Utility {
                         cm.set(anchorPos.x + x, anchorPos.y + y, 50);
                     }
                 }
-                cm.set(anchorPos.x, anchorPos.y, 50);
+            }
+
+            // Consider Anchor
+            if (room.memory.blueprint && room.isAnchorFunctional) {
+                const anchorStamp = room.memory.blueprint.stamps.find((s) => s.type === StampType.ANCHOR);
+                let anchorStampPos: RoomPosition | undefined;
+                if (anchorStamp) anchorStampPos = this.unpackPostionToRoom(anchorStamp.stampPos, room.name);
+                if (anchorStampPos) cm.set(anchorStampPos.x, anchorStampPos.y, 50);
             }
 
             room.cache.pathfindingCM = JSON.stringify(cm.serialize());

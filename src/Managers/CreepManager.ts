@@ -24,12 +24,13 @@ export default class CreepManager {
 
         const roomTaskMonitor = () => {
             let room = Game.rooms[roomName];
-            if (!room) return;
+            if (!room || !room.my) return ProcessResult.FATAL;
 
             for (const role of Object.values(Roles)) {
-                if (room.stationedCreeps.all.length < 1) return;
+                if (room.stationedCreeps.all.length < 1) return ProcessResult.RUNNING;
                 role.dispatch(room);
             }
+            return ProcessResult.RUNNING
         }
 
         let process = new Process(`${roomName}_task_monitor`, ProcessPriority.CRITICAL, roomTaskMonitor)

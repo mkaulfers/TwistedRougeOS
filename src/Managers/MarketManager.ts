@@ -10,6 +10,8 @@ export default class MarketManager {
 
         const task = () => {
             const room = Game.rooms[roomName];
+            if (!room || !room.my) return ProcessResult.FATAL;
+
             const terminal = room.terminal;
             const storage = room.storage;
             if (!terminal || !storage) return ProcessResult.RUNNING;

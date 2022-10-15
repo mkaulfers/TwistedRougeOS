@@ -100,6 +100,7 @@ export default class DataManager {
 
             for (const name in Memory.rooms) {
                 //Delete the room from Memory if it is not owned by me AND it does not contain intel.
+                if (Game.rooms[name] && Game.rooms[name].my && Memory.rooms[name].intel) delete Memory.rooms[name].intel;
                 if (!Game.rooms[name] && !Memory.rooms[name].intel) {
                     Utils.Logger.log(`Removing room: ${name}`, LogLevel.INFO)
                     delete Memory.rooms[name]

@@ -74,7 +74,8 @@ export class Harvester extends CreepRole {
             const earlyTask = () => {
                 Utils.Logger.log("CreepTask -> earlyTask()", LogLevel.TRACE)
                 let creep = Game.getObjectById(creepId)
-                if (!creep) return ProcessResult.FAILED
+                if (!creep) return ProcessResult.FATAL;
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 let closestSource: Source | undefined = undefined
 
@@ -113,7 +114,8 @@ export class Harvester extends CreepRole {
             const sourceTask = () => {
                 Utils.Logger.log("CreepTask -> sourceTask()", LogLevel.TRACE)
                 let creep = Game.getObjectById(creepId)
-                if (!creep) { return ProcessResult.FAILED }
+                if (!creep) return ProcessResult.FATAL;
+                if (creep.spawning) return ProcessResult.RUNNING;
 
                 let closestSource: Source | undefined = undefined
 

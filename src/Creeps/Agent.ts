@@ -41,7 +41,9 @@ export class Agent extends CreepRole {
 
             const agentTask = () => {
                 let creep = Game.getObjectById(creepId)
-                if (!creep) { return ProcessResult.FAILED }
+                if (!creep) return ProcessResult.FATAL;
+                if (creep.spawning) return ProcessResult.RUNNING;
+
                 let currentRoom = creep.room
                 let homeFrontiers = Game.rooms[creep.memory.homeRoom].memory.frontiers
 
