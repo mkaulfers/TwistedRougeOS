@@ -221,7 +221,7 @@ function generateNewPlan(room: Room) {
         }
     }
 
-    for (let rampartPos of rampartPositions) {
+    for (let rampartPos of uniqueRampartPositions) {
         room.memory.blueprint.ramparts = room.memory.blueprint.ramparts.concat(Utils.Utility.packPosition(new RoomPosition(rampartPos.x, rampartPos.y, room.name)))
     }
 

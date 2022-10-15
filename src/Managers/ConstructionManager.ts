@@ -79,6 +79,9 @@ export default class ConstructionManager {
                             let pos = Utils.Utility.unpackPostionToRoom(observer.stampPos, room.name)
                             Stamps.buildStructure(pos, observer.type)
                         }
+
+                        let anchorPos = Utils.Utility.unpackPostionToRoom(blueprint.anchor, room.name)
+                        anchorPos.createConstructionSite(STRUCTURE_LINK)
                     case 7:
                         hubSkipped.splice(hubSkipped.indexOf(STRUCTURE_LINK), 1)
                         hubSkipped.splice(hubSkipped.indexOf(STRUCTURE_FACTORY), 1)
@@ -120,24 +123,37 @@ export default class ConstructionManager {
                                 farthestSource = source
                             }
 
-                            if (farthestSource.pos.getRangeTo(blueprintAnchor) < source.pos.getRangeTo(blueprintAnchor)) {
+                            if (farthestSource.pos.getRangeTo(blueprintAnchor) <= source.pos.getRangeTo(blueprintAnchor)) {
                                 farthestSource = source
+                            }
+                        }
+
+                        //Sets the last link by instead setting the farthest source, to the closest source.
+                        if (room.structures(STRUCTURE_LINK).length >= 2) {
+                            for (let source of sources) {
+                                if (!farthestSource) farthestSource = source
+
+                                if (farthestSource.pos.getRangeTo(blueprintAnchor) >= source.pos.getRangeTo(blueprintAnchor)) {
+                                    farthestSource = source
+                                }
                             }
                         }
 
                         for (let link of links) {
                             let linkPos = Utils.Utility.unpackPostionToRoom(link, room.name)
-                            let controllerLinkInRange = linkPos.inRangeTo(controller, 4)
-                            if (controllerLinkInRange) {
-                                linkPos.createConstructionSite(STRUCTURE_LINK)
-                            }
 
-
+                            //Sets the farthest source Link
                             if (farthestSource) {
                                 let sourceLinkInRange = linkPos.inRangeTo(farthestSource.pos, 2)
                                 if (sourceLinkInRange) {
                                     linkPos.createConstructionSite(STRUCTURE_LINK)
                                 }
+                            }
+
+                            //Sets the controller link
+                            let controllerLinkInRange = linkPos.inRangeTo(controller, 2)
+                            if (controllerLinkInRange) {
+                                linkPos.createConstructionSite(STRUCTURE_LINK)
                             }
                         }
                     case 4:
