@@ -3,6 +3,7 @@ import { Utils } from "utils/Index";
 import { Stamps } from "Models/Stamps";
 import { getCutTiles, Rectangle, Coord } from './RampartPlanner';
 import { Utility } from './Utilities';
+import { exists } from 'fs';
 
 const buildOrder: (StampType)[] = [
     StampType.FAST_FILLER,
@@ -300,8 +301,6 @@ function floodFillSearch(room: Room, startPosition: RoomPosition, structure: Sta
 }
 
 function doesStampFitAtPosition(x: number, y: number, room: Room, structure: StampType, plannedPositions: RoomPosition[], roomVisual?: RoomVisual, controllerOverride: boolean = false): boolean {
-    if (x < 7 || y < 7) return false
-    if (x > 42 || y > 42) return false
     let controller = room.controller
     if (controller && !controllerOverride) {
         let controllerPos = controller.pos
@@ -344,6 +343,10 @@ function doesStampFitAtPosition(x: number, y: number, room: Room, structure: Sta
 
             let position = new RoomPosition(partPosition.x, partPosition.y, room.name)
             let positionResult = position.look()
+
+            for (let exit of room.exits ?? []) {
+                if (exit.inRangeTo(position.x, position.y, 7)) return false
+            }
 
             for (let result of positionResult) {
                 if (result.terrain == 'wall' ||
