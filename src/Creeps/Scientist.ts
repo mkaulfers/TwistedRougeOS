@@ -22,7 +22,8 @@ export class Scientist extends CreepRole {
         let controller = room.controller
         if (!controller) return 0
         let sciCount = rolesNeeded.filter(x => x == Role.SCIENTIST).length
-        if (min && min == true) return 0;
+        let sources = room.sources.length;
+        if (min && min == true) return rolesNeeded.filter(x => x == Role.HARVESTER).length < sources ? 0 : 1 - sciCount;
 
         let energyIncome = room.energyIncome == 0 ? room.sources.length * 10 : room.energyIncome;
         if (!this.partLimits || this.partLimits.length == 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
