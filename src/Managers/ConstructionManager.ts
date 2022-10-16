@@ -115,12 +115,6 @@ export default class ConstructionManager {
                             }
                         }
                     case 5:
-                        let packedRamparts = blueprint.ramparts
-                        for (let rampart of packedRamparts) {
-                            let pos = Utils.Utility.unpackPostionToRoom(rampart, room.name)
-                            pos.createConstructionSite(STRUCTURE_RAMPART)
-                        }
-
                         //Farthest Source Link
                         let links = blueprint.links
                         let sources = room.sources
@@ -164,6 +158,12 @@ export default class ConstructionManager {
                             if (controllerLinkInRange) {
                                 linkPos.createConstructionSite(STRUCTURE_LINK)
                             }
+                        }
+
+                        let packedRamparts = blueprint.ramparts
+                        for (let rampart of packedRamparts) {
+                            let pos = Utils.Utility.unpackPostionToRoom(rampart, room.name)
+                            pos.createConstructionSite(STRUCTURE_RAMPART)
                         }
                     case 4:
                         let extensions = blueprint.stamps.filter(x => x.type == StampType.EXTENSIONS)

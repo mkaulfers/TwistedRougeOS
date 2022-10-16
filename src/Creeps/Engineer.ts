@@ -85,9 +85,11 @@ export class Engineer extends CreepRole {
         Utils.Logger.log("quantityWanted -> engineer.quantityWanted()", LogLevel.TRACE)
         if (!(room.controller && room.controller.my && room.controller.level >= 2)) return 0;
         let engineerCount = rolesNeeded.filter(x => x == Role.ENGINEER).length
-        if (rolesNeeded.filter(x => x == Role.HARVESTER).length == 0 &&
+        let harCount = rolesNeeded.filter(x => x == Role.HARVESTER).length;
+        if (harCount == 0 &&
             rolesNeeded.filter(x => x == Role.TRUCKER).length == 0) return 0;
-        if (min && min == true) return 0;
+        let sources = room.sources.length;
+        if (min && min == true) return harCount < sources ? 0 : 1 - engineerCount;
         if (room.constructionSites().length == 0 && room.find(FIND_STRUCTURES).length == 0 ) return 0;
         if (room.constructionSites().length > 5) return engineerCount < 2 ? 2 - engineerCount : 0;
         if (room.constructionSites().length > 10) return engineerCount < 3 ? 3 - engineerCount : 0;
