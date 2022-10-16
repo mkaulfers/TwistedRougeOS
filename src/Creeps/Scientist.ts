@@ -74,18 +74,7 @@ export class Scientist extends CreepRole {
                 if (!controller) return ProcessResult.FAILED;
 
                 let result: number | undefined;
-                result = creep.praise(controller);
-                if (!working || creep.store.getUsedCapacity(RESOURCE_ENERGY) < (creep.store.getCapacity(RESOURCE_ENERGY) * 0.2)) {
-                    // Link targeting
-                    if (!creep.cache.supply && Game.time % 50 === 0) {
-                        let foundLink: StructureLink | undefined = controller.pos.findInRange(controller.room.links, 3)[0];
-                        if (foundLink) creep.cache.supply = foundLink.id;
-                    }
-                    let link = creep.cache.supply ? Game.getObjectById(creep.cache.supply) : undefined;
-                    if (link && link.store.getUsedCapacity(RESOURCE_ENERGY) > 0) result = creep.take(link, RESOURCE_ENERGY);
-                    else result = OK;
-                }
-
+                result = creep.praise(controller, working);
 
                 if (result === OK || result === ERR_NOT_ENOUGH_ENERGY) return ProcessResult.RUNNING;
                 Utils.Logger.log(`${creep.name} generated error code ${result} while attempting to praise ${controller.structureType}${JSON.stringify(controller.pos)}.`, LogLevel.ERROR);

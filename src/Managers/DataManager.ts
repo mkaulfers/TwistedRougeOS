@@ -33,10 +33,15 @@ declare global {
         claim?: string
         frontiers?: string[]
         intel?: RoomStatistics
-        rclZero?: number
+        rclOne?: number
+        rclTwo?: number
         rclThree?: number
         rclFour?: number
         rclFive?: number
+        rclSix?: number
+        rclSeven?: number
+        rclEight?: number
+
         // remotes?: RoomStatistics[]
         remoteSites?: {
             [roomName: string]: {
@@ -148,10 +153,14 @@ export default class DataManager {
                 // Temporary RCL tick tracker
                 let room = Game.rooms[roomName];
                 if (room.controller && room.controller.my) {
-                    if (!room.memory.rclZero) room.memory.rclZero = Game.time;
-                    if (room.controller.level == 3 && !room.memory.rclThree) room.memory.rclThree = Game.time - room.memory.rclZero;
-                    if (room.controller.level == 4 && !room.memory.rclFour) room.memory.rclFour = Game.time - room.memory.rclZero;
-                    if (room.controller.level == 5 && !room.memory.rclFive) room.memory.rclFive = Game.time - room.memory.rclZero;
+                    if (!room.memory.rclOne) room.memory.rclOne = Game.time;
+                    if (room.controller.level == 2 && !room.memory.rclTwo) room.memory.rclTwo = Game.time - room.memory.rclOne;
+                    if (room.controller.level == 3 && !room.memory.rclThree) room.memory.rclThree = Game.time - room.memory.rclOne;
+                    if (room.controller.level == 4 && !room.memory.rclFour) room.memory.rclFour = Game.time - room.memory.rclOne;
+                    if (room.controller.level == 5 && !room.memory.rclFive) room.memory.rclFive = Game.time - room.memory.rclOne;
+                    if (room.controller.level == 6 && !room.memory.rclSix) room.memory.rclSix = Game.time - room.memory.rclOne;
+                    if (room.controller.level == 7 && !room.memory.rclSeven) room.memory.rclSeven = Game.time - room.memory.rclOne;
+                    if (room.controller.level == 8 && !room.memory.rclEight) room.memory.rclEight = Game.time - room.memory.rclOne;
                 }
             }
             for (const name in Game.creeps) {
