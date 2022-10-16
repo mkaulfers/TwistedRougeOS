@@ -36,8 +36,16 @@ export class Scientist extends CreepRole {
 
     preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number {
         if (!room || !spawn || !room.controller) return 0;
+
+        // Calculate Move Speed
+        if (!this.partLimits || this.partLimits.length == 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
+        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
+        let body = this[room.spawnEnergyLimit];
+        let moveCount = body.filter(p => p == MOVE).length;
+        let moveRate = (body.length - moveCount) / (moveCount * 2)
+
         // return path dist to controller
-        return room.findPath(spawn.pos, room.controller.pos, { range: 3 }).length;
+        return room.findPath(spawn.pos, room.controller.pos, { range: 3 }).length * moveRate;
     }
 
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
