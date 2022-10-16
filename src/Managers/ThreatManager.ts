@@ -49,12 +49,11 @@ export default class ThreatManager {
                         for (let enemy of playerAttackers) {
                             if (!this.canKill(enemy)) continue;
                             let eRelBodyLength = enemy.body.filter((p) => { return (p.type === WORK || p.type === ATTACK || p.type === RANGED_ATTACK)}).length;
-                            if (currentRelBodyLength && currentRelBodyLength < eRelBodyLength) {
+                            if (!potential || (currentRelBodyLength && currentRelBodyLength < eRelBodyLength)) {
                                 potential = enemy;
                                 currentRelBodyLength = eRelBodyLength;
                             }
                         }
-
                         if (potential) {
                             room.cache.towerTarget = potential.id;
                         }
@@ -152,7 +151,7 @@ export default class ThreatManager {
         if ('rename' in creep) return true;
 
         let owner = creep.owner.username;
-        if (Utils.Typeguards.isDeveloper(owner)) return false;
+        // if (Utils.Typeguards.isDeveloper(owner)) return false;
 
         let towers = creep.room.towers;
         if (towers.length === 0) return false;
