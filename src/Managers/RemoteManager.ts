@@ -35,8 +35,8 @@ export default class RemoteManager {
         let roomsInMemory = Object.values(Memory.rooms).filter(
             x => x.intel &&
                 Game.map.getRoomLinearDistance(room.name, x.intel?.name ?? "") <= 3 &&
-                x.intel && x.intel.sources &&
-                x.intel.sources.length < 3
+                x.intel && x.intel.sourceDetail &&
+                Object.keys(x.intel.sourceDetail).length < 3
         )
 
         let roomFrontiers = room.memory.frontiers
@@ -57,10 +57,10 @@ export default class RemoteManager {
 
             if (existsInFrontiers) {
                 if (selectedRemotes.length >= this.allowedNumberOfRemotes) break
-                let sourceIds = intel.sources
+                let sourceIds = intel.sourceDetail
                 let threatLevel = intel.threatLevel
 
-                if (sourceIds && sourceIds.length > 0 && threatLevel < 1) {
+                if (sourceIds && Object.keys(sourceIds).length > 0 && threatLevel < 1) {
                     if (selectedRemotes.includes(intel)) continue
                     selectedRemotes.push(intel)
                 }
@@ -72,13 +72,7 @@ export default class RemoteManager {
 
         for (let remote of selectedRemotes) {
             if (!room.memory.remoteSites) room.memory.remoteSites = {}
-            room.memory.remoteSites[remote.name] = {
-                sourcePositions: remote.sources ?? [],
-                assignedHarvesters: [],
-                assignedTruckers: [],
-                assignedEngineers: [],
-                assignedClaimers: []
-            }
+            room.memory.remoteSites[remote.name].sourceDetail = remote.sourceDetail ?? {}
         }
     }
 }

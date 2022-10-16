@@ -45,11 +45,16 @@ declare global {
         // remotes?: RoomStatistics[]
         remoteSites?: {
             [roomName: string]: {
-                sourcePositions: { targetId: Id<any>, x: number, y: number }[],
-                assignedHarvesters: Id<Creep>[],
-                assignedTruckers: Id<Creep>[],
-                assignedEngineers: Id<Creep>[],
-                assignedClaimers: Id<Creep>[]
+                sourceDetail: {
+                    [sourceId: Id<Source>]: {
+                        posCount: number,
+                        x: number,
+                        y: number,
+                        assignedHarvIds: Id<Creep>[],
+                        assignedTruckerIds: Id<Creep>[],
+                        assignedEngIds: Id<Creep>[]
+                    }
+                }
             }
         }
     }

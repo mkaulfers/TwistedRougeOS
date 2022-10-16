@@ -14,11 +14,16 @@ export class RoomStatistics {
     highestDT: number
     threatLevel: DangerLevel
 
-    sources?: {
-        targetId: Id<any>,
-        x: number,
-        y: number
-    }[]
+    sourceDetail?: {
+        [id: Id<Source>]: {
+            posCount: number,
+            x: number,
+            y: number,
+            assignedHarvIds: Id<Creep>[],
+            assignedTruckerIds: Id<Creep>[],
+            assignedEngIds: Id<Creep>[]
+        }
+    }
 
     powerBankId?: string
     publicTerminalId?: string
@@ -39,7 +44,16 @@ export class RoomStatistics {
         wallCount: number,
         highestDT: number,
         threatLevel: number,
-        sources?: {targetId: Id<any>, x: number, y: number}[],
+        sourceDetail?: {
+            [id: Id<Source>]: {
+                posCount: number,
+                x: number,
+                y: number,
+                assignedHarvIds: Id<Creep>[],
+                assignedTruckerIds: Id<Creep>[],
+                assignedEngIds: Id<Creep>[]
+            }
+        },
         powerBankId?: string,
         publicTerminalId?: string,
         portal?: PortalDetail,
@@ -56,7 +70,7 @@ export class RoomStatistics {
         this.wallCount = wallCount
         this.highestDT = highestDT
         this.threatLevel = threatLevel
-        this.sources = sources
+        this.sourceDetail = sourceDetail
         this.powerBankId = powerBankId
         this.publicTerminalId = publicTerminalId
         this.portal = portal
