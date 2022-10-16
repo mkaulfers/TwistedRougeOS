@@ -25,14 +25,26 @@ export class NetworkHarvester extends CreepRole {
 
         let networkHarvesters = rolesNeeded.filter(x => x == Role.nHARVESTER).length
         let remotes = room.memory.remoteSites || {}
-        let sourceCount = 0
 
+        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
+        let workCount = this[room.spawnEnergyLimit].filter(p => p == WORK).length
+        let shouldBe = Math.ceil(6 / workCount);
+
+        let finalCount = 0
         for (let remoteName in remotes) {
             let remote = remotes[remoteName]
-            sourceCount += Object.keys(remote.sourceDetail).length
+
+            for (let sourceId in remote.sourceDetail) {
+                let sourceDetail = remote.sourceDetail[sourceId as Id<Source>]
+                if (shouldBe > sourceDetail.posCount) {
+                    finalCount += sourceDetail.posCount
+                } else {
+                    finalCount += shouldBe
+                }
+            }
         }
 
-        return sourceCount - networkHarvesters;
+        return networkHarvesters < finalCount ? finalCount - networkHarvesters : 0;
     }
 
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
@@ -187,7 +199,7 @@ export class NetworkHarvester extends CreepRole {
                 //TODO: The 5 should be changed to a variable that is based on the source energy availability.
                 if ((sourceDetail.posCount > sourceDetail.assignedHarvIds.length) && this.getTotalHarvEnergyHarvestedPerTick(sourceDetail) < 5) {
                     creep.memory.remoteTarget = {}
-                    creep.memory.remoteTarget[remote] = {targetId: sourceId as Id<Source>, x: sourceDetail.x, y: sourceDetail.y}
+                    creep.memory.remoteTarget[remote] = { targetId: sourceId as Id<Source>, x: sourceDetail.x, y: sourceDetail.y }
                     baseRoom.memory.remoteSites[remote].sourceDetail[sourceId as Id<Source>].assignedHarvIds.push(creep.id)
                     return
                 }
