@@ -61,7 +61,7 @@ export class NetworkHarvester extends CreepRole {
                 if (!creep.memory.working) {
                     let controller = Game.rooms[creep.memory.homeRoom].controller
                     if (!controller) return ProcessResult.FATAL
-                    creep.praise(controller)
+                    creep.praise(controller, false)
                 }
 
                 //Remote Logic
