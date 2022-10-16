@@ -18,7 +18,7 @@ declare global {
         /** Non-Civilian pathing defaults */
         moveToDefault(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number
         nMRController(target: string): number
-        praise(target: StructureController): number
+        praise(target: StructureController, working: boolean): number
         take(target: AnyStoreStructure | Resource | Tombstone, resource: ResourceConstant, quantity?: number): number
         /** Civilian pathing defaults */
         travel(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number
@@ -235,10 +235,22 @@ export default class Creep_Extended extends Creep {
         return OK;
     }
 
-    praise(target: StructureController): number {
+    praise(target: StructureController, working: boolean): number {
         Utils.Logger.log("Creep -> praise()", LogLevel.TRACE)
 
-        this.travel({ pos: target.pos, range: 3 });
+        // Link targeting
+        if (!this.cache.supply && Game.time % 50 === 0) {
+            let foundLink: StructureLink | undefined = target.pos.findInRange(target.room.links, 3)[0];
+            if (foundLink) this.cache.supply = foundLink.id;
+        }
+        let link = this.cache.supply ? Game.getObjectById(this.cache.supply) : undefined;
+
+        if ((!working ||
+            this.store.getUsedCapacity(RESOURCE_ENERGY) < (this.store.getCapacity(RESOURCE_ENERGY) * 0.2)) &&
+            link &&
+            link.store.getUsedCapacity(RESOURCE_ENERGY) > 0) this.take(link, RESOURCE_ENERGY);
+
+        this.travel({ pos: link ? link.pos : target.pos, range: link ? 1 : 3 });
         let result: number = this.upgradeController(target);
 
         if (!target.isSigned) {

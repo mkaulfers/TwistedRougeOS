@@ -83,15 +83,56 @@ export default class ConstructionManager {
                             Stamps.buildStructure(pos, observer.type)
                         }
 
-                        let anchorPos = Utils.Utility.unpackPostionToRoom(blueprint.anchor, room.name)
-                        anchorPos.createConstructionSite(STRUCTURE_LINK)
+                        // Place last source link
+                        for (let link of blueprint.links) {
+                            let linkPos = Utils.Utility.unpackPostionToRoom(link, room.name)
+                            if (linkPos.lookFor(LOOK_STRUCTURES).findIndex(s => s.structureType === STRUCTURE_LINK) >= 0) continue;
+                            linkPos.createConstructionSite(STRUCTURE_LINK);
+                        }
+
                     case 7:
-                        hubSkipped.splice(hubSkipped.indexOf(STRUCTURE_LINK), 1)
                         hubSkipped.splice(hubSkipped.indexOf(STRUCTURE_FACTORY), 1)
                         fastFillerStructuresSkipped.splice(fastFillerStructuresSkipped.indexOf(STRUCTURE_SPAWN), 1)
+
+                        let farthestSource: Source | undefined = undefined
+                        let blueprintAnchor = Utils.Utility.unpackPostionToRoom(blueprint.anchor, room.name)
+
+                        for (let source of room.sources) {
+                            if (!farthestSource) {
+                                farthestSource = source
+                            }
+
+                            if (farthestSource.pos.getRangeTo(blueprintAnchor) <= source.pos.getRangeTo(blueprintAnchor)) {
+                                farthestSource = source
+                            }
+                        }
+
+                        //Sets the last link by instead setting the farthest source, to the closest source.
+                        if (room.structures(STRUCTURE_LINK).length >= 2) {
+                            for (let source of room.sources) {
+                                if (!farthestSource) farthestSource = source
+
+                                if (farthestSource.pos.getRangeTo(blueprintAnchor) >= source.pos.getRangeTo(blueprintAnchor)) {
+                                    farthestSource = source
+                                }
+                            }
+                        }
+
+                        for (let link of blueprint.links) {
+                            let linkPos = Utils.Utility.unpackPostionToRoom(link, room.name)
+
+                            //Sets the farthest source Link
+                            if (farthestSource) {
+                                let sourceLinkInRange = linkPos.inRangeTo(farthestSource.pos, 2)
+                                if (sourceLinkInRange) {
+                                    linkPos.createConstructionSite(STRUCTURE_LINK)
+                                }
+                            }
+                        }
                     case 6:
-                        //Last Source Link
-                        //Extractor
+                        // FF Link
+                        fastFillerStructuresSkipped.splice(fastFillerStructuresSkipped.indexOf(STRUCTURE_LINK), 1)
+
                         // Remove STRUCTURE_TERMINAL from hubSkipped
                         hubSkipped.splice(hubSkipped.indexOf(STRUCTURE_TERMINAL), 1)
 
@@ -106,6 +147,7 @@ export default class ConstructionManager {
                             }
                         }
 
+                        // Extractor
                         let mineral = room.mineral;
                         if (mineral) mineral.pos.createConstructionSite(STRUCTURE_EXTRACTOR);
                         for (let container of containers) {
@@ -115,43 +157,15 @@ export default class ConstructionManager {
                             }
                         }
                     case 5:
+
+                        // Anchor Link
+                        hubSkipped.splice(hubSkipped.indexOf(STRUCTURE_LINK), 1)
+
                         //Farthest Source Link
                         let links = blueprint.links
-                        let sources = room.sources
-                        let blueprintAnchor = Utils.Utility.unpackPostionToRoom(blueprint.anchor, room.name)
-                        let farthestSource: Source | undefined = undefined
-
-                        for (let source of sources) {
-                            if (!farthestSource) {
-                                farthestSource = source
-                            }
-
-                            if (farthestSource.pos.getRangeTo(blueprintAnchor) <= source.pos.getRangeTo(blueprintAnchor)) {
-                                farthestSource = source
-                            }
-                        }
-
-                        //Sets the last link by instead setting the farthest source, to the closest source.
-                        if (room.structures(STRUCTURE_LINK).length >= 2) {
-                            for (let source of sources) {
-                                if (!farthestSource) farthestSource = source
-
-                                if (farthestSource.pos.getRangeTo(blueprintAnchor) >= source.pos.getRangeTo(blueprintAnchor)) {
-                                    farthestSource = source
-                                }
-                            }
-                        }
 
                         for (let link of links) {
                             let linkPos = Utils.Utility.unpackPostionToRoom(link, room.name)
-
-                            //Sets the farthest source Link
-                            if (farthestSource) {
-                                let sourceLinkInRange = linkPos.inRangeTo(farthestSource.pos, 2)
-                                if (sourceLinkInRange) {
-                                    linkPos.createConstructionSite(STRUCTURE_LINK)
-                                }
-                            }
 
                             //Sets the controller link
                             let controllerLinkInRange = linkPos.inRangeTo(controller, 2)
