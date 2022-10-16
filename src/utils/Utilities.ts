@@ -185,8 +185,8 @@ export class Utility {
     static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], override?: boolean, sortOrder?: { [key in BodyPartConstant]?: number }): BodyPartConstant[] {
         Logger.log("SpawnManager -> getBodyFor()", LogLevel.TRACE)
 
-        let tempBody = baseBody;
-        let tempSegment = segment;
+        let tempBody = [...baseBody];
+        let tempSegment = [...segment];
 
         // Build partLimits
 
@@ -265,27 +265,37 @@ export class Utility {
      */
     static buildPartLimits(tempBody: BodyPartConstant[], tempSegment: BodyPartConstant[]): number[] {
         Logger.log("SpawnManager -> buildPartLimits()", LogLevel.TRACE)
-        if (tempSegment.length == 0) return [];
+        // Separate delivered from used
+        let usedBody = [...tempBody];
+        let usedSegment = [...tempSegment];
+
+        if (usedSegment.length == 0) return [];
         // Builds a proportional partLimits that mimics the segments ratios while fully utilizing the max body size.
-        const refPartLimitsArray = tempSegment.filter((p, i) => tempSegment.indexOf(p) === i);
-        let freePartsPortion = Math.floor((50 - tempBody.length) / tempSegment.length);
+        const refPartLimitsArray = usedSegment.filter((p, i) => usedSegment.indexOf(p) === i);
+        console.log(`refPartLimitsArray: ${JSON.stringify(refPartLimitsArray)}.`);
+        let freePartsPortion = Math.floor((50 - usedBody.length) / usedSegment.length);
         let partLimits: number[] = [];
 
         refPartLimitsArray.forEach((p, i) => partLimits[i] = 0);
-        tempBody.forEach(function (p) {
+        usedBody.forEach(function (p) {
             let i = refPartLimitsArray.indexOf(p);
             if (i >= 0) partLimits[i] += partLimits[i]
         });
-
-        partLimits.forEach(function (p) {
-            partLimits[p] += freePartsPortion;
+        console.log(partLimits);
+        usedSegment.forEach(function (p) {
+            partLimits[refPartLimitsArray.indexOf(p)] += freePartsPortion;
         })
-        let unusedParts = 50 - (tempBody.length + (partLimits.reduce((previousValue, currentValue) => previousValue + currentValue)));
-        for (let i = 0; unusedParts < 50; i >= tempSegment.length ? i = 0 : i++) {
-            partLimits[refPartLimitsArray.indexOf(tempSegment[i])] += 1;
-            unusedParts++;
-        }
+        console.log(partLimits);
+        console.log((partLimits.reduce((previousValue, currentValue) => previousValue + currentValue)))
+        let unusedParts = 50 - partLimits.reduce((previousValue, currentValue) => previousValue + currentValue);
+        console.log(unusedParts);
+        for (let i = 0; i < unusedParts; i++) {
+            let segIndex: number = i;
+            while (segIndex >= usedSegment.length) segIndex -= usedSegment.length;
 
+            partLimits[refPartLimitsArray.indexOf(usedSegment[segIndex])] += 1;
+        }
+        console.log(partLimits);
         return partLimits;
     }
 
