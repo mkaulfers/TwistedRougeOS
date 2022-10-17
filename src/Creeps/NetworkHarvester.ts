@@ -25,18 +25,30 @@ export class NetworkHarvester extends CreepRole {
 
         let networkHarvesters = rolesNeeded.filter(x => x == Role.nHARVESTER).length
         let remotes = room.memory.remoteSites || {}
-        let sourceCount = 0
 
+        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
+        let workCount = this[room.spawnEnergyLimit].filter(p => p == WORK).length
+        let shouldBe = Math.ceil(6 / workCount);
+
+        let finalCount = 0
         for (let remoteName in remotes) {
             let remote = remotes[remoteName]
-            sourceCount += remote.sourcePositions ? remote.sourcePositions.length : 0
+
+            for (let sourceId in remote.sourceDetail) {
+                let sourceDetail = remote.sourceDetail[sourceId as Id<Source>]
+                if (shouldBe > sourceDetail.posCount) {
+                    finalCount += sourceDetail.posCount
+                } else {
+                    finalCount += shouldBe
+                }
+            }
         }
 
-        return sourceCount - networkHarvesters;
+        return networkHarvesters < finalCount ? finalCount - networkHarvesters : 0;
     }
 
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
-        nHarvesting_early: function(creep: Creep) {
+        nHarvesting_early: function (creep: Creep) {
             let creepId = creep.id
 
             const networkHarvestingEarlyTask = () => {
@@ -61,7 +73,7 @@ export class NetworkHarvester extends CreepRole {
                 if (!creep.memory.working) {
                     let controller = Game.rooms[creep.memory.homeRoom].controller
                     if (!controller) return ProcessResult.FATAL
-                    creep.praise(controller)
+                    creep.praise(controller, false)
                 }
 
                 //Remote Logic
@@ -150,8 +162,10 @@ export class NetworkHarvester extends CreepRole {
                     let remoteRoomName = Object.keys(creep.memory.remoteTarget)[0]
                     let remoteRoom = Memory.rooms[remoteRoomName]
                     if (remoteRoom && remoteRoom.remoteSites) {
-                        let remoteHarvesters = remoteRoom.remoteSites[remoteRoomName].assignedHarvesters
-                        remoteRoom.remoteSites[remoteRoomName].assignedHarvesters.splice(remoteHarvesters.indexOf(creep.id), 1)
+                        let creepTargetId = creep.memory.remoteTarget[remoteRoomName].targetId
+                        let sourceDetail = remoteRoom.remoteSites[remoteRoomName].sourceDetail[creepTargetId]
+                        let remoteHarvesters = sourceDetail.assignedHarvIds
+                        sourceDetail.assignedHarvIds.splice(remoteHarvesters.indexOf(creep.id), 1)
                     }
                 }
 
@@ -173,25 +187,22 @@ export class NetworkHarvester extends CreepRole {
         if (!baseRoom.memory.remoteSites) return
         this.validateRemoteHarvesters(baseRoom)
 
-        let stationedNetHarvs = baseRoom.stationedCreeps.nHarvester
         let remotes = baseRoom.memory.remoteSites || {}
 
-        let harvesterSourceTarget: { [roomName: string]: { targetId: Id<any>, x: number, y: number } } = {}
-
         for (let remote in remotes) {
-            let harvsAssignedToRemote = stationedNetHarvs.filter(x => x.memory.remoteTarget && Object.keys(x.memory.remoteTarget).includes(remote))
-            let sourceIds = [...remotes[remote].sourcePositions]
+            let remoteSite = remotes[remote]
+            let sourcesDetail = remoteSite.sourceDetail
 
-            for (let assignedHarvester of harvsAssignedToRemote) {
-                if (!assignedHarvester.memory.remoteTarget) continue
-                sourceIds.splice(sourceIds.indexOf(assignedHarvester.memory.remoteTarget[remote]), 1)
-            }
+            for (let sourceId in sourcesDetail) {
+                let sourceDetail = sourcesDetail[sourceId as Id<Source>]
 
-            if (sourceIds.length > 0) {
-                harvesterSourceTarget[remote] = sourceIds[0]
-                creep.memory.remoteTarget = harvesterSourceTarget
-                baseRoom.memory.remoteSites[remote].assignedHarvesters.push(creep.id)
-                return
+                //TODO: The 5 should be changed to a variable that is based on the source energy availability.
+                if ((sourceDetail.posCount > sourceDetail.assignedHarvIds.length) && this.getTotalHarvEnergyHarvestedPerTick(sourceDetail) < 5) {
+                    creep.memory.remoteTarget = {}
+                    creep.memory.remoteTarget[remote] = { targetId: sourceId as Id<Source>, x: sourceDetail.x, y: sourceDetail.y }
+                    baseRoom.memory.remoteSites[remote].sourceDetail[sourceId as Id<Source>].assignedHarvIds.push(creep.id)
+                    return
+                }
             }
         }
     }
@@ -205,16 +216,21 @@ export class NetworkHarvester extends CreepRole {
 
         for (let remote in baseRoom.memory.remoteSites) {
             let remoteSite = baseRoom.memory.remoteSites[remote]
+            let sourcesDetail = remoteSite.sourceDetail
 
-            for (let harv of remoteSite.assignedHarvesters) {
-                let creep = Game.getObjectById(harv)
-                if (creep) {
-                    updatedAssignedHarvesters.push(creep.id)
+            for (let sourceId in sourcesDetail) {
+                let sourceDetail = sourcesDetail[sourceId as Id<Source>]
+
+                for (let harvId of sourceDetail.assignedHarvIds) {
+                    let creep = Game.getObjectById(harvId)
+                    if (creep) {
+                        updatedAssignedHarvesters.push(creep.id)
+                    }
                 }
-            }
 
-            baseRoom.memory.remoteSites[remote].assignedHarvesters = updatedAssignedHarvesters
-            updatedAssignedHarvesters = []
+                baseRoom.memory.remoteSites[remote].sourceDetail[sourceId as Id<Source>].assignedHarvIds = updatedAssignedHarvesters
+                updatedAssignedHarvesters = []
+            }
         }
     }
 
@@ -236,6 +252,31 @@ export class NetworkHarvester extends CreepRole {
     private static getContainer(sourcePos: RoomPosition): Structure<STRUCTURE_CONTAINER> | undefined {
         let container = sourcePos.findInRange(FIND_STRUCTURES, 1, { filter: x => x.structureType == STRUCTURE_CONTAINER })[0]
         return container as Structure<STRUCTURE_CONTAINER> | undefined
+    }
+
+    /**
+     * Gets the total # of WORK parts for all harvesters in the sourceDetail.
+     * @param sourceDetail The sourceDetail to get the total WORK parts for.
+     * @returns The total # of WORK parts for all harvesters in the sourceDetail * 2
+     */
+    private static getTotalHarvEnergyHarvestedPerTick(sourceDetail: {
+        posCount: number;
+        x: number;
+        y: number;
+        assignedHarvIds: Id<Creep>[];
+        assignedTruckerIds: Id<Creep>[];
+        assignedEngIds: Id<Creep>[];
+    }): number {
+        let harvWorkPartsCount = 0
+
+        for (let harv of sourceDetail.assignedHarvIds) {
+            let creep = Game.creeps[harv]
+            if (creep) {
+                harvWorkPartsCount += creep.getActiveBodyparts(WORK)
+            }
+        }
+
+        return harvWorkPartsCount * 2
     }
 }
 

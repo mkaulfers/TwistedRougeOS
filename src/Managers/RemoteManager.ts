@@ -1,6 +1,6 @@
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
-import { LogLevel, ProcessPriority, ProcessResult } from "utils/Enums"
+import { ProcessPriority, ProcessResult } from "utils/Enums"
 
 export default class RemoteManager {
     /**
@@ -35,8 +35,8 @@ export default class RemoteManager {
         let roomsInMemory = Object.values(Memory.rooms).filter(
             x => x.intel &&
                 Game.map.getRoomLinearDistance(room.name, x.intel?.name ?? "") <= 3 &&
-                x.intel && x.intel.sources &&
-                x.intel.sources.length < 3
+                x.intel && x.intel.sourceDetail &&
+                Object.keys(x.intel.sourceDetail).length < 3
         )
 
         let roomFrontiers = room.memory.frontiers
@@ -57,10 +57,10 @@ export default class RemoteManager {
 
             if (existsInFrontiers) {
                 if (selectedRemotes.length >= this.allowedNumberOfRemotes) break
-                let sourceIds = intel.sources
+                let sourceIds = intel.sourceDetail
                 let threatLevel = intel.threatLevel
 
-                if (sourceIds && sourceIds.length > 0 && threatLevel < 1) {
+                if (sourceIds && Object.keys(sourceIds).length > 0 && threatLevel < 1) {
                     if (selectedRemotes.includes(intel)) continue
                     selectedRemotes.push(intel)
                 }
@@ -69,16 +69,10 @@ export default class RemoteManager {
 
         //TODO: Add a pass that checks our remotes as they stand, if their PathFinder.path(x -> y) is greater than 4 * 50 = 200 then remove them and do a final pass.
         //TODO: Alternatively, create a function that checks via Pathfinder to and never allows it to be greater than 200.
-
         for (let remote of selectedRemotes) {
             if (!room.memory.remoteSites) room.memory.remoteSites = {}
-            room.memory.remoteSites[remote.name] = {
-                sourcePositions: remote.sources ?? [],
-                assignedHarvesters: [],
-                assignedTruckers: [],
-                assignedEngineers: [],
-                assignedClaimers: []
-            }
+            if (!room.memory.remoteSites[remote.name]) room.memory.remoteSites[remote.name] = {sourceDetail: {}}
+            room.memory.remoteSites[remote.name].sourceDetail = remote.sourceDetail ?? {}
         }
     }
 }

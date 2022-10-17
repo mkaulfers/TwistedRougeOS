@@ -113,10 +113,20 @@ export class Agent extends CreepRole {
         let threatLevel = this.getThreatLevel(room)
 
         let sources = room.sources
-        let sourceInfo: { targetId: Id<any>, x: number, y: number }[] = []
+        let sourceDetail: {
+            [id: string]: {
+                posCount: number,
+                x: number,
+                y: number,
+                assignedHarvIds: Id<Creep>[],
+                assignedTruckerIds: Id<Creep>[],
+                assignedEngIds: Id<Creep>[]
+            }
+        } = {}
 
         for (let source of sources) {
-            sourceInfo.push({ targetId: source.id, x: source.pos.x, y: source.pos.y })
+            let count = source.validPositions.length
+            sourceDetail[source.id] = { posCount: count, x: source.pos.x, y: source.pos.y, assignedHarvIds: [], assignedTruckerIds: [], assignedEngIds: [] }
         }
 
         let powerBankId = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_POWER_BANK })[0]?.id
@@ -148,7 +158,7 @@ export class Agent extends CreepRole {
             wallCount,
             highestDT,
             threatLevel,
-            sourceInfo,
+            sourceDetail,
             powerBankId,
             publicTerminalId,
             portalDetails,
