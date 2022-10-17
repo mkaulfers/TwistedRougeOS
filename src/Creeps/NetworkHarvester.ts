@@ -154,7 +154,6 @@ export class NetworkHarvester extends CreepRole {
                                         creep.work(containerConstructionSite)
                                     }
 
-                                    creep.mine(target)
                                 }
                             }
 
@@ -167,6 +166,8 @@ export class NetworkHarvester extends CreepRole {
                             if (creep.memory.working == false && usedCapacity == creepEnergyMax) {
                                 creep.memory.working = true
                             }
+
+                            creep.mine(target)
                         }
                     }
                 }

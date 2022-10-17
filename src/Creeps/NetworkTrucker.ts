@@ -33,7 +33,7 @@ export class NetworkTrucker extends Trucker {
 
         for (let remoteName in remotes) {
             let remote = remotes[remoteName]
-            sourceCount += remote.sourcePositions ? remote.sourcePositions.length : 0
+            sourceCount += Object.keys(remote.sourceDetail).length
         }
 
         return sourceCount - networkHaulers;
@@ -115,8 +115,10 @@ export class NetworkTrucker extends Trucker {
                     let remoteRoomName = Object.keys(creep.memory.remoteTarget)[0]
                     let remoteRoom = Memory.rooms[remoteRoomName]
                     if (remoteRoom && remoteRoom.remoteSites) {
-                        let remoteHarvesters = remoteRoom.remoteSites[remoteRoomName].assignedTruckers
-                        remoteRoom.remoteSites[remoteRoomName].assignedTruckers.splice(remoteHarvesters.indexOf(creep.id), 1)
+                        let creepTargetId = creep.memory.remoteTarget[remoteRoomName].targetId
+                        let sourceDetail = remoteRoom.remoteSites[remoteRoomName].sourceDetail[creepTargetId]
+                        let remoteTrucker = sourceDetail.assignedTruckerIds
+                        sourceDetail.assignedHarvIds.splice(remoteTrucker.indexOf(creep.id), 1)
                     }
                 }
 
@@ -156,25 +158,21 @@ export class NetworkTrucker extends Trucker {
         if (!baseRoom.memory.remoteSites) return
         this.validateRemoteTruckers(baseRoom)
 
-        let stationedNetTruckers = baseRoom.stationedCreeps.nTrucker
         let remotes = baseRoom.memory.remoteSites || {}
 
-        let sourceTarget: { [roomName: string]: { targetId: Id<any>, x: number, y: number } } = {}
-
         for (let remote in remotes) {
-            let truckersAssignedToRemote = stationedNetTruckers.filter(x => x.memory.remoteTarget && Object.keys(x.memory.remoteTarget).includes(remote))
-            let sourceIds = [...remotes[remote].sourcePositions]
+            let remoteSite = remotes[remote]
+            let sourcesDetail = remoteSite.sourceDetail
 
-            for (let assignedTrucker of truckersAssignedToRemote) {
-                if (!assignedTrucker.memory.remoteTarget) continue
-                sourceIds.splice(sourceIds.indexOf(assignedTrucker.memory.remoteTarget[remote]), 1)
-            }
+            for (let sourceId in sourcesDetail) {
+                let sourceDetail = sourcesDetail[sourceId as Id<Source>]
 
-            if (sourceIds.length > 0) {
-                sourceTarget[remote] = sourceIds[0]
-                creep.memory.remoteTarget = sourceTarget
-                baseRoom.memory.remoteSites[remote].assignedTruckers.push(creep.id)
-                return
+                //TODO: The 5 should be changed to a variable that is based on the source energy availability.
+                if (sourceDetail.assignedTruckerIds.length < Object.keys(sourcesDetail).length) {
+                    creep.memory.remoteTarget = {}
+                    creep.memory.remoteTarget[remote] = { targetId: sourceId as Id<Source>, x: sourceDetail.x, y: sourceDetail.y }
+                    baseRoom.memory.remoteSites[remote].sourceDetail[sourceId as Id<Source>].assignedTruckerIds.push(creep.id)
+                }
             }
         }
     }
@@ -184,16 +182,21 @@ export class NetworkTrucker extends Trucker {
 
         for (let remote in baseRoom.memory.remoteSites) {
             let remoteSite = baseRoom.memory.remoteSites[remote]
+            let sourcesDetail = remoteSite.sourceDetail
 
-            for (let trucker of remoteSite.assignedTruckers) {
-                let creep = Game.getObjectById(trucker)
-                if (creep) {
-                    updatedAssignedTruckers.push(creep.id)
+            for (let sourceId in sourcesDetail) {
+                let sourceDetail = sourcesDetail[sourceId as Id<Source>]
+
+                for (let truckerId of sourceDetail.assignedTruckerIds) {
+                    let creep = Game.getObjectById(truckerId)
+                    if (creep) {
+                        updatedAssignedTruckers.push(creep.id)
+                    }
                 }
-            }
 
-            baseRoom.memory.remoteSites[remote].assignedTruckers = updatedAssignedTruckers
-            updatedAssignedTruckers = []
+                baseRoom.memory.remoteSites[remote].sourceDetail[sourceId as Id<Source>].assignedTruckerIds = updatedAssignedTruckers
+                updatedAssignedTruckers = []
+            }
         }
     }
 }
