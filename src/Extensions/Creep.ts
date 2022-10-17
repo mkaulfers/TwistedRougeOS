@@ -341,6 +341,8 @@ export default class Creep_Extended extends Creep {
 
     work(target: Structure | ConstructionSite): number {
         Utils.Logger.log("Creep -> work()", LogLevel.TRACE)
+        if (!target) return ERR_INVALID_TARGET;
+
         this.travel({ pos: target.pos, range: 3 });
         let result: number;
         if ('remove' in target) {
