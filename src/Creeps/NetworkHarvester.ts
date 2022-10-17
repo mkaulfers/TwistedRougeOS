@@ -2,6 +2,7 @@ import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
 import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums";
 import { Utils } from "utils/Index";
+import { Logger } from "utils/Logger";
 import { Harvester } from "./Harvester";
 
 export class NetworkHarvester extends CreepRole {
@@ -87,8 +88,14 @@ export class NetworkHarvester extends CreepRole {
                     if (creep.room.name != remoteRoomPosition.roomName) {
                         creep.travel(remoteRoomPosition)
                     } else {
-                        let target = Game.getObjectById(remoteTarget[remoteName].targetId)
-                        creep.mine(target)
+                        let target = Game.getObjectById(remoteTarget[remoteName].targetId) as Source
+
+                        let structures = target.pos.findInRange(FIND_STRUCTURES, 1, { filter: s => s.structureType == STRUCTURE_WALL })
+                        if (structures.length > 0) {
+                            creep.destroy(structures[0])
+                        } else {
+                            creep.mine(target)
+                        }
                     }
                 }
 
@@ -120,26 +127,32 @@ export class NetworkHarvester extends CreepRole {
                     if (creep.pos.roomName != targetRoom.roomName) {
                         creep.travel(targetRoom)
                     } else {
-                        let target = Game.getObjectById(remoteTarget[targetRoom.roomName].targetId)
+                        let target = Game.getObjectById(remoteTarget[targetRoom.roomName].targetId) as Source
                         if (target) {
                             let usedCapacity = creep.store.getUsedCapacity(RESOURCE_ENERGY)
                             let creepEnergyMax = creep.store.getCapacity(RESOURCE_ENERGY)
 
                             if (creep.pos.inRangeTo(target, 1) && creep.memory.working) {
-                                let doesContainerExist = NetworkHarvester.getContainer(target.pos) == undefined ? false : true
 
-                                if (doesContainerExist) {
-                                    let shouldRepairContainer = NetworkHarvester.shouldRepairContainer(target.pos)
-                                    if (shouldRepairContainer) {
-                                        let container = NetworkHarvester.getContainer(target.pos)
-                                        if (container) creep.work(container)
+                                let structures = target.pos.findInRange(FIND_STRUCTURES, 1, { filter: s => s.structureType == STRUCTURE_WALL })
+                                if (structures.length > 0) {
+                                    creep.destroy(structures[0])
+                                } else {
+                                    let doesContainerExist = NetworkHarvester.getContainer(target.pos) == undefined ? false : true
+
+                                    if (doesContainerExist) {
+                                        let shouldRepairContainer = NetworkHarvester.shouldRepairContainer(target.pos)
+                                        if (shouldRepairContainer) {
+                                            let container = NetworkHarvester.getContainer(target.pos)
+                                            if (container) creep.work(container)
+                                        }
                                     }
-                                }
 
-                                if (!doesContainerExist) {
-                                    let containerConstructionSite = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3)[0]
-                                    if (!containerConstructionSite) creep.pos.createConstructionSite(STRUCTURE_CONTAINER)
-                                    creep.work(containerConstructionSite)
+                                    if (!doesContainerExist) {
+                                        let containerConstructionSite = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3)[0]
+                                        if (!containerConstructionSite) creep.pos.createConstructionSite(STRUCTURE_CONTAINER)
+                                        creep.work(containerConstructionSite)
+                                    }
                                 }
                             }
 
