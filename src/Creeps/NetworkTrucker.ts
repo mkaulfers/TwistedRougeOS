@@ -167,11 +167,11 @@ export class NetworkTrucker extends Trucker {
             for (let sourceId in sourcesDetail) {
                 let sourceDetail = sourcesDetail[sourceId as Id<Source>]
 
-                //TODO: The 5 should be changed to a variable that is based on the source energy availability.
-                if (sourceDetail.assignedTruckerIds.length < Object.keys(sourcesDetail).length) {
+                if (sourceDetail.assignedTruckerIds.length < 1) {
                     creep.memory.remoteTarget = {}
                     creep.memory.remoteTarget[remote] = { targetId: sourceId as Id<Source>, x: sourceDetail.x, y: sourceDetail.y }
                     baseRoom.memory.remoteSites[remote].sourceDetail[sourceId as Id<Source>].assignedTruckerIds.push(creep.id)
+                    return
                 }
             }
         }
