@@ -33,6 +33,7 @@ export class NetworkTrucker extends Trucker {
 
         for (let remoteName in remotes) {
             let remote = remotes[remoteName]
+            if (!remote) continue;
             sourceCount += Object.keys(remote.sourceDetail).length
         }
 
