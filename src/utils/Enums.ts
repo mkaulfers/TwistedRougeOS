@@ -4,11 +4,11 @@ export enum Role {
     AGENT = 'agent',
     FILLER = 'filler',
     ANCHOR = 'anchor',
+    ENGINEER = 'engineer',
+    SCIENTIST = 'scientist',
     nHARVESTER = 'nHarvester',
     nTRUCKER = 'nTrucker',
     nENGINEER = 'nEngineer',
-    ENGINEER = 'engineer',
-    SCIENTIST = 'scientist'
 }
 
 export enum Task {
