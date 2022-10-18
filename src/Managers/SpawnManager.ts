@@ -61,7 +61,9 @@ export default class SpawnManager {
 
             // Reconsider schedule every 1500 ticks
             if (_.any(spawnSchedules, (s) => s.tick == 1500)) {
-                let freshRolesNeeded = this.genRolesNeeded(room);
+                let gen = this.genRolesNeeded(room)
+                gen.next();
+                let freshRolesNeeded = this.genRolesNeeded(room).next().value;
                 if (_.any(spawnSchedules, (s) => s.activeELimit !== room.spawnEnergyLimit ||
                     s.rolesNeeded?.length !== freshRolesNeeded.length ||
                     s.rolesNeeded?.every(function(role, i) { return role === freshRolesNeeded[i] }))) {
@@ -125,17 +127,12 @@ export default class SpawnManager {
      * @param room The room to consider.
      * @param minimum Limits SpawnOrder generation to just ones considered required for room functionality.
      */
-    private static genSpawnOrders(room: Room, spawnSchedules: SpawnSchedule[], rolesWanted?: Role[]): SpawnOrder[] {
+    private static genSpawnOrders(room: Room, rolesWanted: Role[]): SpawnOrder[] {
         Utils.Logger.log(`SpawnManager -> genSpawnOrders(${room.name})`, LogLevel.TRACE)
-
-        // Build array of CreepRoles in priority
-        let rolesNeeded: Role[] = rolesWanted ? rolesWanted : this.genRolesNeeded(room);
-        for (const schedule of spawnSchedules) schedule.rolesNeeded = rolesNeeded;
-
 
         // Build each SpawnOrder
         let spawnOrders: SpawnOrder[] = [];
-        for (const role of rolesNeeded) {
+        for (const role of rolesWanted) {
             let roleName = Utils.Utility.truncateString(role);
             let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
             const theRole = Roles[role];
@@ -168,40 +165,33 @@ export default class SpawnManager {
         return spawnOrders;
     }
 
-    private static genRolesNeeded(room: Room): Role[] {
+    private static genRolesNeeded = function*(room: Room): Generator<Role[], Role[], void> {
         // Build array of CreepRoles in priority
         let rolesNeeded: Role[] = [];
 
-        // Repeatedly runs through .quantityWanted() until all return 0;
+        // Find all Roles Required for room functionality.
         for (let allFound = false; allFound == false;) {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
-                    console.log(`Role being considered: ${role}.`)
                     let cpu = Game.cpu.getUsed();
                     const theRole = Roles[role];
                     if (!theRole) continue;
                     let count: number = theRole.quantityWanted(room, rolesNeeded, true);
                     if (count > 0) allFound = false;
                     for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
-
-                    // Role info
-                    console.log(`${role} count returned: ${count}.`)
-                    console.log(`${JSON.stringify(rolesNeeded)}.`)
-                    // Heap info
-                    let heap = Game.cpu.getHeapStatistics ? Game.cpu.getHeapStatistics() : undefined;
-                    heap ? console.log(`Used ${heap.total_heap_size} / ${heap.heap_size_limit}`) : undefined;
-                    console.log(`CPU for this cycle: ${Game.cpu.getUsed() - cpu} \n CPU Total: ${Game.cpu.getUsed()}`)
                 }
             }
         }
 
-        // Repeatedly runs through .quantityWanted() until all return 0;
+        Utils.Logger.log(`rolesNeeded Minimum: ${JSON.stringify(rolesNeeded)}`, LogLevel.INFO)
+        yield rolesNeeded;
+
+        // Find All Roles the the room could want.
         for (let allFound = false; allFound == false;) {
             allFound = true;
             for (const role of Object.values(Role)) {
                 if (role in Roles) {
-                    console.log(`Role being considered: ${role}.`)
                     let cpu = Game.cpu.getUsed();
                     const theRole = Roles[role];
                     if (!theRole) continue;
@@ -209,21 +199,12 @@ export default class SpawnManager {
 
                     if (count > 0) allFound = false;
                     for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
-
-                    // Role info
-                    console.log(`${role} count returned: ${count}.`)
-                    console.log(`${JSON.stringify(rolesNeeded)}.`)
-                    // Heap info
-                    let heap = Game.cpu.getHeapStatistics ? Game.cpu.getHeapStatistics() : undefined;
-                    heap ? console.log(`Used ${heap.total_heap_size} / ${heap.heap_size_limit}`) : undefined;
-                    console.log(`CPU for this cycle: ${Game.cpu.getUsed() - cpu} \n CPU Total: ${Game.cpu.getUsed()}`)
-
                 }
             }
         }
 
         Utils.Logger.log(`rolesNeeded final: ${JSON.stringify(rolesNeeded)}`, LogLevel.INFO)
-
+        yield rolesNeeded;
         return rolesNeeded;
     }
 
@@ -245,12 +226,23 @@ export default class SpawnManager {
         // Reset conditional so as to not rebuild again next tick.
         spawnSchedules.forEach(function(s) { s.reset(); s.needsScheduled = false });
 
+        // Add rolesNeeded to schedule based on generator return values, split as many times as the generator yields.
+        let genRolesNeeded = this.genRolesNeeded(room);
+        for (let genRolesNeededReturn = genRolesNeeded.next(); !genRolesNeededReturn.done; genRolesNeededReturn = genRolesNeeded.next()) {
+            // Get rolesNeeded
+            let rolesNeeded = genRolesNeededReturn.value;
 
-        let spawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, spawnSchedules);
+            // Convert rolesNeeded to spawn orders, trim previously handled rolesNeeded.
+            let spawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, rolesNeeded);
+            if (spawnSchedules[0].rolesNeeded) spawnOrders.splice(0, spawnSchedules[0].rolesNeeded.length);
+            // Set current rolesNeeded to schedules.
+            for (const schedule of spawnSchedules) schedule.rolesNeeded = [...rolesNeeded];
 
-        spawnOrders = this.addToSchedules(room, spawnOrders);
+            spawnOrders = this.addToSchedules(room, spawnOrders);
 
-        Utils.Logger.log(`Failed to schedule ${spawnOrders ? spawnOrders.length : 0} spawn orders.`, LogLevel.INFO)
+            Utils.Logger.log(`Failed to schedule ${spawnOrders ? spawnOrders.length : 0} spawn orders.`, LogLevel.INFO)
+        }
+
     }
 
     /** Adds SpawnOrders to schedule. Assumes spawnSchedules !== undefined. */
@@ -264,11 +256,20 @@ export default class SpawnManager {
             if (spawnSchedule.activeELimit !== room.spawnEnergyLimit) spawnSchedule.activeELimit = room.spawnEnergyLimit;
         }
 
-        // Any additions
+        // All Standard Body Size Additions
         if (spawnOrders && spawnOrders.length > 0) {
             for (let spawnSchedule of spawnSchedules) {
                 if (spawnSchedule.isFull() == true || !spawnOrders || spawnOrders.length == 0) continue;
                 spawnOrders = spawnSchedule.add(spawnOrders);
+                if (spawnSchedule.activeELimit !== room.spawnEnergyLimit) spawnSchedule.activeELimit = room.spawnEnergyLimit;
+            }
+        }
+
+        // Desparate to spawn Additions (Body Size Shrinking)
+        if (spawnOrders && spawnOrders.length > 0) {
+            for (let spawnSchedule of spawnSchedules) {
+                if (spawnSchedule.isFull() == true || !spawnOrders || spawnOrders.length == 0) continue;
+                spawnOrders = spawnSchedule.add(spawnOrders, {shrinkBody: true});
                 if (spawnSchedule.activeELimit !== room.spawnEnergyLimit) spawnSchedule.activeELimit = room.spawnEnergyLimit;
             }
         }
