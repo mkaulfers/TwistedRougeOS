@@ -29,11 +29,19 @@ export class NetworkHarvester extends CreepRole {
 
         if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
         let workCount = this[room.spawnEnergyLimit].filter(p => p == WORK).length
-        let shouldBe = Math.ceil(6 / workCount);
 
         let finalCount = 0
         for (let remoteName in remotes) {
             let remote = remotes[remoteName]
+
+            // Set total work per source needed
+            let sourceWorkNeeded = 3;
+            let remoteRoom = Game.rooms[remoteName]
+            if (remoteRoom) {
+                if (remoteRoom.controller?.reservation && remoteRoom.controller.reservation.username === room.controller?.owner?.username) sourceWorkNeeded = 6;
+                if (!remoteRoom.controller && remoteRoom.keeperLairs.length > 0) sourceWorkNeeded = 7;
+            }
+            let shouldBe = Math.ceil(sourceWorkNeeded / workCount);
 
             for (let sourceId in remote.sourceDetail) {
                 let sourceDetail = remote.sourceDetail[sourceId as Id<Source>]
@@ -210,8 +218,15 @@ export class NetworkHarvester extends CreepRole {
             for (let sourceId in sourcesDetail) {
                 let sourceDetail = sourcesDetail[sourceId as Id<Source>]
 
-                //TODO: The 5 should be changed to a variable that is based on the source energy availability.
-                if ((sourceDetail.posCount > sourceDetail.assignedHarvIds.length) && this.getTotalHarvEnergyHarvestedPerTick(sourceDetail.assignedHarvIds) < 5) {
+                // Set total work per source expected
+                let sourceWorkNeeded = 3;
+                let remoteRoom = Game.rooms[remote]
+                if (remoteRoom) {
+                    if (remoteRoom.controller?.reservation && remoteRoom.controller.reservation.username === baseRoom.controller?.owner?.username) sourceWorkNeeded = 6;
+                    if (!remoteRoom.controller && remoteRoom.keeperLairs.length > 0) sourceWorkNeeded = 7;
+                }
+
+                if ((sourceDetail.posCount > sourceDetail.assignedHarvIds.length) && this.getTotalWorkAssigned(sourceDetail.assignedHarvIds) < sourceWorkNeeded) {
                     creep.memory.remoteTarget = {}
                     creep.memory.remoteTarget[remote] = { targetId: sourceId as Id<Source>, x: sourceDetail.x, y: sourceDetail.y }
                     baseRoom.memory.remoteSites[remote].sourceDetail[sourceId as Id<Source>].assignedHarvIds.push(creep.id)
@@ -273,7 +288,7 @@ export class NetworkHarvester extends CreepRole {
      * @param sourceDetail The sourceDetail to get the total WORK parts for.
      * @returns The total # of WORK parts for all harvesters in the sourceDetail * 2
      */
-    private static getTotalHarvEnergyHarvestedPerTick(assignedHarvIds: Id<Creep>[]): number {
+    private static getTotalWorkAssigned(assignedHarvIds: Id<Creep>[]): number {
         let harvWorkPartsCount = 0
 
         for (let harv of assignedHarvIds) {
@@ -283,7 +298,7 @@ export class NetworkHarvester extends CreepRole {
             }
         }
 
-        return harvWorkPartsCount * 2
+        return harvWorkPartsCount
     }
 }
 
