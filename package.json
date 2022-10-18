@@ -65,7 +65,7 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "screeps-cartographer": "^1.3.10",
+    "screeps-cartographer": "^1.3.12",
     "source-map": "~0.6.1",
     "ts-polyfill": "^3.8.2"
   }
