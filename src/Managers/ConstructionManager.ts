@@ -37,7 +37,7 @@ export default class ConstructionManager {
             }
 
             if (!(room.cache.recentlyAttacked && room.cache.attackedTime && Game.time - room.cache.attackedTime < 10)) {
-                if (Game.time % 50 != 0) { return } // REVERT THIS
+                if (Game.time % 1500 != 0) { return }
             }
 
             if (Game.cpu.bucket > 500) {
