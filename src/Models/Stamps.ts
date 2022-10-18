@@ -236,7 +236,7 @@ export class Stamps {
         { xMod: 2, yMod: -1, structureType: STRUCTURE_ROAD },
 
         { xMod: -2, yMod: 0, structureType: STRUCTURE_ROAD },
-        { xMod: -1, yMod: 0, structureType: STRUCTURE_STORAGE },
+        { xMod: -1, yMod: 0, structureType: STRUCTURE_TERMINAL },
         { xMod: -1, yMod: 0, structureType: STRUCTURE_RAMPART },
         { xMod: 0, yMod: 0, structureType: STRUCTURE_ROAD },
         { xMod: 1, yMod: 0, structureType: STRUCTURE_LINK },
@@ -244,7 +244,7 @@ export class Stamps {
         { xMod: 2, yMod: 0, structureType: STRUCTURE_ROAD },
 
         { xMod: -2, yMod: 1, structureType: STRUCTURE_ROAD },
-        { xMod: -1, yMod: 1, structureType: STRUCTURE_TERMINAL },
+        { xMod: -1, yMod: 1, structureType: STRUCTURE_STORAGE },
         { xMod: -1, yMod: 1, structureType: STRUCTURE_RAMPART },
         { xMod: 0, yMod: 1, structureType: STRUCTURE_SPAWN },
         { xMod: 0, yMod: 1, structureType: STRUCTURE_RAMPART },

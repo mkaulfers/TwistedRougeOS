@@ -27,7 +27,7 @@ export default class SpawnSchedule {
     constructor(roomName: string, spawnName: string, opts?: {tick: number, pausedTicks: number, schedule: SpawnOrder[], freeSpaces: [number, number][], usedSpace: number}) {
         this.roomName = roomName;
         this.spawnName = spawnName;
-        this.limiter = 0.80
+        this.limiter = 1.0
 
         this.tick = opts ? opts.tick : 0;
         this.pausedTicks = opts ? opts.pausedTicks : 0;
@@ -44,7 +44,7 @@ export default class SpawnSchedule {
      * @param opts.force To ignore the schedule's built in percentage limiter. Will only allow to 100% usage.
      * @returns SpawnOrders it couldn't add to the schedule or undefined if successful.
      */
-    add(spawnOrders: SpawnOrder[], opts?: {preSpawnOnly?: boolean, pack?: boolean, force?: boolean}): SpawnOrder[] | undefined {
+    add(spawnOrders: SpawnOrder[], opts?: {preSpawnOnly?: boolean, pack?: boolean, force?: boolean, shrinkBody?: boolean}): SpawnOrder[] | undefined {
 
         // Create external spawnOrder array to edit and return without screwing up the for loop
         let externalSpawnOrders = [...spawnOrders];
@@ -53,7 +53,7 @@ export default class SpawnSchedule {
             // SpawnOrder already exists in schedule check
             if (this.schedule.findIndex((o) => o.id === spawnOrder.id) >= 0) continue;
             // Over limiter check
-            if ((opts && !opts.force || !opts) && this.usedSpace >= (this.limiter * 1500)) return externalSpawnOrders;
+            if (((opts && !opts.force || !opts) && this.usedSpace >= (this.limiter * 1500)) || spawnOrder.spawnTime > (this.limiter * 1500) - this.usedSpace) return externalSpawnOrders;
 
             // Target newest creep with matching id
             const room = Game.rooms[this.roomName];
@@ -93,9 +93,19 @@ export default class SpawnSchedule {
                 foundFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[1] > spawnOrder.spawnTime);
                 spawnOrder.scheduleTick = (foundFreeSpace ? foundFreeSpace[0] : undefined);
             }
+            // Desparation Scheduling Found Here. Shrinking Creep Size to fit. Finds largest freespace left.
+            if (opts && opts.shrinkBody === true && !foundFreeSpace && theRole?.shrinkAllowed === true) {
+                let length = 3;
+                this.freeSpaces.forEach(freeSpace => {if (freeSpace[1] > length) length = freeSpace[1]})
+                if (length || length > 3) {
+                    foundFreeSpace = this.freeSpaces.find(freeSpace => freeSpace[1] === length);
+                    spawnOrder.scheduleTick = (foundFreeSpace ? foundFreeSpace[0] : undefined);
+                }
+            }
 
 
-            if (foundFreeSpace && typeof spawnOrder.scheduleTick === 'number' && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500) {
+            if (foundFreeSpace && typeof spawnOrder.scheduleTick === 'number' && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500 && foundFreeSpace[1] >= spawnOrder.spawnTime) {
+                // Handle Standard freespaces
 
                 // Update freespaces
                 if (foundFreeSpace[0] === spawnOrder.scheduleTick) {
@@ -111,8 +121,34 @@ export default class SpawnSchedule {
                 this.schedule.push(spawnOrder);
                 externalSpawnOrders.shift();
                 Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.INFO);
+            } else if (foundFreeSpace && typeof spawnOrder.scheduleTick === 'number' && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500 && foundFreeSpace[1] < spawnOrder.spawnTime && theRole) {
+                // Handle undersized freespaces.. DESPERATION Scheduling
+
+                // Shrink Spawn Order to freespace
+                let body = Utils.Utility.getBodyFor(room, theRole.baseBody, theRole.segment, theRole.partLimits, {sizeLimit: Math.floor(foundFreeSpace[1] / 3)});
+                if (body.length > 0) {
+                    // Modify spawn order values
+                    spawnOrder.body = body;
+                    spawnOrder.spawnTime = body.length * 3;
+
+                    // Modify freespaces
+                    let i = this.freeSpaces.indexOf(foundFreeSpace);
+                    if (spawnOrder.spawnTime === foundFreeSpace[1]) this.freeSpaces.splice(i, 1)
+                    else this.freeSpaces[i] = [foundFreeSpace[0] + spawnOrder.spawnTime, foundFreeSpace[1] - spawnOrder.spawnTime]
+
+                    // Add to schedule, adjust numbers, remove from externalSpawnOrders
+                    this.usedSpace += spawnOrder.spawnTime + 1;
+                    this.schedule.push(spawnOrder);
+                    externalSpawnOrders.shift();
+                    Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.INFO);
+                } else {
+                    Utils.Logger.log(`Desparation Spawn Scheduling for ${spawnOrder.id} failed.`, LogLevel.INFO)
+                    let order = externalSpawnOrders.shift();
+                    if (order) externalSpawnOrders.push(order);
+                }
             } else {
-                console.log(`Failed check. \n Overall: ${spawnOrder.scheduleTick && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500} \n spawnOrder.scheduleTick: ${!!(spawnOrder.scheduleTick)} \n spawnOrder.scheduleTick >= 0: ${spawnOrder.scheduleTick! >= 0} \n spawnOrder.scheduleTick < 1500 ${spawnOrder.scheduleTick! < 1500}`)
+                // No freespace found that qualifies
+                Utils.Logger.log(`Failed check. \n Overall: ${spawnOrder.scheduleTick && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500} \n spawnOrder.scheduleTick: ${!!(spawnOrder.scheduleTick)} \n spawnOrder.scheduleTick >= 0: ${spawnOrder.scheduleTick! >= 0} \n spawnOrder.scheduleTick < 1500 ${spawnOrder.scheduleTick! < 1500}`, LogLevel.INFO)
                 let order = externalSpawnOrders.shift();
                 if (order) externalSpawnOrders.push(order);
                 Utils.Logger.log(`${this.spawnName} failed to add ${spawnOrder.id} due to no scheduleTick being set.`, LogLevel.INFO);
