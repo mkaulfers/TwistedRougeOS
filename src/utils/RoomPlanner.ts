@@ -2,8 +2,6 @@ import { StampType } from './Enums'
 import { Utils } from "utils/Index";
 import { Stamps } from "Models/Stamps";
 import { getCutTiles, Rectangle, Coord } from './RampartPlanner';
-import { Utility } from './Utilities';
-import { exists } from 'fs';
 
 const buildOrder: (StampType)[] = [
     StampType.FAST_FILLER,
@@ -76,7 +74,7 @@ function generateNewPlan(room: Room) {
     for (let exit of leftExits) {
         let shortestExit = blueprintAnchor.findClosestByPath(exit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         if (!shortestExit) continue;
-        let path = blueprintAnchor.findPathTo(shortestExit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: (roomName) => genPlannedRoadCM(Utility.genPathfindingCM(roomName), savedRoadPositions, unsavedRoadPositions) })
+        let path = blueprintAnchor.findPathTo(shortestExit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: () => genPlannedRoadCM(savedRoadPositions, unsavedRoadPositions) })
         path.splice(path.length - 1, 1)
         savedRoadPositions = savedRoadPositions.concat(path)
     }
@@ -85,7 +83,7 @@ function generateNewPlan(room: Room) {
     for (let exit of rightExits) {
         let shortestExit = blueprintAnchor.findClosestByPath(exit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         if (!shortestExit) continue;
-        let path = blueprintAnchor.findPathTo(shortestExit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: (roomName) => genPlannedRoadCM(Utility.genPathfindingCM(roomName), savedRoadPositions, unsavedRoadPositions) })
+        let path = blueprintAnchor.findPathTo(shortestExit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: () => genPlannedRoadCM(savedRoadPositions, unsavedRoadPositions) })
         path.splice(path.length - 1, 1)
         savedRoadPositions = savedRoadPositions.concat(path)
     }
@@ -94,7 +92,7 @@ function generateNewPlan(room: Room) {
     for (let exit of topExits) {
         let shortestExit = blueprintAnchor.findClosestByPath(exit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         if (!shortestExit) continue;
-        let path = blueprintAnchor.findPathTo(shortestExit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: (roomName) => genPlannedRoadCM(Utility.genPathfindingCM(roomName), savedRoadPositions, unsavedRoadPositions) })
+        let path = blueprintAnchor.findPathTo(shortestExit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: () => genPlannedRoadCM(savedRoadPositions, unsavedRoadPositions) })
         path.splice(path.length - 1, 1)
         savedRoadPositions = savedRoadPositions.concat(path)
     }
@@ -103,17 +101,13 @@ function generateNewPlan(room: Room) {
     for (let exit of bottomExits) {
         let shortestExit = blueprintAnchor.findClosestByPath(exit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
         if (!shortestExit) continue;
-        let path = blueprintAnchor.findPathTo(shortestExit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: (roomName) => genPlannedRoadCM(Utility.genPathfindingCM(roomName), savedRoadPositions, unsavedRoadPositions) })
+        let path = blueprintAnchor.findPathTo(shortestExit, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: () => genPlannedRoadCM(savedRoadPositions, unsavedRoadPositions) })
         path.splice(path.length - 1, 1)
         savedRoadPositions = savedRoadPositions.concat(path)
     }
 
     for (let source of sources) {
-        // Handle Source Paths
-        let sourcePath = blueprintAnchor.findPathTo(source, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: (roomName) => genPlannedRoadCM(Utility.genPathfindingCM(roomName), savedRoadPositions, unsavedRoadPositions) })
-        let passToRoadPositions = [...sourcePath];
-        passToRoadPositions.splice(sourcePath.length - 2, 2)
-        savedRoadPositions = savedRoadPositions.concat(passToRoadPositions)
+        let sourcePath = blueprintAnchor.findPathTo(source, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: () => genPlannedRoadCM(savedRoadPositions, unsavedRoadPositions) })
 
         // Handle Container Pos for source
         let containerPos = sourcePath[sourcePath.length - 2]
@@ -121,21 +115,24 @@ function generateNewPlan(room: Room) {
 
         // Handle Link Pos for source
         let linkPos = sourcePath[sourcePath.length - 2]
-        let adjustedPos = getValidPositionAroundPosition(linkPos, room, savedRoadPositions, plannedPositions)
+        let adjustedPos = getValidPositionAroundPosition(linkPos, room, savedRoadPositions)
         if (adjustedPos) room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(adjustedPos.x, adjustedPos.y, room.name)))
+
+        sourcePath.splice(sourcePath.length - 2, 2)
+        savedRoadPositions = savedRoadPositions.concat(sourcePath)
     }
 
     if (sources.length == 2) {
         let source1 = sources[0]
         let source2 = sources[1]
-        let pathBetweenSources = source1.pos.findPathTo(source2, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: (roomName) => genPlannedRoadCM(Utility.genPathfindingCM(roomName), savedRoadPositions, unsavedRoadPositions) })
+        let pathBetweenSources = source1.pos.findPathTo(source2, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: () => genPlannedRoadCM(savedRoadPositions, unsavedRoadPositions) })
         pathBetweenSources.splice(pathBetweenSources.length - 1, 1)
         pathBetweenSources.splice(0, 1)
         savedRoadPositions = savedRoadPositions.concat(pathBetweenSources)
     }
 
     if (mineral) {
-        let mineralPath: PathStep[] = blueprintAnchor.findPathTo(mineral, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: (roomName) => genPlannedRoadCM(Utility.genPathfindingCM(roomName), savedRoadPositions, unsavedRoadPositions) })
+        let mineralPath: PathStep[] = blueprintAnchor.findPathTo(mineral, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: () => genPlannedRoadCM(savedRoadPositions, unsavedRoadPositions) })
 
         let containerPos = mineralPath[mineralPath.length - 2]
         room.memory.blueprint.containers.push(Utils.Utility.packPosition(new RoomPosition(containerPos.x, containerPos.y, room.name)))
@@ -144,12 +141,12 @@ function generateNewPlan(room: Room) {
         savedRoadPositions = savedRoadPositions.concat(mineralPath)
     }
 
-    let pathToController = blueprintAnchor.findPathTo(room.controller.pos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: (roomName) => genPlannedRoadCM(Utility.genPathfindingCM(roomName), savedRoadPositions, unsavedRoadPositions) })
+    let pathToController = blueprintAnchor.findPathTo(room.controller.pos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: () => genPlannedRoadCM(savedRoadPositions, unsavedRoadPositions) })
     pathToController.splice(pathToController.length - 1, 1)
     savedRoadPositions = savedRoadPositions.concat(pathToController)
 
     let controllerLink = pathToController[pathToController.length - 2]
-    let adjustedPos = getValidPositionAroundPosition(controllerLink, room, savedRoadPositions, plannedPositions)
+    let adjustedPos = getValidPositionAroundPosition(controllerLink, room, savedRoadPositions)
     if (adjustedPos) room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(adjustedPos.x, adjustedPos.y, room.name)))
 
     /**
@@ -227,7 +224,7 @@ function generateNewPlan(room: Room) {
         for (let exitPos of exitPath) {
             let closest = blueprintAnchor.findClosestByPath(exitPos, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2 })
             if (closest != null) {
-                let path = blueprintAnchor.findPathTo(closest, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: (roomName) => genPlannedRoadCM(Utility.genPathfindingCM(roomName), savedRoadPositions, unsavedRoadPositions) })
+                let path = blueprintAnchor.findPathTo(closest, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: () => genPlannedRoadCM(savedRoadPositions, unsavedRoadPositions) })
                 let pathLastTwoSteps: PathStep[] = []
                 //iterate over every step. If we hit a rampart position go back two steps and add a rampart to each position.
                 for (let step of path) {
@@ -269,10 +266,10 @@ function generateNewPlan(room: Room) {
  * @param roadPositions The previously calculated road positions.
  * @returns
  */
-function getValidPositionAroundPosition(position: PathStep | RoomPosition, room: Room, roadPositions: PathStep[] | RoomPosition[], plannedPositions: RoomPosition[]): RoomPosition | undefined {
+function getValidPositionAroundPosition(position: PathStep | RoomPosition, room: Room, roadPositions: PathStep[] | RoomPosition[]): RoomPosition | undefined {
         let positions: LookAtResultWithPos<LookConstant>[] = room.lookAtArea(position.y - 1, position.x - 1, position.y + 1, position.x + 1, true)
         for (let pos of positions) {
-            if (pos.type == LOOK_TERRAIN && pos.terrain != 'wall' && !roadPositions.some(roadPos => roadPos.x == pos.x && roadPos.y == pos.y && !plannedPositions.some(roadPos => roadPos.x == pos.x && roadPos.y == pos.y))) {
+            if (pos.type == LOOK_TERRAIN && pos.terrain != 'wall' && !roadPositions.some(roadPos => roadPos.x == pos.x && roadPos.y == pos.y)) {
                 return new RoomPosition(pos.x, pos.y, room.name)
             }
         }
@@ -301,6 +298,8 @@ function floodFillSearch(room: Room, startPosition: RoomPosition, structure: Sta
 }
 
 function doesStampFitAtPosition(x: number, y: number, room: Room, structure: StampType, plannedPositions: RoomPosition[], roomVisual?: RoomVisual, controllerOverride: boolean = false): boolean {
+    if (x < 5 || y < 5) return false
+    if (x > 44 || y > 44) return false
     let controller = room.controller
     if (controller && !controllerOverride) {
         let controllerPos = controller.pos
@@ -308,7 +307,7 @@ function doesStampFitAtPosition(x: number, y: number, room: Room, structure: Sta
         if (roomPos.inRangeTo(controllerPos, 4)) return false
 
         for (let source in room.sources) {
-            if (roomPos.inRangeTo(room.sources[source].pos, 2 + Math.ceil(Stamps.getStampSize(structure) / 2))) return false
+            if (roomPos.inRangeTo(room.sources[source].pos, 2)) return false
         }
     }
 
@@ -345,7 +344,7 @@ function doesStampFitAtPosition(x: number, y: number, room: Room, structure: Sta
             let positionResult = position.look()
 
             for (let exit of room.exits ?? []) {
-                if (exit.inRangeTo(position.x, position.y, 7)) return false
+                if (exit.inRangeTo(position.x, position.y, 5)) return false
             }
 
             for (let result of positionResult) {
@@ -524,8 +523,8 @@ function generateBluePrintAnchor(room: Room, positions: RoomPosition[] = []): Ro
     return returningPosition
 }
 
-function genPlannedRoadCM(cm: CostMatrix, roadPositions: PathStep[], stampRoads: RoomPosition[]): CostMatrix {
-    if (!cm) cm = new PathFinder.CostMatrix();
+function genPlannedRoadCM(roadPositions: PathStep[], stampRoads: RoomPosition[]): CostMatrix {
+    let cm = new PathFinder.CostMatrix();
     for (const roadPos of roadPositions) cm.set(roadPos.x, roadPos.y, 1);
     for (const pos of stampRoads) cm.set(pos.x, pos.y, 1);
     return cm;

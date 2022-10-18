@@ -2,8 +2,6 @@ import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
 import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums";
 import { Utils } from "utils/Index";
-import { Logger } from "utils/Logger";
-import { Harvester } from "./Harvester";
 
 export class NetworkHarvester extends CreepRole {
     readonly baseBody = [CARRY, MOVE, WORK]
@@ -211,7 +209,7 @@ export class NetworkHarvester extends CreepRole {
                 let sourceDetail = sourcesDetail[sourceId as Id<Source>]
 
                 //TODO: The 5 should be changed to a variable that is based on the source energy availability.
-                if ((sourceDetail.posCount > sourceDetail.assignedHarvIds.length) && this.getTotalHarvEnergyHarvestedPerTick(sourceDetail.assignedHarvIds) < 5) {
+                if ((sourceDetail.posCount > sourceDetail.assignedHarvIds.length)) {
                     creep.memory.remoteTarget = {}
                     creep.memory.remoteTarget[remote] = { targetId: sourceId as Id<Source>, x: sourceDetail.x, y: sourceDetail.y }
                     baseRoom.memory.remoteSites[remote].sourceDetail[sourceId as Id<Source>].assignedHarvIds.push(creep.id)
