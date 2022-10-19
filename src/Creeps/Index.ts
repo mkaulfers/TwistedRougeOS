@@ -13,13 +13,13 @@ import { NetworkTrucker } from './NetworkTrucker';
 var Roles: {[key in Role]?: CreepRole} = {
     harvester: new Harvester,
     trucker: new Trucker,
-    nHarvester: new NetworkHarvester,
-    nTrucker: new NetworkTrucker,
     filler: new Filler,
     anchor: new Anchor,
     engineer: new Engineer,
     scientist: new Scientist,
     agent: new Agent,
+    nHarvester: new NetworkHarvester,
+    nTrucker: new NetworkTrucker,
 }
 
 export default Roles;

@@ -73,6 +73,7 @@ declare global {
         openSpaceCM?: string;
         links?: { [key: Id<StructureLink>]: string };
         pauseSpawning?: boolean;
+        remotesCount?: number
         spawnSchedules?: SpawnSchedule[];
         spawnEnergyStructIds?: Id<StructureSpawn | StructureExtension>[];
         towerTarget?: Id<AnyCreep>;

@@ -178,18 +178,18 @@ export class Utility {
 
     /**
      * Generates a body for a creep taking into account factors such as maximum cost, supportable cost given income, etc.
-     * @param override Overrides energy income body cost limitations.
-     * @param sortOrder Sort order override, in ascending order numerically.
+     * @param opts.overrideELimit Overrides energy income body cost limitations.
+     * @param opts.sortOrder Sort order override, in ascending order numerically.
+     * @param opts.sizeLimit Set max body size. Defaults to 50.
      * Defaults to TOUGH, WORK, ATTACK, RANGED_ATTACK, CARRY, MOVE, HEAL, and CLAIM with values ranging from 0-7 respectively.
      */
-    static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], override?: boolean, sortOrder?: { [key in BodyPartConstant]?: number }): BodyPartConstant[] {
+    static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], opts?: { sizeLimit?: number, overrideELimit?: boolean, sortOrder?: { [key in BodyPartConstant]?: number } }): BodyPartConstant[] {
         Logger.log("SpawnManager -> getBodyFor()", LogLevel.TRACE)
 
         let tempBody = [...baseBody];
         let tempSegment = [...segment];
 
         // Build partLimits
-
         if (!partLimits) partLimits = [];
         const refPartLimitsArray = tempSegment.filter((p, i) => tempSegment.indexOf(p) === i);
 
@@ -198,18 +198,18 @@ export class Utility {
             partLimits = this.buildPartLimits(tempBody, tempSegment);
         }
 
+        // SizeLimit Handler
+        let sizeLimit = 50;
+        if (opts?.sizeLimit && opts.sizeLimit > 0 && opts.sizeLimit <= 50) sizeLimit = opts.sizeLimit;
+
         // Determine energy limit for body generation
         // Current limit: No single creep consumes more than a 20th of our income.
-        let eLimit: number;
-        if (!override) {
-            eLimit = room.spawnEnergyLimit;
-        } else {
-            eLimit = room.energyCapacityAvailable;
-        }
+        let eLimit: number = room.spawnEnergyLimit;
+        if (opts && opts.overrideELimit === true) eLimit = room.energyCapacityAvailable;
 
         // Expand tempBody to correct size given limits
         let baseCost = Utility.bodyCost(tempBody)
-        if (baseCost > eLimit) return [];
+        if (baseCost > eLimit || tempBody.length > sizeLimit) return [];
         if (baseCost <= eLimit && tempSegment.length > 0) {
             let additionalSegmentCount = Math.floor((eLimit - baseCost) / Utility.bodyCost(tempSegment)) + 1
 
@@ -220,10 +220,9 @@ export class Utility {
                 let i = refPartLimitsArray.indexOf(p);
                 if (i >= 0) partCounts[i]++;
             });
-
-            for (let i = 0; i < additionalSegmentCount && tempBody.length < 50; i++) {
+            for (let i = 0; i < additionalSegmentCount && tempBody.length < sizeLimit; i++) {
                 for (const part of tempSegment) {
-                    if (tempBody.length + 1 > 50) break;
+                    if (tempBody.length + 1 > sizeLimit) break;
                     if (Utility.bodyCost(tempBody.concat([part])) >= eLimit) break;
                     let refIndex = refPartLimitsArray.indexOf(part);
                     if (refIndex >= 0 && partCounts[refIndex] >= partLimits[refIndex]) continue
@@ -237,21 +236,21 @@ export class Utility {
         tempBody = _.sortBy(tempBody, function (p) {
             switch (p) {
                 case TOUGH:
-                    return sortOrder && sortOrder.tough ? sortOrder.tough : 0;
+                    return opts?.sortOrder && opts.sortOrder.tough ? opts.sortOrder.tough : 0;
                 case WORK:
-                    return sortOrder && sortOrder.work ? sortOrder.work : 1;
+                    return opts?.sortOrder && opts.sortOrder.work ? opts.sortOrder.work : 1;
                 case ATTACK:
-                    return sortOrder && sortOrder.attack ? sortOrder.attack : 2;
+                    return opts?.sortOrder && opts.sortOrder.attack ? opts.sortOrder.attack : 2;
                 case RANGED_ATTACK:
-                    return sortOrder && sortOrder.ranged_attack ? sortOrder.ranged_attack : 3;
+                    return opts?.sortOrder && opts.sortOrder.ranged_attack ? opts.sortOrder.ranged_attack : 3;
                 case CARRY:
-                    return sortOrder && sortOrder.carry ? sortOrder.carry : 4;
+                    return opts?.sortOrder && opts.sortOrder.carry ? opts.sortOrder.carry : 4;
                 case MOVE:
-                    return sortOrder && sortOrder.move ? sortOrder.move : 5;
+                    return opts?.sortOrder && opts.sortOrder.move ? opts.sortOrder.move : 5;
                 case HEAL:
-                    return sortOrder && sortOrder.heal ? sortOrder.heal : 6;
+                    return opts?.sortOrder && opts.sortOrder.heal ? opts.sortOrder.heal : 6;
                 case CLAIM:
-                    return sortOrder && sortOrder.claim ? sortOrder.claim : 7;
+                    return opts?.sortOrder && opts.sortOrder.claim ? opts.sortOrder.claim : 7;
             }
         });
 
@@ -272,7 +271,6 @@ export class Utility {
         if (usedSegment.length == 0) return [];
         // Builds a proportional partLimits that mimics the segments ratios while fully utilizing the max body size.
         const refPartLimitsArray = usedSegment.filter((p, i) => usedSegment.indexOf(p) === i);
-        console.log(`refPartLimitsArray: ${JSON.stringify(refPartLimitsArray)}.`);
         let freePartsPortion = Math.floor((50 - usedBody.length) / usedSegment.length);
         let partLimits: number[] = [];
 
@@ -281,21 +279,16 @@ export class Utility {
             let i = refPartLimitsArray.indexOf(p);
             if (i >= 0) partLimits[i] += partLimits[i]
         });
-        console.log(partLimits);
         usedSegment.forEach(function (p) {
             partLimits[refPartLimitsArray.indexOf(p)] += freePartsPortion;
         })
-        console.log(partLimits);
-        console.log((partLimits.reduce((previousValue, currentValue) => previousValue + currentValue)))
         let unusedParts = 50 - partLimits.reduce((previousValue, currentValue) => previousValue + currentValue);
-        console.log(unusedParts);
         for (let i = 0; i < unusedParts; i++) {
             let segIndex: number = i;
             while (segIndex >= usedSegment.length) segIndex -= usedSegment.length;
 
             partLimits[refPartLimitsArray.indexOf(usedSegment[segIndex])] += 1;
         }
-        console.log(partLimits);
         return partLimits;
     }
 
@@ -349,6 +342,9 @@ export class Utility {
                 if (anchorStamp) anchorStampPos = this.unpackPostionToRoom(anchorStamp.stampPos, room.name);
                 if (anchorStampPos) cm.set(anchorStampPos.x, anchorStampPos.y, 50);
             }
+
+            // Consider Portals
+            for (const portal of room.portals) cm.set(portal.pos.x, portal.pos.y, 255);
 
             room.cache.pathfindingCM = JSON.stringify(cm.serialize());
         }

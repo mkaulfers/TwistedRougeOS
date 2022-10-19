@@ -15,6 +15,8 @@ export default abstract class CreepRole {
      * Example: [CARRY, CARRY, MOVE, CARRY, MOVE, WORK] would be reduced to [CARRY, MOVE, WORK] and could have a partLimits of [10, 3, 17].
      */
     partLimits?: number[];
+    /** Allow body shrinking for spawn scheduling? */
+    shrinkAllowed: boolean = true;
     /** Bodies generated given an eLimit, where the eLimit is the key. */
     [key: number]: BodyPartConstant[];
 
