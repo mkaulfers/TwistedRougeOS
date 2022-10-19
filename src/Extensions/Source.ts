@@ -34,7 +34,7 @@ export default class Source_Extended extends Source {
         Utils.Logger.log("Source -> isHarvestingAtMaxEfficiency", LogLevel.TRACE);
         if (this._isHarvestingAtMaxEfficiency) {
             return this._isHarvestingAtMaxEfficiency;
-        } else {
+        } else if (this.room.my === true) {
             let harvesters = this.room.localCreeps.harvester
             let harvestersAssignedHere: Creep[] = []
 
@@ -56,6 +56,9 @@ export default class Source_Extended extends Source {
             } else {
                 return this._isHarvestingAtMaxEfficiency = false;
             }
+        } else if (true) {
+            // FIND ROOM IT IS REMOTE OF
+            return false;
         }
     }
 

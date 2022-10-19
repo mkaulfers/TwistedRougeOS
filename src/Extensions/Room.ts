@@ -573,7 +573,7 @@ export default class Room_Extended extends Room {
         if (!this._averageDistanceFromSourcesToStructures || Game.time % 1500 == 0) {
             let sources = this.sources
             let structures = this.structures()
-            structures.filter((s) => { return ('store' in s) })
+            structures.filter((s) => { return Utils.Typeguards.isAnyStoreStructure(s) || Utils.Typeguards.isStructureController(s) })
             let distance = 0
             for (let source of sources) {
                 for (let structure of structures) {
