@@ -601,12 +601,27 @@ export default class Room_Extended extends Room {
     }
 
     // TODO: Modify to consider Power Creep Effects
-    // TODO: Modify to consider operational remotes only
     private _energyIncome: number | undefined
     get energyIncome() {
         if (!this._energyIncome) {
             this._energyIncome = 0
+            // Local Sources
             for (const source of this.sources) if (source.isHarvestingAtMaxEfficiency) this._energyIncome += 10
+
+            // Remote Sources
+            if (this.memory.remoteSites) {
+                for (const roomName in this.memory.remoteSites) {
+                    // Determine potential source energy generation
+                    let energyPerTick = 5;
+                    if (Game.rooms[roomName]?.controller?.reservation) energyPerTick = 10;
+                    if (Utils.Typeguards.isSourceKeeperRoom(roomName)) energyPerTick = 12;
+
+                    for (const sourceId in this.memory.remoteSites[roomName].sourceDetail) {
+                        let source = Game.getObjectById(sourceId as Id<Source>);
+                        if (source && source.isHarvestingAtMaxEfficiency) this._energyIncome += energyPerTick;
+                    }
+                }
+            }
         }
         return this._energyIncome
     }
@@ -801,5 +816,4 @@ export default class Room_Extended extends Room {
         }
         return this._spawnEnergyLimit
     }
-
 }

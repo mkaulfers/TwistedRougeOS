@@ -24,6 +24,26 @@ declare global {
         travel(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number
         work(target: Structure | ConstructionSite): number
 
+        // Body Getters
+        /** Counts active body parts of a creep. No provided part type will return full active size. */
+        getBodyCount(part?: BodyPartConstant): number
+        /** Active ATTACK body part count. */
+        attackParts: number
+        /** Active CARRY body part count. */
+        carryParts: number
+        /** Active CLAIM body part count. */
+        claimParts: number
+        /** Active HEAL body part count. */
+        healParts: number
+        /** Active MOVE body part count. */
+        moveParts: number
+        /** Active RANGED_ATTACK body part count. */
+        rangedAttackParts: number
+        /** Active TOUGH body part count. */
+        toughParts: number
+        /** Active WORK body part count. */
+        workParts: number
+
         // Other
         isBoosted(): boolean // Placeholder
     }
@@ -359,6 +379,58 @@ export default class Creep_Extended extends Creep {
                 return result;
         }
         return OK;
+    }
+
+    private _bodyCount: {[key in BodyPartConstant | 'all']: number} | undefined;
+    getBodyCount(part?: BodyPartConstant): number {
+        if (!this._bodyCount) {
+            // Build base _bodyCount
+            let temp: {[key in BodyPartConstant | 'all']?: number} = { 'all': 0 };
+            for (const part of BODYPARTS_ALL) temp[part] = 0;
+            // TODO: Use typeguards to remove typecast.
+            this._bodyCount = temp as {[key in BodyPartConstant | 'all']: number};
+
+            // Add active body parts to count.
+            for (const part of this.body) {
+                if (part.hits > 0) this._bodyCount[part.type] += 1;
+            }
+        }
+
+        // Handle returns
+        if (part) return this._bodyCount[part];
+        return this._bodyCount['all'];
+    }
+
+    get attackParts() {
+        return this.getBodyCount(ATTACK);
+    }
+
+    get carryParts() {
+        return this.getBodyCount(CARRY);
+    }
+
+    get claimParts() {
+        return this.getBodyCount(CLAIM);
+    }
+
+    get healParts() {
+        return this.getBodyCount(HEAL);
+    }
+
+    get moveParts() {
+        return this.getBodyCount(MOVE);
+    }
+
+    get rangedAttackParts() {
+        return this.getBodyCount(RANGED_ATTACK);
+    }
+
+    get toughParts() {
+        return this.getBodyCount(TOUGH);
+    }
+
+    get workParts() {
+        return this.getBodyCount(WORK);
     }
 
     private _isBoosted: boolean | undefined;
