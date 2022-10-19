@@ -66,77 +66,64 @@ export class Utility {
 
     /**
      * Description: Organizes potential targets based on ResourceConstant && StructureType, and sorts them in a defined order. Don't do both hits and resource.
-     * @param targets An array of potential targets: Creep | AnyStoreStructure | Resource | Tombstone.
-     * @param options An object containing the following properties: `resource, structures, order`.
-     * @returns An array of approved targets or undefined
+     * @param targets An array of potential targets.
+     * @param opts.needs Targets need the supplied purpose?
+     * @param opts.structures Acceptable structures for the target to be, if it is a structure.
+     * @param opts.order 'desc' or 'asc'. Defaults to descending.
+     * @returns An array of targets that are filtered and sorted based on requisites.
      */
-    static organizeTargets(targets: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite | Ruin)[], options?: {
-        hits?: boolean,
-        resource?: ResourceConstant,
-        rNeed?: boolean,
+    static organizeTargets(purpose: ResourceConstant | 'hits', targets: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite | Ruin)[], opts?: {
+        needs?: boolean,
         structures?: StructureConstant[],
         order?: ('desc' | 'asc')
     }): any[] {
+        // TODO: Find a way to infer return type based supplied target type where used.
 
-        if (!targets) return targets
-        if (!options) options = {}
-        if (!options.order) {
-            options.order = 'desc'
+        // Set default opts, overriding with provided.
+        opts = Object.assign({
+            order: 'desc'
+        }, opts ?? {})
+
+        // Separate logic based on purpose:
+        switch (purpose) {
+            case 'hits':
+                targets = _
+                .chain(targets)
+                .filter(function(t) {
+                    return (("hits" in t && (opts?.needs !== true || t.hitsMax !== t.hits)) || "progress" in t && (opts?.needs !== true || t.progressTotal !== t.progress)) && (!("structureType" in t) || (!opts?.structures || opts.structures.indexOf(t.structureType) >= 0))
+                })
+                .sortByOrder(function(t: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite | Ruin)) {
+                    if ("hits" in t) {
+                        let value = t.hitsMax / t.hits;
+                        return value === 1 ? t.hitsMax : value;
+                    } else if ("progress" in t) {
+                        let value = t.progressTotal / t.progress;
+                        return value === 1 ? t.progressTotal : value;
+                    } else {
+                        return 1;
+                    }
+                }, opts.order)
+                .value()
+                break;
+            default:
+                targets = _
+                .chain(targets)
+                .filter(function(t) {
+                    let result = false;
+                    if ("store" in t && (opts?.needs !== true ? t.store[purpose] > 0 : t.store[purpose] !== undefined)) result = true;
+                    if ("amount" in t && opts?.needs !== true) result = true;
+                    if ("structureType" in t && !("destroyTime" in t) && (opts?.structures?.indexOf(t.structureType) === -1)) result = false;
+                    return result;
+                })
+                .sortByOrder(function(t: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite | Ruin)) {
+                    if ("store" in t) return t.store[purpose];
+                    if ("amount" in t) return t.amount;
+                    return 0;
+                }, opts.order)
+                .value()
         }
-        if (options.hits && options.resource) return targets; // Need to modify to return error codes.
 
-        targets = _
-            .chain(targets)
-            .filter(function (t) {
-
-                if (!options || !options.structures && !options.resource) {
-                    return t
-                }
-                if (options.structures) {
-                    if ('structureType' in t && options.structures.indexOf(t.structureType) == -1) return;
-                }
-                if (options.hits) {
-                    if (('hits' in t && t.hits === t.hitsMax) ||
-                        ('remove' in t && t.progress === t.progressTotal) ||
-                        (!('hits' in t) && !('remove' in t))) return
-                }
-                if (options.resource) {
-                    if (('store' in t && t.store[options?.resource!] == 0) ||
-                        ('amount' in t && t.amount < 5) ||
-                        (!('store' in t) && !('amount' in t))) {
-                        if (options.rNeed) {
-                            return t;
-                        } else {
-                            return;
-                        }
-                    }
-                }
-                return t;
-
-            })
-            .sortByOrder(function (t: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite)) {
-                if (options?.resource) {
-                    if ('store' in t) {
-                        return t.store[options.resource];
-                    } else if ('amount' in t) {
-                        return t.amount
-                    } else {
-                        return
-                    }
-                } else if (options?.hits) {
-                    if ('hits' in t) {
-                        return t.hitsMax / t.hits;
-                    } else if ('remove' in t) {
-                        return t.progressTotal / t.progress;
-                    } else {
-                        return
-                    }
-                }
-                return t
-            }, options.order)
-            .value()
-
-        return targets
+        return targets;
     }
 
     /**
