@@ -32,7 +32,7 @@ export default class Source_Extended extends Source {
     private _isHarvestingAtMaxEfficiency: boolean | undefined;
     get isHarvestingAtMaxEfficiency(): boolean {
         Utils.Logger.log("Source -> isHarvestingAtMaxEfficiency", LogLevel.TRACE);
-        if (this._isHarvestingAtMaxEfficiency) {
+        if (this._isHarvestingAtMaxEfficiency !== undefined) {
             return this._isHarvestingAtMaxEfficiency;
         } else if (this.room.my === true) {
             // Handle owned room
@@ -75,7 +75,6 @@ export default class Source_Extended extends Source {
                 let har = Game.getObjectById(id);
                 if (har) workPresent += har.workParts;
             }
-
             if (workPresent >= workNeeded) return this._isHarvestingAtMaxEfficiency = true;
             return this._isHarvestingAtMaxEfficiency = false;
         } else {
