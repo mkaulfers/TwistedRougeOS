@@ -61,18 +61,44 @@ export default class SpawnManager {
 
             // Reconsider schedule every 1500 ticks
             if (_.any(spawnSchedules, (s) => s.tick == 1500)) {
+
+                // Get fresh rolesNeeded
                 let gen = this.genRolesNeeded(room)
                 gen.next();
                 let freshRolesNeeded = this.genRolesNeeded(room).next().value;
+
+                // Get total spawnOrder Count and total UnusedSpace
+                let sOCount = 0;
+                let unusedSpace = 0;
+                for (const spawnSchedule of spawnSchedules) {
+                    sOCount += spawnSchedule.schedule.length;
+                    unusedSpace += (1500 * spawnSchedule.limiter) - spawnSchedule.usedSpace;
+                }
+
                 if (_.any(spawnSchedules, (s) => s.activeELimit !== room.spawnEnergyLimit ||
                     s.rolesNeeded?.length !== freshRolesNeeded.length ||
-                    s.rolesNeeded?.every(function(role, i) { return role === freshRolesNeeded[i] }))) {
+                    s.rolesNeeded?.every(function(role, i) { return role === freshRolesNeeded[i] })) ||
+                    (spawnSchedules[0]?.rolesNeeded && sOCount < spawnSchedules[0].rolesNeeded.length - 2 && unusedSpace > (100 * spawnSchedules.length))) {
                     for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
                 } else {
                     // Adjust for prespawning at 1500
                     for (const spawnSchedule of spawnSchedules) spawnSchedule.shift();
                 }
             }
+
+            // Conditional Reschedule Checks
+
+            // Reschedule if remote count changes.
+            if (room.memory.remoteSites && !room.cache.remotesCount) room.cache.remotesCount = Object.keys(room.memory.remoteSites).length
+            if (Game.time % 100 === 0 && room.memory.remoteSites && room.cache.remotesCount !== Object.keys(room.memory.remoteSites).length) {
+                for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
+                room.cache.remotesCount = Object.keys(room.memory.remoteSites).length;
+            }
+
+            // Construction Manager Ran and Placed cSites
+            if ((Game.time - 1) % 1500 === 0 && room.constructionSites().length > 5) for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
+
+            //
 
             // History Check: Respawn prematurely dead creeps if room.
             if (Game.time % 25 === 0) {

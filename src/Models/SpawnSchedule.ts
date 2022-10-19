@@ -148,7 +148,6 @@ export default class SpawnSchedule {
                 }
             } else {
                 // No freespace found that qualifies
-                Utils.Logger.log(`Failed check. \n Overall: ${spawnOrder.scheduleTick && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500} \n spawnOrder.scheduleTick: ${!!(spawnOrder.scheduleTick)} \n spawnOrder.scheduleTick >= 0: ${spawnOrder.scheduleTick! >= 0} \n spawnOrder.scheduleTick < 1500 ${spawnOrder.scheduleTick! < 1500}`, LogLevel.INFO)
                 let order = externalSpawnOrders.shift();
                 if (order) externalSpawnOrders.push(order);
                 Utils.Logger.log(`${this.spawnName} failed to add ${spawnOrder.id} due to no scheduleTick being set.`, LogLevel.INFO);
