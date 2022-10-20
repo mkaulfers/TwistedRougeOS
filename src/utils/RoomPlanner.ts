@@ -471,7 +471,7 @@ function getExits(room: Room): RoomPosition[][][] {
         splitSections = []
     }
 
-    return Object.values(exits)
+    return exits
 }
 
 /**
