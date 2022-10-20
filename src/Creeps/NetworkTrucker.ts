@@ -3,6 +3,7 @@ import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enum
 import { Utils } from "utils/Index";
 import { Logger } from "utils/Logger";
 import { Trucker } from "./Trucker";
+import { generatePath } from "screeps-cartographer";
 
 export class NetworkTrucker extends Trucker {
     readonly baseBody = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
@@ -68,11 +69,35 @@ export class NetworkTrucker extends Trucker {
                     // Get target within range 1 of source.
                     let remoteTargetKey = Object.keys(creep.memory.remoteTarget ?? {})[0]
                     let remoteTarget = creep.memory.remoteTarget ? creep.memory.remoteTarget[remoteTargetKey] : undefined
+                    if (creep.memory.remoteTarget && creep.memory.remoteTarget['W8N6']) console.log('1')
                     if (remoteTarget) {
                         let remoteSourceTarget = new RoomPosition(remoteTarget.x, remoteTarget.y, remoteTargetKey)
                         if (creep.pos.roomName !== remoteSourceTarget.roomName || creep.pos.getRangeTo(remoteSourceTarget) > 3) {
+                            if (creep.memory.remoteTarget && creep.memory.remoteTarget['W8N6']) console.log('2')
+                            if (creep.memory.remoteTarget && creep.memory.remoteTarget['W8N6']) {
+                                let path = generatePath(creep.pos, [{pos: remoteSourceTarget, range: 3}], {
+                                    avoidSourceKeepers: true,
+                                    visualizePathStyle: {
+                                        fill: 'transparent',
+                                        stroke: '#fff',
+                                        lineStyle: 'dashed',
+                                        strokeWidth: .15,
+                                        opacity: .2
+                                    },
+                                    routeCallback: (roomName: string, fromRoomName: string) => {
+                                        return Utils.Utility.checkRoomSafety(roomName);
+                                    },
+                                    roomCallback(roomName) {
+                                        return Utils.Utility.genPathfindingCM(roomName);
+                                    },
+                                })
+                                let pathLastStep = path ? path[path.length - 1] : undefined
+                                console.log(`path found is ${path ? path.length : undefined}, with last step being ${pathLastStep ? remoteSourceTarget.getRangeTo(pathLastStep.x, pathLastStep.y) : undefined} dist from target... ${ pathLastStep ? pathLastStep.roomName : undefined}`)
+                            }
                             creep.travel(remoteSourceTarget)
                         } else {
+                            if (creep.memory.remoteTarget && creep.memory.remoteTarget['W8N6']) console.log('3')
+
                             let container: StructureContainer | undefined = remoteSourceTarget.findInRange(creep.room.containers, 1)[0]
                             let resourceEnergy = remoteSourceTarget.findInRange(FIND_DROPPED_RESOURCES, 1, { filter: (r) => r.resourceType == RESOURCE_ENERGY })[0]
                             let selectedTarget: Resource<ResourceConstant> | Tombstone | AnyStoreStructure | undefined = undefined
