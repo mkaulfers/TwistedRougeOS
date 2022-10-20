@@ -211,7 +211,7 @@ export default class ThreatManager {
             // Find in range 5 to be maximally energy efficient
             let targets = tower.pos.findInRange(FIND_STRUCTURES, 5);
             targets = targets.filter((t) => {return (t.hits < t.hitsMax * 0.1)})
-            targets = Utils.Utility.organizeTargets(targets, { hits: true })
+            targets = Utils.Utility.organizeTargets('hits', targets);
             if (targets.length == 0) continue;
             // Repair any at emergency levels
             tower.repair(targets[0]);

@@ -24,6 +24,14 @@ export default class RemoteManager {
                 Game.cpu.bucket > 150) {
                 this.setRemotes(room)
             }
+
+            // Add remote room marker in cache
+            if (Game.time % 50 === 0) {
+                for (let roomName in room.memory.remoteSites) {
+                    if (!Cache.rooms[roomName].remoteOf) Cache.rooms[roomName].remoteOf = room.name;
+                }
+            }
+
             return ProcessResult.RUNNING
         }
 
@@ -70,6 +78,7 @@ export default class RemoteManager {
         //TODO: Add a pass that checks our remotes as they stand, if their PathFinder.path(x -> y) is greater than 4 * 50 = 200 then remove them and do a final pass.
         //TODO: Alternatively, create a function that checks via Pathfinder to and never allows it to be greater than 200.
         for (let remote of selectedRemotes) {
+            if (!Cache.rooms[remote.name].remoteOf) Cache.rooms[remote.name].remoteOf = room.name;
             if (!room.memory.remoteSites) room.memory.remoteSites = {}
             if (!room.memory.remoteSites[remote.name]) room.memory.remoteSites[remote.name] = {sourceDetail: {}}
             room.memory.remoteSites[remote.name].sourceDetail = remote.sourceDetail ?? {}

@@ -441,7 +441,6 @@ export default class Room_Extended extends Room {
                     if (spawn.pos.getRangeTo(anchorPos) <= 2) {
                         let theSpawn = spawns.splice(spawns.indexOf(spawn), 1)[0]
                         if (theSpawn) structures.push(theSpawn)
-                        console.log(`${theSpawn} was added as FF Spawn.`)
                     }
                 }
 
@@ -450,7 +449,6 @@ export default class Room_Extended extends Room {
                     if (extension.pos.getRangeTo(anchorPos) <= 2) {
                         let theExtension = extensions.splice(extensions.indexOf(extension), 1)[0]
                         if (theExtension) structures.push(theExtension)
-                        console.log(`${theExtension} was added as FF Extension.`)
                     }
                 }
 
@@ -463,7 +461,6 @@ export default class Room_Extended extends Room {
                     if (anchorStampPos) theSpawn = anchorStampPos.findInRange(spawns, 1)[0]
                     if (theSpawn) theSpawn = spawns.splice(spawns.indexOf(theSpawn), 1)[0]
                     if (theSpawn) structures.push(theSpawn)
-                    console.log(`${theSpawn} was added as Anchor Spawn.`)
 
                 }
             }
@@ -474,7 +471,6 @@ export default class Room_Extended extends Room {
                 const target = this.storage ? this.storage.pos : this.spawns[0] ? this.spawns[0].pos : undefined
                 if (!target) structures.push(...leftovers)
                 else {
-                    console.log(`Target existed for leftovers.`)
                     leftovers = _.sortBy(leftovers, (s) => s.pos.getRangeTo(target))
                     structures.push(...leftovers)
                 }
@@ -573,7 +569,7 @@ export default class Room_Extended extends Room {
         if (!this._averageDistanceFromSourcesToStructures || Game.time % 1500 == 0) {
             let sources = this.sources
             let structures = this.structures()
-            structures.filter((s) => { return ('store' in s) })
+            structures.filter((s) => { return Utils.Typeguards.isAnyStoreStructure(s) || Utils.Typeguards.isStructureController(s) })
             let distance = 0
             for (let source of sources) {
                 for (let structure of structures) {
@@ -601,12 +597,27 @@ export default class Room_Extended extends Room {
     }
 
     // TODO: Modify to consider Power Creep Effects
-    // TODO: Modify to consider operational remotes only
     private _energyIncome: number | undefined
     get energyIncome() {
         if (!this._energyIncome) {
             this._energyIncome = 0
+            // Local Sources
             for (const source of this.sources) if (source.isHarvestingAtMaxEfficiency) this._energyIncome += 10
+
+            // Remote Sources
+            if (this.memory.remoteSites) {
+                for (const roomName in this.memory.remoteSites) {
+                    // Determine potential source energy generation
+                    let energyPerTick = 5;
+                    if (Game.rooms[roomName]?.controller?.reservation) energyPerTick = 10;
+                    if (Utils.Typeguards.isSourceKeeperRoom(roomName)) energyPerTick = 12;
+
+                    for (const sourceId in this.memory.remoteSites[roomName].sourceDetail) {
+                        let source = Game.getObjectById(sourceId as Id<Source>);
+                        if (source && source.isHarvestingAtMaxEfficiency) this._energyIncome += energyPerTick;
+                    }
+                }
+            }
         }
         return this._energyIncome
     }
@@ -801,5 +812,4 @@ export default class Room_Extended extends Room {
         }
         return this._spawnEnergyLimit
     }
-
 }

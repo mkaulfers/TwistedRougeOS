@@ -169,7 +169,7 @@ export class Trucker extends CreepRole {
                         // Targets scientists, sorted by how much energy they have in them
                         const controllerLink = creep.room.localCreeps.scientist[0] && creep.room.localCreeps.scientist[0].cache.supply ? Game.getObjectById(creep.room.localCreeps.scientist[0].cache.supply) : undefined;
                         let potentialTargets: Creep[] = controllerLink && controllerLink.store.getUsedCapacity(RESOURCE_ENERGY) > 0 ? [...creep.room.localCreeps.engineer] : [...creep.room.localCreeps.scientist, ...creep.room.localCreeps.engineer];
-                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, order: 'asc', rNeed: true });
+                        potentialTargets = Utils.Utility.organizeTargets(RESOURCE_ENERGY, potentialTargets, { order: 'asc', needs: true });
                         let potTarget = creep.pos.findClosestByRange(potentialTargets);
 
                         // Targets closest if scientist will take > 25 energy, or most empty scientist, in that order
@@ -286,7 +286,7 @@ export class Trucker extends CreepRole {
             creep.room.find(FIND_STRUCTURES),
             creep.room.find(FIND_RUINS));
         // Limits potential targets to only ones with energy, and if a structure, only structures that are containers or links.
-        nearbyInterests = Utils.Utility.organizeTargets(nearbyInterests, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK, STRUCTURE_STORAGE] })
+        nearbyInterests = Utils.Utility.organizeTargets(RESOURCE_ENERGY, nearbyInterests, { structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK, STRUCTURE_STORAGE] })
 
         // Remove FF containers as option
         nearbyInterests = this.prototype.removeFFContainers(creep.room, nearbyInterests)

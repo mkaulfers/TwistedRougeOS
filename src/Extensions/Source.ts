@@ -32,9 +32,10 @@ export default class Source_Extended extends Source {
     private _isHarvestingAtMaxEfficiency: boolean | undefined;
     get isHarvestingAtMaxEfficiency(): boolean {
         Utils.Logger.log("Source -> isHarvestingAtMaxEfficiency", LogLevel.TRACE);
-        if (this._isHarvestingAtMaxEfficiency) {
+        if (this._isHarvestingAtMaxEfficiency !== undefined) {
             return this._isHarvestingAtMaxEfficiency;
-        } else {
+        } else if (this.room.my === true) {
+            // Handle owned room
             let harvesters = this.room.localCreeps.harvester
             let harvestersAssignedHere: Creep[] = []
 
@@ -48,7 +49,7 @@ export default class Source_Extended extends Source {
 
             let harvestablePerTick = 0
             for (let harvester of harvestersAssignedHere) {
-                harvestablePerTick += harvester.getActiveBodyparts(WORK) * 2
+                harvestablePerTick += harvester.workParts * 2
             }
 
             if (harvestablePerTick >= 10 || harvestersAssignedHere.length == this.validPositions.length) {
@@ -56,6 +57,28 @@ export default class Source_Extended extends Source {
             } else {
                 return this._isHarvestingAtMaxEfficiency = false;
             }
+        } else if (this.room.cache.remoteOf) {
+            // Handle remote room
+            // Get Harvesters Assigned
+            let homeRoom = Game.rooms[this.room.cache.remoteOf];
+            if (!homeRoom || !homeRoom.memory.remoteSites || !homeRoom.memory.remoteSites[this.room.name] || !homeRoom.memory.remoteSites[this.room.name].sourceDetail[this.id]) return this._isHarvestingAtMaxEfficiency = false;
+            let harvesterIds = homeRoom.memory.remoteSites[this.room.name].sourceDetail[this.id].assignedHarvIds;
+
+            // Get work needed
+            let workNeeded = 3
+            if (this.room.controller?.reservation) workNeeded = 6
+            if (Utils.Typeguards.isSourceKeeperRoom(homeRoom.name)) workNeeded = 7
+
+            // Get work present
+            let workPresent = 0;
+            for (const id of harvesterIds) {
+                let har = Game.getObjectById(id);
+                if (har) workPresent += har.workParts;
+            }
+            if (workPresent >= workNeeded) return this._isHarvestingAtMaxEfficiency = true;
+            return this._isHarvestingAtMaxEfficiency = false;
+        } else {
+            return false;
         }
     }
 

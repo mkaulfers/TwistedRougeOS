@@ -14,7 +14,7 @@ export class Engineer extends CreepRole {
         let engineers = room.localCreeps.engineer
 
         let cSites: ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
-        cSites = Utils.Utility.organizeTargets(cSites, { hits: true, order: 'asc' })
+        cSites = Utils.Utility.organizeTargets('hits', cSites, { order: 'asc' })
 
         let rSites: AnyStructure[] = room.find(FIND_STRUCTURES);
         let accepted: StructureConstant[] = [
@@ -33,10 +33,10 @@ export class Engineer extends CreepRole {
             STRUCTURE_NUKER,
             STRUCTURE_FACTORY
         ];
-        rSites = Utils.Utility.organizeTargets(rSites, { hits: true , structures: accepted})
+        rSites = Utils.Utility.organizeTargets('hits', rSites, { structures: accepted })
 
         let uSites: AnyStructure[] = room.find(FIND_STRUCTURES);
-        uSites = Utils.Utility.organizeTargets(uSites, { hits: true , structures: [STRUCTURE_WALL, STRUCTURE_RAMPART]})
+        uSites = Utils.Utility.organizeTargets('hits', uSites, { structures: [STRUCTURE_WALL, STRUCTURE_RAMPART] })
 
         let eRSites = Array.prototype.concat(
             _.filter(rSites, (r) => (r.hits <= (r.hitsMax / 2) )),
@@ -117,7 +117,7 @@ export class Engineer extends CreepRole {
                 if (working) {
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         let potentialTargets: ConstructionSite[] = creep.room.find(FIND_CONSTRUCTION_SITES);
-                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { hits: true, order: 'asc' })
+                        potentialTargets = Utils.Utility.organizeTargets('hits', potentialTargets, { order: 'asc' })
 
                         if (potentialTargets.length > 0) {
                             creep.memory.target = potentialTargets[0].id;
@@ -140,7 +140,7 @@ export class Engineer extends CreepRole {
                             creep.room.find(FIND_DROPPED_RESOURCES),
                             creep.room.find(FIND_TOMBSTONES),
                             creep.room.find(FIND_STRUCTURES));
-                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+                        potentialTargets = Utils.Utility.organizeTargets(RESOURCE_ENERGY, potentialTargets, { structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
 
                         // Remove FF containers as option
                         potentialTargets = Engineer.prototype.removeFFContainers(creep.room, potentialTargets)
@@ -215,7 +215,7 @@ export class Engineer extends CreepRole {
                             }
                             return;
                         });
-                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { hits: true })
+                        potentialTargets = Utils.Utility.organizeTargets('hits', potentialTargets)
                         if (potentialTargets.length > 0) {
                             creep.memory.target = potentialTargets[0].id;
                         } else {
@@ -240,7 +240,7 @@ export class Engineer extends CreepRole {
                             creep.room.find(FIND_DROPPED_RESOURCES),
                             creep.room.find(FIND_TOMBSTONES),
                             creep.room.find(FIND_STRUCTURES));
-                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK]})
+                        potentialTargets = Utils.Utility.organizeTargets(RESOURCE_ENERGY, potentialTargets, { structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK] })
 
                         // Remove FF containers as option
                         potentialTargets = Engineer.prototype.removeFFContainers(creep.room, potentialTargets)
@@ -307,7 +307,7 @@ export class Engineer extends CreepRole {
                 if (working) {
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         let potentialTargets: AnyStructure[] = creep.room.find(FIND_STRUCTURES);
-                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { hits: true , structures: [STRUCTURE_WALL, STRUCTURE_RAMPART]})
+                        potentialTargets = Utils.Utility.organizeTargets('hits', potentialTargets, { structures: [STRUCTURE_WALL, STRUCTURE_RAMPART] })
                         if (potentialTargets.length > 0) {
                             creep.memory.target = potentialTargets[0].id;
                         } else {
@@ -329,7 +329,7 @@ export class Engineer extends CreepRole {
                             creep.room.find(FIND_DROPPED_RESOURCES),
                             creep.room.find(FIND_TOMBSTONES),
                             creep.room.find(FIND_STRUCTURES));
-                        potentialTargets = Utils.Utility.organizeTargets(potentialTargets, { resource: RESOURCE_ENERGY, structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK, STRUCTURE_STORAGE]})
+                        potentialTargets = Utils.Utility.organizeTargets(RESOURCE_ENERGY, potentialTargets, { structures: [STRUCTURE_CONTAINER, STRUCTURE_LINK, STRUCTURE_STORAGE] })
 
                         // Remove FF containers as option
                         potentialTargets = Engineer.prototype.removeFFContainers(creep.room, potentialTargets)
