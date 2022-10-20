@@ -15,6 +15,7 @@ export class NetworkTrucker extends Trucker {
             if (!hauler.memory.task || hauler.memory.task !== Task.nTRUCKER) {
                 Logger.log(`Setting Task to nTrucker`, LogLevel.DEBUG)
                 global.scheduler.swapProcess(hauler, Task.nTRUCKER)
+                console.log(hauler.name)
             }
         }
     }
@@ -160,7 +161,7 @@ export class NetworkTrucker extends Trucker {
     static setRemoteSource(baseRoom: Room, creep: Creep) {
         if (!baseRoom.memory.remoteSites) return
         this.validateRemoteTruckers(baseRoom)
-
+        if (creep.name === `nTr05_0985`)console.log(`The creep hit setRemoteSource again..`)
         let remotes = baseRoom.memory.remoteSites || {}
 
         for (let remote in remotes) {
