@@ -118,12 +118,10 @@ function setExitPaths(allExitSections: RoomPosition[][][], blueprintAnchor: Room
  */
 function setSourceSites(room: Room, blueprintAnchor: RoomPosition, plannedPositions: RoomPosition[], savedRoadPositions: PathStep[], unsavedRoadPositions: RoomPosition[]) {
     let sources = room.sources
-    for (let source of sources) {
+    for (const source of sources) {
         // Handle Source Paths
         let sourcePath = blueprintAnchor.findPathTo(source, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: (roomName) => genPlannedRoadCM(Utility.genPathfindingCM(roomName), savedRoadPositions, unsavedRoadPositions) })
-        let passToRoadPositions = [...sourcePath];
-        passToRoadPositions.splice(sourcePath.length - 2, 2)
-        savedRoadPositions.push(...passToRoadPositions)
+        for (let i = 0; i < sourcePath.length - 3; i++) savedRoadPositions.push(sourcePath[i])
 
         // Handle Container Pos for source
         let containerPos = sourcePath[sourcePath.length - 2]
@@ -131,11 +129,9 @@ function setSourceSites(room: Room, blueprintAnchor: RoomPosition, plannedPositi
         room.memory.blueprint.containers.push(Utils.Utility.packPosition(new RoomPosition(containerPos.x, containerPos.y, room.name)))
 
         // Handle Link Pos for source
-        let linkPos = sourcePath[sourcePath.length - 2]
-        let adjustedPos = getValidPositionAroundPosition(linkPos, room, savedRoadPositions, plannedPositions)
+        let adjustedPos = getValidPositionAroundPosition(containerPos, room, savedRoadPositions, plannedPositions)
         if (adjustedPos) room.memory.blueprint.links.push(Utils.Utility.packPosition(new RoomPosition(adjustedPos.x, adjustedPos.y, room.name)))
     }
-
     if (sources.length == 2) {
         let source1 = sources[0]
         let source2 = sources[1]
@@ -144,6 +140,7 @@ function setSourceSites(room: Room, blueprintAnchor: RoomPosition, plannedPositi
         pathBetweenSources.splice(0, 1)
         savedRoadPositions.push(...pathBetweenSources)
     }
+
 }
 
 /**
