@@ -14,7 +14,7 @@ export class Engineer extends CreepRole {
         let engineers = room.localCreeps.engineer
 
         let cSites: ConstructionSite[] = room.find(FIND_CONSTRUCTION_SITES);
-        cSites = Utils.Utility.organizeTargets('hits', cSites, { order: 'asc' })
+        cSites = Utils.Utility.organizeTargets('hits', cSites, { needs: true })
 
         let rSites: AnyStructure[] = room.find(FIND_STRUCTURES);
         let accepted: StructureConstant[] = [
@@ -215,7 +215,7 @@ export class Engineer extends CreepRole {
                             }
                             return;
                         });
-                        potentialTargets = Utils.Utility.organizeTargets('hits', potentialTargets)
+                        potentialTargets = Utils.Utility.organizeTargets('hits', potentialTargets, { needs: true })
                         if (potentialTargets.length > 0) {
                             creep.memory.target = potentialTargets[0].id;
                         } else {

@@ -28,7 +28,7 @@ export default class RemoteManager {
             // Add remote room marker in cache
             if (Game.time % 50 === 0) {
                 for (let roomName in room.memory.remoteSites) {
-                    if (!Cache.rooms[roomName].remoteOf) Cache.rooms[roomName].remoteOf = room.name;
+                    if (Cache.rooms[roomName] && !Cache.rooms[roomName].remoteOf) Cache.rooms[roomName].remoteOf = room.name
                 }
             }
 

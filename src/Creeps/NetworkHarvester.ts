@@ -35,18 +35,18 @@ export class NetworkHarvester extends CreepRole {
             let remote = remotes[remoteName]
 
             // Set total work per source needed
-            let sourceWorkNeeded = 3;
+            let sourceWorkNeeded = 3 * room.remoteMultiplier
             let remoteRoom = Game.rooms[remoteName]
             if (remoteRoom) {
-                if (remoteRoom.controller?.reservation && remoteRoom.controller.reservation.username === room.controller?.owner?.username) sourceWorkNeeded = 6;
+                if (remoteRoom.controller?.reservation && remoteRoom.controller.reservation.username === room.controller?.owner?.username) sourceWorkNeeded = 6 * room.remoteMultiplier
                 if (!remoteRoom.controller && remoteRoom.keeperLairs.length > 0) sourceWorkNeeded = 7;
             }
             let shouldBe = Math.ceil(sourceWorkNeeded / workCount);
 
             for (let sourceId in remote.sourceDetail) {
                 let sourceDetail = remote.sourceDetail[sourceId as Id<Source>]
-                if (shouldBe > sourceDetail.posCount) {
-                    finalCount += sourceDetail.posCount
+                if (shouldBe > sourceDetail.posCount * room.remoteMultiplier) {
+                    finalCount += sourceDetail.posCount * room.remoteMultiplier
                 } else {
                     finalCount += shouldBe
                 }
@@ -219,14 +219,14 @@ export class NetworkHarvester extends CreepRole {
                 let sourceDetail = sourcesDetail[sourceId as Id<Source>]
 
                 // Set total work per source expected
-                let sourceWorkNeeded = 3;
+                let sourceWorkNeeded = 3 * baseRoom.remoteMultiplier
                 let remoteRoom = Game.rooms[remote]
                 if (remoteRoom) {
-                    if (remoteRoom.controller?.reservation && remoteRoom.controller.reservation.username === baseRoom.controller?.owner?.username) sourceWorkNeeded = 6;
-                    if (!remoteRoom.controller && remoteRoom.keeperLairs.length > 0) sourceWorkNeeded = 7;
+                    if (remoteRoom.controller?.reservation && remoteRoom.controller.reservation.username === baseRoom.controller?.owner?.username) sourceWorkNeeded = 6 * baseRoom.remoteMultiplier;
+                    if (!remoteRoom.controller && remoteRoom.keeperLairs.length > 0) sourceWorkNeeded = 7 * baseRoom.remoteMultiplier;
                 }
 
-                if ((sourceDetail.posCount > sourceDetail.assignedHarvIds.length) && this.getTotalWorkAssigned(sourceDetail.assignedHarvIds) < sourceWorkNeeded) {
+                if (sourceDetail.posCount * baseRoom.remoteMultiplier > sourceDetail.assignedHarvIds.length && this.getTotalWorkAssigned(sourceDetail.assignedHarvIds) < sourceWorkNeeded) {
                     creep.memory.remoteTarget = {}
                     creep.memory.remoteTarget[remote] = { targetId: sourceId as Id<Source>, x: sourceDetail.x, y: sourceDetail.y }
                     baseRoom.memory.remoteSites[remote].sourceDetail[sourceId as Id<Source>].assignedHarvIds.push(creep.id)
