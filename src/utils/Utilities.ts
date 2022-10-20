@@ -296,7 +296,7 @@ export class Utility {
             const terrain = Game.map.getRoomTerrain(roomName);
 
             // Consider source and mineral adjacent positions
-            let consider: (Mineral | Source)[] = room.sources;
+            let consider: (Mineral | Source)[] = [...room.sources];
             room.mineral ? consider.push(room.mineral) : 0;
             for (const thing of consider) {
                 for (let x = -1; x <= 1; x++) {

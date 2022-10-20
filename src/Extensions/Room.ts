@@ -64,6 +64,7 @@ declare global {
 
         /* Other Calculations and Checks */
         areFastFillerExtensionsBuilt: boolean
+        remoteMultiplier: number
         /** Gets the distance from sources to each storage capable structure in the room. */
         averageDistanceFromSourcesToStructures: number
         /** Returns a per tick energy income */
@@ -596,6 +597,15 @@ export default class Room_Extended extends Room {
         return this._areFastFillerExtensionsBuilt
     }
 
+    // TODO: Modify 3 to be a calculated value based on path distances and expenditure times.
+    private _remoteMultiplier: number | undefined
+    get remoteMultiplier() {
+        if (!this._remoteMultiplier) {
+            this._remoteMultiplier = !this.storage ? 3 : 1
+        }
+        return this._remoteMultiplier
+    }
+
     // TODO: Modify to consider Power Creep Effects
     private _energyIncome: number | undefined
     get energyIncome() {
@@ -605,16 +615,18 @@ export default class Room_Extended extends Room {
             for (const source of this.sources) if (source.isHarvestingAtMaxEfficiency) this._energyIncome += 10
 
             // Remote Sources
-            if (this.memory.remoteSites) {
-                for (const roomName in this.memory.remoteSites) {
-                    // Determine potential source energy generation
-                    let energyPerTick = 5;
-                    if (Game.rooms[roomName]?.controller?.reservation) energyPerTick = 10;
-                    if (Utils.Typeguards.isSourceKeeperRoom(roomName)) energyPerTick = 12;
+            if (this.controller && this.controller.level > 4) {
+                if (this.memory.remoteSites) {
+                    for (const roomName in this.memory.remoteSites) {
+                        // Determine potential source energy generation
+                        let energyPerTick = 5;
+                        if (Game.rooms[roomName]?.controller?.reservation) energyPerTick = 10;
+                        if (Utils.Typeguards.isSourceKeeperRoom(roomName)) energyPerTick = 12;
 
-                    for (const sourceId in this.memory.remoteSites[roomName].sourceDetail) {
-                        let source = Game.getObjectById(sourceId as Id<Source>);
-                        if (source && source.isHarvestingAtMaxEfficiency) this._energyIncome += energyPerTick;
+                        for (const sourceId in this.memory.remoteSites[roomName].sourceDetail) {
+                            let source = Game.getObjectById(sourceId as Id<Source>);
+                            if (source && source.isHarvestingAtMaxEfficiency) this._energyIncome += energyPerTick;
+                        }
                     }
                 }
             }
