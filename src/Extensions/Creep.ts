@@ -270,7 +270,7 @@ export default class Creep_Extended extends Creep {
             link &&
             link.store.getUsedCapacity(RESOURCE_ENERGY) > 0) this.take(link, RESOURCE_ENERGY);
 
-        this.travel({ pos: link ? link.pos : target.pos, range: link ? 1 : 3 });
+        this.travel({ pos: link ? link.pos : target.pos, range: link ? 1 : 2 });
         let result: number = this.upgradeController(target);
 
         if (!target.isSigned) {
