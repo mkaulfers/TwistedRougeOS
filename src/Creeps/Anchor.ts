@@ -75,7 +75,7 @@ export class Anchor extends CreepRole {
                             qty = link ? link.store.energy - (link.store.getCapacity(RESOURCE_ENERGY) / 2) : undefined;
                             result = creep.take(link, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined)
                             break;
-                        case link && storage && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2):
+                        case link && storage && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2) && storage.store.energy > 10000:
                             // `storage!` used because TS required it.. It is obviously checked above.
                             qty = link ? (link.store.getCapacity(RESOURCE_ENERGY) / 2) - link.store.energy : undefined;
                             result = creep.take(storage!, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined);
@@ -119,7 +119,7 @@ export class Anchor extends CreepRole {
                 } else {
                     switch (true) {
                         // Link
-                        case link && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2):
+                        case link && storage && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2) && storage.store.energy > 10000:
                             result = creep.give(link, RESOURCE_ENERGY);
                             break;
                         // Spawn
