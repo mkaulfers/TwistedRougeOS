@@ -18,7 +18,7 @@ export default class Controller_Extended extends StructureController {
             let sign = this.sign;
             let spawn = Object.values(Game.spawns)[0]
             if (!sign || sign.username !== spawn.owner.username) this._isSigned = false;
-            this._isSigned = true;
+            else this._isSigned = true;
         }
         return this._isSigned;
     }

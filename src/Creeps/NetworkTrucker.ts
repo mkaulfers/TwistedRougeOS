@@ -111,7 +111,7 @@ export class NetworkTrucker extends Trucker {
                     }
                 } else {
                     // Determines new target to dump energy into.
-                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target)) || (creep.pos.roomName === creep.memory.homeRoom && (creep.pos.x === 0 || creep.pos.x === 49 || creep.pos.y === 0 || creep.pos.y === 49))) {
                         Trucker.storageTruckerWorkingTargeting(creep);
                         if (!creep.memory.target) return ProcessResult.RUNNING;
                     }
@@ -121,7 +121,10 @@ export class NetworkTrucker extends Trucker {
                     if (!target ||
                         'store' in target && target.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                         delete creep.memory.target;
-                        return ProcessResult.RUNNING;
+                        Trucker.storageTruckerWorkingTargeting(creep);
+                        if (!creep.memory.target) return ProcessResult.RUNNING;
+                        target = Game.getObjectById(creep.memory.target);
+                        if (!target) return ProcessResult.RUNNING;
                     }
 
                     // Runs give and handles return value.

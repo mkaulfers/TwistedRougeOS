@@ -89,18 +89,22 @@ export class Trucker extends CreepRole {
                 const working = creep.memory.working;
 
                 if (working) {
-                    // Determines new target
 
+                    // Gets new target when one is missing.
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         Trucker.storageTruckerWorkingTargeting(creep);
                         if (!creep.memory.target) return ProcessResult.RUNNING;
                     }
                     let target = Game.getObjectById(creep.memory.target);
 
+                    // Replaces target IFF invalid.
                     if (!target ||
                         'store' in target && target.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                         delete creep.memory.target;
-                        return ProcessResult.RUNNING;
+                        Trucker.storageTruckerWorkingTargeting(creep);
+                        if (!creep.memory.target) return ProcessResult.RUNNING;
+                        target = Game.getObjectById(creep.memory.target);
+                        if (!target) return ProcessResult.RUNNING;
                     }
 
                     // Runs give and returns running or incomplete based on return value

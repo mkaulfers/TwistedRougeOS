@@ -32,7 +32,7 @@ export class Scientist extends CreepRole {
         if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
         let bodyWorkCount = this[room.spawnEnergyLimit].filter(p => p == WORK).length;
 
-        let shouldBe = Math.ceil((controller.level == 8 ? 15 : energyIncome / 3) / bodyWorkCount);
+        let shouldBe = Math.ceil((controller.level == 8 ? 15 : energyIncome / 4) / bodyWorkCount);
         if (room.storage && room.storage.store.energy > 500000 && controller.level !== 8) shouldBe = Math.ceil(energyIncome * 2) / bodyWorkCount;
         return sciCount < shouldBe ? shouldBe - sciCount : 0;
     }

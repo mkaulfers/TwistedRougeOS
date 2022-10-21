@@ -22,6 +22,7 @@ export class Filler extends CreepRole {
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
         Utils.Logger.log("quantityWanted -> filler.quantityWanted()", LogLevel.TRACE)
         let fillerCount = rolesNeeded.filter(x => x == Role.FILLER).length
+        if (rolesNeeded.filter(x => x == Role.HARVESTER).length < room.sources.length) return 0;
         if (Filler.isFillerComplete(room) && fillerCount !== 4) return 4 - fillerCount;
         return 0;
     }
