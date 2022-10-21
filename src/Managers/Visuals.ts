@@ -1,9 +1,7 @@
 import { Process } from "Models/Process";
 import { Utils } from "../utils/Index";
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel } from '../utils/Enums'
 import { Stamps } from 'Models/Stamps'
-import { RoomStatistics } from "Models/RoomStatistics";
-
+import { DangerLevel, TRACE, LOW, PEACEFUL, INVADERS, WARY, DANGER, DEATH } from "Constants";
 declare global {
 
     interface worldRoomScoring {
@@ -40,7 +38,7 @@ export default class Visuals {
     static visualsHandler() {
 
         const visualsHandler = () => {
-            Utils.Logger.log(`Visuals -> visualsHandler()`, LogLevel.TRACE);
+            Utils.Logger.log(`Visuals -> visualsHandler()`, TRACE);
             let visualToggles = global.Cache.cmd;
             if (visualToggles && visualToggles.roomPlanning == true) {
                 this.roomPlanning();
@@ -67,12 +65,12 @@ export default class Visuals {
             }
         }
 
-        let newProcess = new Process('visualsHandler', ProcessPriority.LOW, visualsHandler)
+        let newProcess = new Process('visualsHandler', LOW, visualsHandler)
         global.scheduler.addProcess(newProcess)
     }
 
     static roomPlanning() {
-        Utils.Logger.log(`Visuals -> roomPlanning()`, LogLevel.TRACE);
+        Utils.Logger.log(`Visuals -> roomPlanning()`, TRACE);
         for (const roomName in Memory.rooms) {
             if (!Memory.rooms[roomName] || !Memory.rooms[roomName].blueprint) continue;
             let blueprint = Memory.rooms[roomName].blueprint;
@@ -109,7 +107,7 @@ export default class Visuals {
     }
 
     static distanceTransform() {
-        Utils.Logger.log(`Visuals -> distanceTransform()`, LogLevel.TRACE);
+        Utils.Logger.log(`Visuals -> distanceTransform()`, TRACE);
         if (!global.tempForVisuals || !global.tempForVisuals.distanceTransform) return;
         for (const roomName in global.tempForVisuals.distanceTransform) {
             let costMatrix = PathFinder.CostMatrix.deserialize(global.tempForVisuals.distanceTransform[roomName])
@@ -118,7 +116,7 @@ export default class Visuals {
     }
 
     static pathfinding() {
-        Utils.Logger.log(`Visuals -> pathfinding()`, LogLevel.TRACE);
+        Utils.Logger.log(`Visuals -> pathfinding()`, TRACE);
         for (const roomName in global.Cache.rooms) {
             const pathfindingCM = global.Cache.rooms[roomName].pathfindingCM;
             if (!pathfindingCM) continue;
@@ -128,7 +126,7 @@ export default class Visuals {
     }
 
     static worldRoomScoring() {
-        Utils.Logger.log(`Visuals -> worldRoomScoring()`, LogLevel.TRACE);
+        Utils.Logger.log(`Visuals -> worldRoomScoring()`, TRACE);
         if (!global.tempForVisuals || !global.tempForVisuals.worldRoomScoring) return;
         for (const roomName in global.tempForVisuals.worldRoomScoring) {
             let scoreData = global.tempForVisuals.worldRoomScoring[roomName];
@@ -139,7 +137,7 @@ export default class Visuals {
     }
 
     static worldRemotes() {
-        Utils.Logger.log(`Visuals -> worldRemotes()`, LogLevel.TRACE);
+        Utils.Logger.log(`Visuals -> worldRemotes()`, TRACE);
         for (let roomName in Game.rooms) {
             let roomMem = Memory.rooms[roomName]
             if (!roomMem || !roomMem.remoteSites || Object.keys(roomMem.remoteSites).length == 0) continue;
@@ -154,26 +152,26 @@ export default class Visuals {
     }
 
     static worldPathfinding() {
-        Utils.Logger.log(`Visuals -> worldPathfinding()`, LogLevel.TRACE);
+        Utils.Logger.log(`Visuals -> worldPathfinding()`, TRACE);
         if (!Memory.rooms) return;
         for (const roomName in Memory.rooms) {
             let pathData = Memory.rooms[roomName].intel;
             if (!pathData) continue;
             let color = '#000000';
             switch (pathData.threatLevel) {
-                case DangerLevel.PEACEFUL:
+                case PEACEFUL:
                     color = '#00ff00';
                     break;
-                case DangerLevel.INVADERS:
+                case INVADERS:
                     color = '#ccff33';
                     break;
-                case DangerLevel.WARY:
+                case WARY:
                     color = '#ffff1a';
                     break;
-                case DangerLevel.DANGER:
+                case DANGER:
                     color = '#ff9900';
                     break;
-                case DangerLevel.DEATH:
+                case DEATH:
                     color = '#ff0000';
                     break;
             }

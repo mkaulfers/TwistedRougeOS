@@ -1,9 +1,7 @@
+import { HARVESTER_SOURCE, HARVESTER_EARLY, Role, TRACE, HARVESTER, TRUCKER, Task, FATAL, RUNNING, INCOMPLETE, LOW } from "Constants"
 import CreepRole from "Models/CreepRole"
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
-
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
-
 export class Harvester extends CreepRole {
 
     readonly baseBody = [CARRY, MOVE, WORK, WORK]
@@ -15,24 +13,24 @@ export class Harvester extends CreepRole {
         let truckers = room.localCreeps.trucker
         if (truckers.length < Math.ceil(harvesters.length / 2)) {
             for (let harvester of harvesters) {
-                if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_SOURCE) {
-                    global.scheduler.swapProcess(harvester, Task.HARVESTER_EARLY)
+                if (!harvester.memory.task || harvester.memory.task == HARVESTER_SOURCE) {
+                    global.scheduler.swapProcess(harvester, HARVESTER_EARLY)
                 }
             }
         } else {
             for (let harvester of harvesters) {
-                if (!harvester.memory.task || harvester.memory.task == Task.HARVESTER_EARLY) {
-                    global.scheduler.swapProcess(harvester, Task.HARVESTER_SOURCE)
+                if (!harvester.memory.task || harvester.memory.task == HARVESTER_EARLY) {
+                    global.scheduler.swapProcess(harvester, HARVESTER_SOURCE)
                 }
             }
         }
     }
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        Utils.Logger.log("quantityWanted -> harvester.quantityWanted()", LogLevel.TRACE)
+        Utils.Logger.log("quantityWanted -> harvester.quantityWanted()", TRACE)
         let sources = room.sources.length;
-        let harCount = rolesNeeded.filter(x => x == Role.HARVESTER).length
-        let truckerCount = rolesNeeded.filter(x => x == Role.TRUCKER).length
+        let harCount = rolesNeeded.filter(x => x == HARVESTER).length
+        let truckerCount = rolesNeeded.filter(x => x == TRUCKER).length
         if (min && min == true) return harCount < sources ? 1 : 0;
 
         // Determine max needed harvesters based on harvest efficiency and valid spaces around source
@@ -72,10 +70,10 @@ export class Harvester extends CreepRole {
             let creepId = creep.id
 
             const earlyTask = () => {
-                Utils.Logger.log("CreepTask -> earlyTask()", LogLevel.TRACE)
+                Utils.Logger.log("CreepTask -> earlyTask()", TRACE)
                 let creep = Game.getObjectById(creepId)
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 let closestSource: Source | undefined = undefined
 
@@ -96,26 +94,26 @@ export class Harvester extends CreepRole {
 
                 if (creep.memory.working && refillTarget) {
                     creep.give(refillTarget, RESOURCE_ENERGY)
-                    return ProcessResult.RUNNING
+                    return RUNNING
                 } else if (closestSource) {
                     creep.mine(closestSource)
-                    return ProcessResult.RUNNING
+                    return RUNNING
                 }
-                return ProcessResult.INCOMPLETE
+                return INCOMPLETE
             }
 
-            creep.memory.task = Task.HARVESTER_EARLY
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, earlyTask)
+            creep.memory.task = HARVESTER_EARLY
+            let newProcess = new Process(creep.name, LOW, earlyTask)
             global.scheduler.addProcess(newProcess)
         },
         harvester_source: function(creep: Creep) {
             let creepId = creep.id
 
             const sourceTask = () => {
-                Utils.Logger.log("CreepTask -> sourceTask()", LogLevel.TRACE)
+                Utils.Logger.log("CreepTask -> sourceTask()", TRACE)
                 let creep = Game.getObjectById(creepId)
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 let closestSource: Source | undefined = undefined
 
@@ -153,13 +151,13 @@ export class Harvester extends CreepRole {
                     }
                     if (creep.ticksToLive && creep.ticksToLive % 50 === 0) delete creep.cache.dump
 
-                    return ProcessResult.RUNNING
+                    return RUNNING
                 }
-                return ProcessResult.INCOMPLETE
+                return INCOMPLETE
             }
 
-            creep.memory.task = Task.HARVESTER_SOURCE
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, sourceTask)
+            creep.memory.task = HARVESTER_SOURCE
+            let newProcess = new Process(creep.name, LOW, sourceTask)
             global.scheduler.addProcess(newProcess)
         }
     }

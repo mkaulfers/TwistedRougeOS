@@ -1,4 +1,4 @@
-import { Role, Task } from "utils/Enums";
+import { Role, Task } from "Constants";
 
 export default abstract class CreepRole {
 
@@ -6,7 +6,7 @@ export default abstract class CreepRole {
     Body Related
     */
 
-    /** Starting body for the role. Must not exceed 300 energy cost. */
+    /** Starting body for the  Must not exceed 300 energy cost. */
     abstract baseBody: BodyPartConstant[];
     /** The segment added as the spawning energy limit rises. */
     abstract segment: BodyPartConstant[];
@@ -28,9 +28,9 @@ export default abstract class CreepRole {
     abstract dispatch(room: Room): void;
     /** Tells the SpawnManager how many of this role is wanted, in what priority order. Must eventually return 0. Must handle `min` being true. */
     abstract quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number;
-    /** Prespawn consideration ticks to add on top of spawntime required. Not a required function for each creep role. */
+    /** Prespawn consideration ticks to add on top of spawntime required. Not a required function for each creep  */
     preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number { return 0; }
-    /** The tasks for the role. */
+    /** The tasks for the  */
     abstract tasks: { [key in Task]?: (creep: Creep) => void };
 
     // Supporting funtions for internal use:

@@ -1,4 +1,4 @@
-import { Role } from "utils/Enums";
+import { Role } from "Constants";
 import { Engineer } from "./Engineer";
 
 export class NetworkEngineer extends Engineer {

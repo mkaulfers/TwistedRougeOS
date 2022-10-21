@@ -1,5 +1,4 @@
 import { Coord } from "screeps-cartographer/dist/utils/packrat"
-
 export class MineralDetail {
     id: string
     mineralType: MineralConstant

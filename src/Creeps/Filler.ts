@@ -1,9 +1,8 @@
+import { FILLER_WORKING, Role, TRACE, FILLER, Task, FATAL, RUNNING, FAILED, MEDIUM, INFO } from "Constants"
 import CreepRole from "Models/CreepRole"
 import { Process } from "Models/Process"
-import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
 import { Utils } from "utils/Index"
 import { Logger } from "utils/Logger"
-
 export class Filler extends CreepRole {
 
     readonly baseBody = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE]
@@ -14,14 +13,14 @@ export class Filler extends CreepRole {
         let fillers = room.localCreeps.filler
         for (let filler of fillers) {
             if (!filler.memory.task) {
-                global.scheduler.swapProcess(filler, Task.FILLER)
+                global.scheduler.swapProcess(filler, FILLER_WORKING)
             }
         }
     }
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        Utils.Logger.log("quantityWanted -> filler.quantityWanted()", LogLevel.TRACE)
-        let fillerCount = rolesNeeded.filter(x => x == Role.FILLER).length
+        Utils.Logger.log("quantityWanted -> filler.quantityWanted()", TRACE)
+        let fillerCount = rolesNeeded.filter(x => x == FILLER).length
         if (Filler.isFillerComplete(room) && fillerCount !== 4) return 4 - fillerCount;
         return 0;
     }
@@ -41,8 +40,8 @@ export class Filler extends CreepRole {
 
             const fastFillerTask = () => {
                 let creep = Game.getObjectById(creepId)
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
                 let room = Game.rooms[creep.memory.homeRoom]
 
                 if (!creep.memory.assignedPos) {
@@ -56,7 +55,7 @@ export class Filler extends CreepRole {
                         if (assignablePosition) {
                             creep.memory.assignedPos = Utils.Utility.packPosition(assignablePosition)
                         } else {
-                            return ProcessResult.FAILED
+                            return FAILED
                         }
                     }
                 }
@@ -112,10 +111,10 @@ export class Filler extends CreepRole {
                     }
                 }
 
-                return ProcessResult.RUNNING
+                return RUNNING
             }
 
-            let newProcess = new Process(creep.name, ProcessPriority.MEDIUM, fastFillerTask)
+            let newProcess = new Process(creep.name, MEDIUM, fastFillerTask)
             global.scheduler.addProcess(newProcess)
         }
     }
@@ -178,7 +177,7 @@ export class Filler extends CreepRole {
                 result.structure.structureType == STRUCTURE_SPAWN ||
                 result.structure.structureType == STRUCTURE_LINK
         )
-        Logger.log(`${room.name} has ${results.length} structures`, LogLevel.INFO)
+        Logger.log(`${room.name} has ${results.length} structures`, INFO)
         return results.length >= 18
     }
 }

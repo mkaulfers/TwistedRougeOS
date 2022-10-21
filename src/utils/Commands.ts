@@ -1,6 +1,6 @@
-import { LogLevel } from './Enums';
 import { Utility } from './Utilities';
 import { Logger } from './Logger';
+import { ALL, OFF, TRACE, DEBUG, INFO, WARN, ERROR, LogLevels } from 'Constants';
 
 declare global {
             /**
@@ -200,31 +200,28 @@ global.destroyCSitesInRoom = function(name) {
 }
 
 global.setLogLevel = function(level) {
-    if (!(level in LogLevel)) return `Requested string is not a LogLevel. Please use: ALL, OFF, TRACE, DEBUG, INFO, WARN, ERROR, or FATAL.`;
+    if (!(level in LogLevels)) return `Requested string is not a  Please use: ALL, OFF, TRACE, DEBUG, INFO, WARN, ERROR, or FATAL.`;
     switch (level) {
         case 'OFF':
-            Logger.devLogLevel = LogLevel.OFF;
+            Logger.devLogLevel = OFF;
             break;
         case 'ALL':
-            Logger.devLogLevel = LogLevel.ALL;
+            Logger.devLogLevel = ALL;
             break;
         case 'TRACE':
-            Logger.devLogLevel = LogLevel.TRACE;
+            Logger.devLogLevel = TRACE;
             break;
         case 'DEBUG':
-            Logger.devLogLevel = LogLevel.DEBUG;
+            Logger.devLogLevel = DEBUG;
             break;
         case 'INFO':
-            Logger.devLogLevel = LogLevel.INFO;
+            Logger.devLogLevel = INFO;
             break;
         case 'WARN':
-            Logger.devLogLevel = LogLevel.WARN;
+            Logger.devLogLevel = WARN;
             break;
         case 'ERROR':
-            Logger.devLogLevel = LogLevel.ERROR;
-            break;
-        case 'FATAL':
-            Logger.devLogLevel = LogLevel.FATAL;
+            Logger.devLogLevel = ERROR;
             break;
     }
     return `LogLevel set to ${level}.`

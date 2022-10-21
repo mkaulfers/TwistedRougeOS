@@ -1,17 +1,17 @@
-import Roles from "Creeps/Index"
+
+import { TRACE, ProcessState, FATAL, RUNNING, CRITICAL } from "Constants"
+import CreepClasses from "Creeps/Index"
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from '../utils/Enums'
-
 export default class CreepManager {
     static scheduleCreepTask(room: Room) {
-        Utils.Logger.log("Room -> scheduleCreepTask()", LogLevel.TRACE)
+        Utils.Logger.log("Room -> scheduleCreepTask()", TRACE)
         let creeps = room.stationedCreeps.all
         for (let i = 0; i < creeps.length; i++) {
             let creep = creeps[i]
             if (global.scheduler.processQueue.has(creep.name)) { continue }
 
-            let activeRole = Roles[creep.memory.role];
+            let activeRole = CreepClasses[creep.memory.role];
             if (!activeRole || !creep.memory.task) continue;
             let task: ((creep: Creep) => void) | undefined = activeRole.tasks[creep.memory.task];
             if (!task) continue;
@@ -19,21 +19,21 @@ export default class CreepManager {
         }
     }
 
-    static scheduleRoomTaskMonitor(room: Room): void | ProcessResult {
+    static scheduleRoomTaskMonitor(room: Room): void | ProcessState {
         const roomName = room.name
 
         const roomTaskMonitor = () => {
             let room = Game.rooms[roomName];
-            if (!room || !room.my) return ProcessResult.FATAL;
+            if (!room || !room.my) return FATAL;
 
-            for (const role of Object.values(Roles)) {
-                if (room.stationedCreeps.all.length < 1) return ProcessResult.RUNNING;
+            for (const role of Object.values(CreepClasses)) {
+                if (room.stationedCreeps.all.length < 1) return RUNNING;
                 role.dispatch(room);
             }
-            return ProcessResult.RUNNING
+            return RUNNING
         }
 
-        let process = new Process(`${roomName}_task_monitor`, ProcessPriority.CRITICAL, roomTaskMonitor)
+        let process = new Process(`${roomName}_task_monitor`, CRITICAL, roomTaskMonitor)
         global.scheduler.addProcess(process)
     }
 }
