@@ -246,7 +246,8 @@ export default class SpawnSchedule {
         this.needsScheduled = false;
 
         // Reschedule each spawn order for prespawn
-        externalSchedule = this.add(externalSchedule, { preSpawnOnly: true });
-        if (externalSchedule && externalSchedule.length > 0) this.add(externalSchedule);
+        // externalSchedule = this.add(externalSchedule, { preSpawnOnly: true });
+        // if (externalSchedule && externalSchedule.length > 0)
+        this.add(externalSchedule);
     }
 }

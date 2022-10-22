@@ -1,7 +1,7 @@
 import { TRACE, INFO } from "Constants/LogConstants"
 import { MEDIUM } from "Constants/ProcessPriorityConstants"
 import { FATAL, RUNNING, FAILED } from "Constants/ProcessStateConstants"
-import { Role, FILLER } from "Constants/RoleConstants"
+import { Role, FILLER, HARVESTER } from "Constants/RoleConstants"
 import { FILLER_WORKING, Task } from "Constants/TaskConstants"
 import CreepRole from "Models/CreepRole"
 import { Process } from "Models/Process"
@@ -25,6 +25,7 @@ export class Filler extends CreepRole {
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
         Utils.Logger.log("quantityWanted -> filler.quantityWanted()", TRACE)
         let fillerCount = rolesNeeded.filter(x => x == FILLER).length
+        if (rolesNeeded.filter(x => x == HARVESTER).length < room.sources.length) return 0;
         if (Filler.isFillerComplete(room) && fillerCount !== 4) return 4 - fillerCount;
         return 0;
     }

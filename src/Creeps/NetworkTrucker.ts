@@ -7,6 +7,7 @@ import { Process } from "Models/Process";
 import { Utils } from "utils/Index";
 import { Logger } from "utils/Logger";
 import { Trucker } from "./Trucker";
+import { generatePath } from "screeps-cartographer";
 
 export class NetworkTrucker extends Trucker {
     readonly baseBody = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
@@ -15,13 +16,8 @@ export class NetworkTrucker extends Trucker {
     dispatch(room: Room): void {
         let networkHaulers = room.stationedCreeps.nTrucker;
         for (let hauler of networkHaulers) {
-            if (hauler.memory.working == true && hauler.memory.task != TRUCKER_STORAGE) {
-                Logger.log(`Setting Task to Trucker_Storage`, DEBUG)
-                global.scheduler.swapProcess(hauler, TRUCKER_STORAGE)
-            }
-
-            if (!hauler.memory.task || (hauler.memory.working == false && hauler.memory.task != nTRUCKER_TRANSPORTING)) {
-                Logger.log(`Setting Task to nTrucker`, DEBUG)
+            if (!hauler.memory.task || hauler.memory.task !== nTRUCKER_TRANSPORTING) {
+                Logger.log(`Setting Task to nTrucker`, TRACE)
                 global.scheduler.swapProcess(hauler, nTRUCKER_TRANSPORTING)
             }
         }
@@ -44,17 +40,27 @@ export class NetworkTrucker extends Trucker {
         return sourceCount - networkHaulers;
     }
 
+    preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number {
+        if (!room || !spawn || !room.controller) return 0;
+        // return avg path dist
+        return room.averageDistanceFromSourcesToStructures;
+    }
+
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
-        trucker_storage: function(creep: Creep) {
+        nTrucker_transporting: function (creep: Creep) {
             let creepId = creep.id
 
-            const truckerHarvesterTask = () => {
-                Utils.Logger.log("CreepTask -> truckerHarvesterTask()", TRACE)
-                let creep = Game.getObjectById(creepId);
+            const networkHaulerTask = () => {
+                let creep = Game.getObjectById(creepId)
                 if (!creep) return FATAL;
                 if (creep.spawning) return RUNNING;
 
-                // Switches working value if full or empty
+                // Pull remote target IFF not set.
+                if (!creep.memory.remoteTarget) {
+                    NetworkTrucker.setRemoteSource(creep.room, creep)
+                }
+
+                // Switches working value if full or empty.
                 if (creep.memory.working == undefined) creep.memory.working = false;
                 if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
                     (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
@@ -63,22 +69,47 @@ export class NetworkTrucker extends Trucker {
                 }
                 const working = creep.memory.working;
 
-                if (working) {
-                    // Determines new target
+                if (working === false) {
+                    // Get target within range 1 of source.
+                    let remoteTargetKey = Object.keys(creep.memory.remoteTarget ?? {})[0]
+                    let remoteTarget = creep.memory.remoteTarget ? creep.memory.remoteTarget[remoteTargetKey] : undefined
+                    if (creep.memory.remoteTarget && creep.memory.remoteTarget['W8N6']) console.log('1')
+                    if (remoteTarget) {
+                        let remoteSourceTarget = new RoomPosition(remoteTarget.x, remoteTarget.y, remoteTargetKey)
+                        if (creep.pos.roomName !== remoteSourceTarget.roomName || creep.pos.getRangeTo(remoteSourceTarget) > 3) {
+                            creep.travel(remoteSourceTarget)
+                        } else {
+                            if (creep.memory.remoteTarget && creep.memory.remoteTarget['W8N6']) console.log('3')
 
-                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                            let container: StructureContainer | undefined = remoteSourceTarget.findInRange(creep.room.containers, 1)[0]
+                            let resourceEnergy = remoteSourceTarget.findInRange(FIND_DROPPED_RESOURCES, 1, { filter: (r) => r.resourceType == RESOURCE_ENERGY })[0]
+                            let selectedTarget: Resource<ResourceConstant> | Tombstone | AnyStoreStructure | undefined = undefined
+
+                            if (resourceEnergy) selectedTarget = resourceEnergy
+                            else if (container) selectedTarget = container
+
+                            if (selectedTarget) creep.take(selectedTarget, RESOURCE_ENERGY)
+                        }
+                    }
+                } else {
+                    // Determines new target to dump energy into.
+                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target)) || (creep.pos.roomName === creep.memory.homeRoom && (creep.pos.x === 0 || creep.pos.x === 49 || creep.pos.y === 0 || creep.pos.y === 49))) {
                         Trucker.storageTruckerWorkingTargeting(creep);
                         if (!creep.memory.target) return RUNNING;
                     }
                     let target = Game.getObjectById(creep.memory.target);
 
+                    // Confirms target is still valid
                     if (!target ||
                         'store' in target && target.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                         delete creep.memory.target;
-                        return RUNNING;
+                        Trucker.storageTruckerWorkingTargeting(creep);
+                        if (!creep.memory.target) return RUNNING;
+                        target = Game.getObjectById(creep.memory.target);
+                        if (!target) return RUNNING;
                     }
 
-                    // Runs give and returns running or incomplete based on return value
+                    // Runs give and handles return value.
                     var result = creep.give(target, RESOURCE_ENERGY);
                     if (result === OK) {
                         if (creep.store.energy > 0 && creep.pos.getRangeTo(target) == 1 || target.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
@@ -89,33 +120,10 @@ export class NetworkTrucker extends Trucker {
                         return RUNNING
                     }
                     Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, ERROR)
-                    return INCOMPLETE
-                }
-                return RUNNING
-            }
-
-            creep.memory.task = TRUCKER_STORAGE
-            let newProcess = new Process(creep.name, LOW, truckerHarvesterTask)
-            global.scheduler.addProcess(newProcess)
-        },
-        nTrucker_transporting: function (creep: Creep) {
-            let creepId = creep.id
-
-            const networkHaulerTask = () => {
-                let creep = Game.getObjectById(creepId)
-                if (!creep) return FATAL;
-                if (creep.spawning) return RUNNING;
-
-                if (!creep.memory.remoteTarget) {
-                    //Referencing the NetworkHarvester class to set the remote source
-                    //This is a bit of a hack, but it works. ~CoPilot 2022
-                    NetworkTrucker.setRemoteSource(creep.room, creep)
-                } else {
-                    // Creep is in remote room and energy is full.
-                    // Working = false -> Creep is in the remote room or going to the remote room.
-                    NetworkTrucker.remoteRoomLogic(creep)
+                    return RUNNING
                 }
 
+                // EOL target management
                 if (creep.ticksToLive && creep.memory.remoteTarget && creep.ticksToLive < 1 && creep.hits >= creep.hitsMax / 2) {
                     let remoteRoomName = Object.keys(creep.memory.remoteTarget)[0]
                     let remoteRoom = Memory.rooms[remoteRoomName]
@@ -135,34 +143,9 @@ export class NetworkTrucker extends Trucker {
         }
     }
 
-    private static remoteRoomLogic(creep: Creep): void {
-        let remoteTargetKey = Object.keys(creep.memory.remoteTarget ?? {})[0]
-        let remoteTarget = creep.memory.remoteTarget ? creep.memory.remoteTarget[remoteTargetKey] : undefined
-        if (remoteTarget) {
-            let remoteSourceTarget = new RoomPosition(remoteTarget.x, remoteTarget.y, remoteTargetKey)
-
-            if (creep.pos.roomName != remoteSourceTarget.roomName || creep.pos.getRangeTo(remoteSourceTarget) > 3) {
-                creep.travel(remoteSourceTarget)
-            } else {
-                let container: StructureContainer | undefined = remoteSourceTarget.findInRange(creep.room.containers, 1)[0]
-                let resourceEnergy = remoteSourceTarget.findInRange(FIND_DROPPED_RESOURCES, 1, { filter: (r) => r.resourceType == RESOURCE_ENERGY })[0]
-                let selectedTarget: Resource<ResourceConstant> | Tombstone | AnyStoreStructure | undefined = undefined
-
-                //Dev Note: Reorganize this for priority.
-                if (resourceEnergy) selectedTarget = resourceEnergy
-                else if (container) selectedTarget = container
-
-                if (selectedTarget) creep.take(selectedTarget, RESOURCE_ENERGY)
-            }
-
-            if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) creep.memory.working = true
-        }
-    }
-
     static setRemoteSource(baseRoom: Room, creep: Creep) {
         if (!baseRoom.memory.remoteSites) return
         this.validateRemoteTruckers(baseRoom)
-
         let remotes = baseRoom.memory.remoteSites || {}
 
         for (let remote in remotes) {

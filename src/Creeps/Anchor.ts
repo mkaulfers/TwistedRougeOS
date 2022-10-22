@@ -1,7 +1,7 @@
 import { TRACE, INFO } from "Constants/LogConstants";
 import { LOW } from "Constants/ProcessPriorityConstants";
 import { FATAL, RUNNING, FAILED } from "Constants/ProcessStateConstants";
-import { Role, ANCHOR } from "Constants/RoleConstants";
+import { Role, ANCHOR, HARVESTER } from "Constants/RoleConstants";
 import { HUB } from "Constants/StampConstants";
 import { ANCHOR_WORKING, Task } from "Constants/TaskConstants";
 import CreepRole from "Models/CreepRole";
@@ -23,8 +23,7 @@ export class Anchor extends CreepRole {
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
         Utils.Logger.log("quantityWanted -> anchor.quantityWanted()", TRACE)
-        if (min && min == true) return 0;
-
+        if (rolesNeeded.filter(x => x == HARVESTER).length < room.sources.length) return 0;
         let anchorCount = rolesNeeded.filter(x => x == ANCHOR).length
         let shouldBe = room.isAnchorFunctional ? 1 : 0;
         return anchorCount < shouldBe ? shouldBe - anchorCount : 0;
@@ -79,7 +78,7 @@ export class Anchor extends CreepRole {
                             qty = link ? link.store.energy - (link.store.getCapacity(RESOURCE_ENERGY) / 2) : undefined;
                             result = creep.take(link, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined)
                             break;
-                        case link && storage && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2):
+                        case link && storage && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2) && storage.store.energy > 10401:
                             // `storage!` used because TS required it.. It is obviously checked above.
                             qty = link ? (link.store.getCapacity(RESOURCE_ENERGY) / 2) - link.store.energy : undefined;
                             result = creep.take(storage!, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined);
@@ -123,7 +122,7 @@ export class Anchor extends CreepRole {
                 } else {
                     switch (true) {
                         // Link
-                        case link && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2):
+                        case link && storage && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2) && storage.store.energy > 10000:
                             result = creep.give(link, RESOURCE_ENERGY);
                             break;
                         // Spawn
