@@ -77,7 +77,6 @@ export class NetworkTrucker extends Trucker {
                     if (remoteTarget) {
                         let remoteSourceTarget = new RoomPosition(remoteTarget.x, remoteTarget.y, remoteTargetKey)
                         if (creep.pos.roomName !== remoteSourceTarget.roomName || creep.pos.getRangeTo(remoteSourceTarget) > 3) {
-
                             creep.travel(remoteSourceTarget)
                         } else {
                             if (creep.memory.remoteTarget && creep.memory.remoteTarget['W8N6']) console.log('3')
@@ -147,7 +146,6 @@ export class NetworkTrucker extends Trucker {
     static setRemoteSource(baseRoom: Room, creep: Creep) {
         if (!baseRoom.memory.remoteSites) return
         this.validateRemoteTruckers(baseRoom)
-        if (creep.name === `nTr05_0985`)console.log(`The creep hit setRemoteSource again..`)
         let remotes = baseRoom.memory.remoteSites || {}
 
         for (let remote in remotes) {
