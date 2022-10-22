@@ -107,7 +107,7 @@ export class Trucker extends CreepRole {
                         Trucker.storageTruckerWorkingTargeting(creep);
                         if (!creep.memory.target) return RUNNING;
                         target = Game.getObjectById(creep.memory.target);
-                        if (!target) return .RUNNING;
+                        if (!target) return RUNNING;
                     }
 
                     // Runs give and returns running or incomplete based on return value
