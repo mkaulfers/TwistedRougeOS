@@ -1,6 +1,12 @@
-import { Logger } from './Logger';
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, Developer, LinkState } from './Enums';
-
+import { DangerLevel, DangerLevels } from "Constants/DangerLevelConstants";
+import { Developer, Developers } from "Constants/DeveloperConstants";
+import { LinkState, LinkStates } from "Constants/LinkStateConstants";
+import { LogLevel, LogLevels } from "Constants/LogConstants";
+import { ProcessPriority, ProcessPriorities } from "Constants/ProcessPriorityConstants";
+import { ProcessState, ProcessStates } from "Constants/ProcessStateConstants";
+import { Role, Roles } from "Constants/RoleConstants";
+import { StampType, StampTypes } from "Constants/StampConstants";
+import { Task, Tasks } from "Constants/TaskConstants";
 
 export default class Typeguards {
 
@@ -80,25 +86,25 @@ export default class Typeguards {
 
     static isResourceConstant(string: string): string is ResourceConstant { return RESOURCES_ALL.includes(string as ResourceConstant) }
 
-    static isRole(string: string): string is Role { return Object.values(Role).includes(string as Role) }
+    static isRole(string: string): string is Role { return Roles.includes(string as Role) }
 
-    static isTask(string: string): string is Task { return Object.values(Task).includes(string as Task) }
+    static isTask(string: string): string is Task { return Tasks.includes(string as Task) }
 
-    static isProcessPriority(string: string): string is ProcessPriority { return Object.values(ProcessPriority).includes(string as ProcessPriority) }
+    static isProcessPriority(string: string): string is ProcessPriority { return ProcessPriorities.includes(string as ProcessPriority) }
 
-    static isProcessResult(string: string): string is ProcessResult { return Object.values(ProcessResult).includes(string as ProcessResult) }
+    static isProcessState(string: string): string is ProcessState { return ProcessStates.includes(string as ProcessState) }
 
-    static isLogLevelKey(string: string): string is keyof LogLevel { return Object.keys(LogLevel).includes(string as keyof LogLevel) }
+    static isLogLevelKey(string: string): string is LogLevel { return LogLevels.includes(string as LogLevel) }
 
-    static isStampType(string: string): string is StampType { return Object.values(StampType).includes(string as StampType) }
+    static isStampType(string: string): string is StampType { return StampTypes.includes(string as StampType) }
 
-    static isDeveloper(string: string): string is Developer { return Object.values(Developer).includes(string as Developer) }
+    static isDeveloper(string: string): string is Developer { return Developers.includes(string as Developer) }
 
-    static isLinkState(string: string): string is LinkState { return Object.values(LinkState).includes(string as LinkState) }
+    static isLinkState(string: string): string is LinkState { return LinkStates.includes(string as LinkState) }
 
     // Numbers
 
-    static isDangerLevel(number: number): number is DangerLevel { return Object.values(DangerLevel).includes(number) }
+    static isDangerLevel(number: number): number is DangerLevel { return DangerLevels.includes(number as DangerLevel) }
 
 
 }

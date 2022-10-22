@@ -1,7 +1,9 @@
 import { Logger } from "utils/Logger"
 import { Process } from "../Models/Process"
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 import { Managers } from "Managers/Index"
+import { ERROR, TRACE } from "Constants/LogConstants"
+import { ProcessPriorities } from "Constants/ProcessPriorityConstants"
+import { SUCCESS, FATAL, RUNNING, FAILED, INCOMPLETE } from "Constants/ProcessStateConstants"
 
 export default class Kernel {
     executeProcesses() {
@@ -19,16 +21,16 @@ export default class Kernel {
             }
 
             switch (result) {
-                case ProcessResult.SUCCESS:
-                case ProcessResult.FATAL:
+                case SUCCESS:
+                case FATAL:
                     global.scheduler.removeProcess(value.id)
                     break
-                case ProcessResult.RUNNING:
+                case RUNNING:
                     global.scheduler.resetProcessPriorityFor(value.id)
                     break
-                case ProcessResult.FAILED:
-                    Logger.log(`Process ${value.id} failed.`, LogLevel.FATAL)
-                case ProcessResult.INCOMPLETE:
+                case FAILED:
+                    Logger.log(`Process ${value.id} failed.`, ERROR)
+                case INCOMPLETE:
                     global.scheduler.increaseProcessPriorityFor(value.id)
                     break
             }
@@ -44,7 +46,7 @@ export default class Kernel {
     }
 
     loadProcesses() {
-        Logger.log("Kernel -> loadProcesses()", LogLevel.TRACE)
+        Logger.log("Kernel -> loadProcesses()", TRACE)
 
         for (let rmName in Game.rooms) {
             let room = Game.rooms[rmName]
@@ -63,10 +65,10 @@ export default class Kernel {
     }
 
     sortProcesses() {
-        Logger.log("Kernel -> sortProcesses()", LogLevel.TRACE)
+        Logger.log("Kernel -> sortProcesses()", TRACE)
         let queue: Map<string, Process> = new Map([...global.scheduler.processQueue.entries()].sort((a, b) =>
-            Object.values(ProcessPriority).indexOf(a[1].currentPriority) -
-            Object.values(ProcessPriority).indexOf(b[1].currentPriority)
+            ProcessPriorities.indexOf(a[1].currentPriority) -
+            ProcessPriorities.indexOf(b[1].currentPriority)
         ))
 
         global.scheduler.processQueue = queue

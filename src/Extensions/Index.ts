@@ -1,5 +1,4 @@
 import './RoomVisuals';
-
 import Controller_Extended from './Controller';
 import Creep_Extended from './Creep';
 import Room_Extended from './Room';
@@ -7,7 +6,6 @@ import RoomVisuals_Extended from './RoomVisuals';
 import Source_Extended from './Source';
 import Tower_Extended from './Tower';
 import Terminal_Extended from './Terminal';
-
 import { Utility } from 'utils/Utilities';
 
 export default function prototypeExtender(): void {

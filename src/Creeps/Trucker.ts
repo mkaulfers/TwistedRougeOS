@@ -1,8 +1,11 @@
+import { TRACE, INFO, ERROR } from "Constants/LogConstants"
+import { LOW } from "Constants/ProcessPriorityConstants"
+import { FATAL, RUNNING, INCOMPLETE } from "Constants/ProcessStateConstants"
+import { Role, HARVESTER, TRUCKER } from "Constants/RoleConstants"
+import { TRUCKER_SCIENTIST, TRUCKER_STORAGE, Task } from "Constants/TaskConstants"
 import CreepRole from "Models/CreepRole"
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
-
 export class Trucker extends CreepRole {
 
     readonly baseBody = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
@@ -19,44 +22,44 @@ export class Trucker extends CreepRole {
         });
         if (room.energyAvailable < room.energyCapacityAvailable || consider.length > 0) {
             let truckers = room.localCreeps.trucker
-            Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.TRACE)
+            Utils.Logger.log(`dispatchStorageTruckers`, TRACE)
             for (let trucker of truckers) {
-                if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_SCIENTIST) {
-                    Utils.Logger.log(`dispatchStorageTruckers`, LogLevel.TRACE)
-                    global.scheduler.swapProcess(trucker, Task.TRUCKER_STORAGE)
+                if (!trucker.memory.task || trucker.memory.task == TRUCKER_SCIENTIST) {
+                    Utils.Logger.log(`dispatchStorageTruckers`, TRACE)
+                    global.scheduler.swapProcess(trucker, TRUCKER_STORAGE)
                 }
             }
         } else {
             let truckers = room.localCreeps.trucker
             if (!(truckers.length > 0)) return;
-            Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.TRACE)
+            Utils.Logger.log(`dispatchScientistTruckers`, TRACE)
 
             for (let trucker of truckers) {
-                if (!trucker.memory.task || trucker.memory.task == Task.TRUCKER_STORAGE) {
-                    Utils.Logger.log(`dispatchScientistTruckers`, LogLevel.TRACE)
-                    global.scheduler.swapProcess(trucker, Task.TRUCKER_SCIENTIST)
+                if (!trucker.memory.task || trucker.memory.task == TRUCKER_STORAGE) {
+                    Utils.Logger.log(`dispatchScientistTruckers`, TRACE)
+                    global.scheduler.swapProcess(trucker, TRUCKER_SCIENTIST)
                 }
             }
 
-            if (truckers.filter(trucker => trucker.memory.task == Task.TRUCKER_SCIENTIST).length < 1) {
+            if (truckers.filter(trucker => trucker.memory.task == TRUCKER_SCIENTIST).length < 1) {
                 truckers[0].memory.task = undefined
             }
         }
     }
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        let harCount = rolesNeeded.filter(x => x == Role.HARVESTER).length
+        let harCount = rolesNeeded.filter(x => x == HARVESTER).length
         if (harCount < 1) return 0;
-        let truckerCount = rolesNeeded.filter(x => x == Role.TRUCKER).length
+        let truckerCount = rolesNeeded.filter(x => x == TRUCKER).length
         if (min && min == true) return truckerCount < harCount ? harCount - truckerCount : 0;
 
-        // Utils.Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, LogLevel.INFO)  TODO: Remove dead function
-        Utils.Logger.log(`Demand to Meet: ${room.sources.length * 10 * (room.averageDistanceFromSourcesToStructures * this.carryModifier)}`, LogLevel.INFO)
+        // Utils.Logger.log(`Trucker Carry Capacity: ${room.truckersCarryCapacity()}`, INFO)  TODO: Remove dead function
+        Utils.Logger.log(`Demand to Meet: ${room.sources.length * 10 * (room.averageDistanceFromSourcesToStructures * this.carryModifier)}`, INFO)
         if (!this.partLimits || this.partLimits.length == 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
         if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
         let body = this[room.spawnEnergyLimit];
         let carryCount = body.filter(p => p == CARRY).length
-        if (carryCount === 0 || !carryCount) Utils.Logger.log(`Carry Count for truckers was ${carryCount}! This is a failure mode!`, LogLevel.FATAL);
+        if (carryCount === 0 || !carryCount) Utils.Logger.log(`Carry Count for truckers was ${carryCount}! This is a failure mode!`, ERROR);
         let shouldBe = Math.ceil((room.sources.length * 10 * room.averageDistanceFromSourcesToStructures * this.carryModifier) / (carryCount * 50));
         if (room.storage && room.storage.store.energy > 500000 && shouldBe < 3) shouldBe = 3;
         if (shouldBe < 2) shouldBe = 2;
@@ -74,10 +77,10 @@ export class Trucker extends CreepRole {
             let creepId = creep.id
 
             const truckerHarvesterTask = () => {
-                Utils.Logger.log("CreepTask -> truckerHarvesterTask()", LogLevel.TRACE)
+                Utils.Logger.log("CreepTask -> truckerHarvesterTask()", TRACE)
                 let creep = Game.getObjectById(creepId);
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 // Switches working value if full or empty
                 if (creep.memory.working == undefined) creep.memory.working = false;
@@ -93,7 +96,7 @@ export class Trucker extends CreepRole {
                     // Gets new target when one is missing.
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         Trucker.storageTruckerWorkingTargeting(creep);
-                        if (!creep.memory.target) return ProcessResult.RUNNING;
+                        if (!creep.memory.target) return RUNNING;
                     }
                     let target = Game.getObjectById(creep.memory.target);
 
@@ -102,9 +105,9 @@ export class Trucker extends CreepRole {
                         'store' in target && target.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                         delete creep.memory.target;
                         Trucker.storageTruckerWorkingTargeting(creep);
-                        if (!creep.memory.target) return ProcessResult.RUNNING;
+                        if (!creep.memory.target) return RUNNING;
                         target = Game.getObjectById(creep.memory.target);
-                        if (!target) return ProcessResult.RUNNING;
+                        if (!target) return .RUNNING;
                     }
 
                     // Runs give and returns running or incomplete based on return value
@@ -115,15 +118,15 @@ export class Trucker extends CreepRole {
                             let newTarget = Game.getObjectById(creep.memory.target);
                             if (target.id !== creep.memory.target && newTarget && creep.pos.getRangeTo(newTarget) > 1) creep.travel(newTarget);
                         }
-                        return ProcessResult.RUNNING
+                        return RUNNING
                     }
-                    Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
-                    return ProcessResult.INCOMPLETE
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, ERROR)
+                    return INCOMPLETE
                 } else {
                     // Determines new target
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         Trucker.needEnergyTargeting(creep);
-                        if (!creep.memory.target) return ProcessResult.RUNNING
+                        if (!creep.memory.target) return RUNNING
                     }
                     let target = Game.getObjectById(creep.memory.target);
 
@@ -132,31 +135,31 @@ export class Trucker extends CreepRole {
                         'store' in target && target.store.energy < 25 ||
                         'amount' in target && target.amount < 25) {
                         delete creep.memory.target;
-                        return ProcessResult.RUNNING;
+                        return RUNNING;
                     }
 
                     // Runs take and returns running or incomplete on result
                     result = creep.take(target, RESOURCE_ENERGY);
                     if (result === OK) {
-                        return ProcessResult.RUNNING
+                        return RUNNING
                     }
-                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
-                    return ProcessResult.INCOMPLETE
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, ERROR)
+                    return INCOMPLETE
                 }
             }
 
-            creep.memory.task = Task.TRUCKER_STORAGE
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, truckerHarvesterTask)
+            creep.memory.task = TRUCKER_STORAGE
+            let newProcess = new Process(creep.name, LOW, truckerHarvesterTask)
             global.scheduler.addProcess(newProcess)
         },
         trucker_scientist: function(creep: Creep) {
             let creepId = creep.id;
 
             const truckerScientistTask = () => {
-                Utils.Logger.log("CreepTask -> truckerScientistTask()", LogLevel.TRACE);
+                Utils.Logger.log("CreepTask -> truckerScientistTask()", TRACE);
                 let creep = Game.getObjectById(creepId);
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 // Switches working value if full or empty
                 if (creep.memory.working == undefined) creep.memory.working = false;
@@ -184,7 +187,7 @@ export class Trucker extends CreepRole {
                         } else if (creep.room.storage) {
                             creep.memory.target = creep.room.storage.id;
                         } else {
-                            return ProcessResult.RUNNING
+                            return RUNNING
                         }
                     }
                     let target = Game.getObjectById(creep.memory.target);
@@ -193,21 +196,21 @@ export class Trucker extends CreepRole {
                     if (!target ||
                         'store' in target && target.store.getFreeCapacity() < 15) {
                         delete creep.memory.target;
-                        return ProcessResult.RUNNING;
+                        return RUNNING;
                     }
 
                     // Runs give and returns running or incomplete based on result
                     var result = creep.give(target, RESOURCE_ENERGY);
                     if (result === OK) {
-                        return ProcessResult.RUNNING
+                        return RUNNING
                     }
-                    Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
-                    return ProcessResult.INCOMPLETE
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, ERROR)
+                    return INCOMPLETE
                 } else {
                     // Determines new target
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         Trucker.needEnergyTargeting(creep);
-                        return ProcessResult.RUNNING
+                        return RUNNING
                     }
                     let target = Game.getObjectById(creep.memory.target);
 
@@ -216,22 +219,22 @@ export class Trucker extends CreepRole {
                         'store' in target && target.store.energy < 25 ||
                         'amount' in target && target.amount < 25) {
                         delete creep.memory.target;
-                        ProcessResult.RUNNING;
+                        RUNNING;
                     }
 
                     // Runs take and returns running or incomplete based on the result.
                     result = creep.take(target, RESOURCE_ENERGY);
                     if (result === OK) {
-                        return ProcessResult.RUNNING
+                        return RUNNING
                     }
-                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
-                    return ProcessResult.INCOMPLETE
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, ERROR)
+                    return INCOMPLETE
 
                 }
             }
 
-            creep.memory.task = Task.TRUCKER_SCIENTIST
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, truckerScientistTask)
+            creep.memory.task = TRUCKER_SCIENTIST
+            let newProcess = new Process(creep.name, LOW, truckerScientistTask)
             global.scheduler.addProcess(newProcess)
         }
     }

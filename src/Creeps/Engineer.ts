@@ -1,7 +1,11 @@
+import { TRACE, ERROR } from "Constants/LogConstants"
+import { LOW } from "Constants/ProcessPriorityConstants"
+import { FATAL, RUNNING, INCOMPLETE } from "Constants/ProcessStateConstants"
+import { Role, ENGINEER, HARVESTER, TRUCKER } from "Constants/RoleConstants"
+import { ENGINEER_REPAIRING, ENGINEER_BUILDING, ENGINEER_UPGRADING, Task } from "Constants/TaskConstants"
 import CreepRole from "Models/CreepRole"
 import { Utils } from "utils/Index"
 import { Process } from "../Models/Process"
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
 
 export class Engineer extends CreepRole {
 
@@ -9,7 +13,7 @@ export class Engineer extends CreepRole {
     readonly segment = [CARRY, WORK, MOVE, MOVE]
 
     dispatch(room: Room) {
-        Utils.Logger.log("CreepDispatch -> engineer.dispatch()", LogLevel.TRACE)
+        Utils.Logger.log("CreepDispatch -> engineer.dispatch()", TRACE)
 
         let engineers = room.localCreeps.engineer
 
@@ -49,32 +53,32 @@ export class Engineer extends CreepRole {
         );
 
         for (let engineer of engineers) {
-            let stopERepairs = !(engineer.memory.task === Task.ENGINEER_REPAIRING && RepairedERSites.length > 0)
+            let stopERepairs = !(engineer.memory.task === ENGINEER_REPAIRING && RepairedERSites.length > 0)
             switch (true) {
-                case (engineer.memory.task !== Task.ENGINEER_REPAIRING &&
+                case (engineer.memory.task !== ENGINEER_REPAIRING &&
                     eRSites.length > 0):
-                    global.scheduler.swapProcess(engineer, Task.ENGINEER_REPAIRING)
+                    global.scheduler.swapProcess(engineer, ENGINEER_REPAIRING)
                     break;
-                case (engineer.memory.task !== Task.ENGINEER_BUILDING &&
+                case (engineer.memory.task !== ENGINEER_BUILDING &&
                     eRSites.length === 0 &&
                     stopERepairs === true &&
                     cSites.length > 0):
-                    global.scheduler.swapProcess(engineer, Task.ENGINEER_BUILDING)
+                    global.scheduler.swapProcess(engineer, ENGINEER_BUILDING)
                     break;
-                case (engineer.memory.task !== Task.ENGINEER_REPAIRING &&
+                case (engineer.memory.task !== ENGINEER_REPAIRING &&
                     eRSites.length === 0 &&
                     stopERepairs === true &&
                     cSites.length === 0 &&
                     rSites.length > 0):
-                    global.scheduler.swapProcess(engineer, Task.ENGINEER_REPAIRING)
+                    global.scheduler.swapProcess(engineer, ENGINEER_REPAIRING)
                     break;
-                case (engineer.memory.task !== Task.ENGINEER_UPGRADING &&
+                case (engineer.memory.task !== ENGINEER_UPGRADING &&
                     eRSites.length === 0 &&
                     stopERepairs === true &&
                     cSites.length === 0 &&
                     rSites.length === 0 &&
                     uSites.length > 0):
-                    global.scheduler.swapProcess(engineer, Task.ENGINEER_UPGRADING)
+                    global.scheduler.swapProcess(engineer, ENGINEER_UPGRADING)
                     break;
             }
         }
@@ -82,12 +86,12 @@ export class Engineer extends CreepRole {
     }
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        Utils.Logger.log("quantityWanted -> engineer.quantityWanted()", LogLevel.TRACE)
+        Utils.Logger.log("quantityWanted -> engineer.quantityWanted()", TRACE)
         if (!(room.controller && room.controller.my && room.controller.level >= 2)) return 0;
-        let engineerCount = rolesNeeded.filter(x => x == Role.ENGINEER).length
-        let harCount = rolesNeeded.filter(x => x == Role.HARVESTER).length;
+        let engineerCount = rolesNeeded.filter(x => x == ENGINEER).length
+        let harCount = rolesNeeded.filter(x => x == HARVESTER).length;
         if (harCount == 0 &&
-            rolesNeeded.filter(x => x == Role.TRUCKER).length == 0) return 0;
+            rolesNeeded.filter(x => x == TRUCKER).length == 0) return 0;
         let sources = room.sources.length;
         if (min && min == true) return harCount < sources ? 0 : 1 - engineerCount;
         if (room.constructionSites().length == 0 && room.find(FIND_STRUCTURES).length == 0 ) return 0;
@@ -102,10 +106,10 @@ export class Engineer extends CreepRole {
             let creepId = creep.id
 
             const buildingTask = () => {
-                Utils.Logger.log("CreepTask -> builderTask()", LogLevel.TRACE)
+                Utils.Logger.log("CreepTask -> builderTask()", TRACE)
                 let creep = Game.getObjectById(creepId);
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 if (creep.memory.working == undefined) creep.memory.working = false;
                 if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
@@ -123,17 +127,17 @@ export class Engineer extends CreepRole {
                         if (potentialTargets.length > 0) {
                             creep.memory.target = potentialTargets[0].id;
                         } else {
-                            return ProcessResult.RUNNING
+                            return RUNNING
                         }
                     }
                     let target = Game.getObjectById(creep.memory.target);
 
                     var result = creep.work(target);
                     if (result === OK) {
-                        return ProcessResult.RUNNING
+                        return RUNNING
                     }
-                    Utils.Logger.log(`${creep.name} generated error code ${result} while building.`, LogLevel.ERROR)
-                    return ProcessResult.INCOMPLETE
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while building.`, ERROR)
+                    return INCOMPLETE
                 } else {
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
@@ -162,7 +166,7 @@ export class Engineer extends CreepRole {
                         } else if (creep.room.storage) {
                             creep.memory.target = creep.room.storage.id;
                         } else {
-                            return ProcessResult.RUNNING
+                            return RUNNING
                         }
                     }
                     let target = Game.getObjectById(creep.memory.target);
@@ -171,31 +175,31 @@ export class Engineer extends CreepRole {
                         'store' in target && target.store.energy < 25 ||
                         'amount' in target && target.amount < 25) {
                         delete creep.memory.target;
-                        ProcessResult.RUNNING;
+                        RUNNING;
                     }
 
                     result = creep.take(target, RESOURCE_ENERGY);
 
                     if (result === OK) {
-                        return ProcessResult.RUNNING
+                        return RUNNING
                     }
-                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
-                    return ProcessResult.INCOMPLETE
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, ERROR)
+                    return INCOMPLETE
                 }
             }
 
-            creep.memory.task = Task.ENGINEER_BUILDING
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, buildingTask)
+            creep.memory.task = ENGINEER_BUILDING
+            let newProcess = new Process(creep.name, LOW, buildingTask)
             global.scheduler.addProcess(newProcess)
         },
         engineer_repairing: function(creep: Creep) {
             let creepId = creep.id
 
             const repairingTask = () => {
-                Utils.Logger.log("CreepTask -> repairTask()", LogLevel.TRACE)
+                Utils.Logger.log("CreepTask -> repairTask()", TRACE)
                 let creep = Game.getObjectById(creepId);
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 if (creep.memory.working == undefined) creep.memory.working = false;
                 if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
@@ -220,7 +224,7 @@ export class Engineer extends CreepRole {
                         if (potentialTargets.length > 0) {
                             creep.memory.target = potentialTargets[0].id;
                         } else {
-                            return ProcessResult.RUNNING
+                            return RUNNING
                         }
                     }
                     let target = Game.getObjectById(creep.memory.target);
@@ -229,10 +233,10 @@ export class Engineer extends CreepRole {
 
                     var result = creep.work(target);
                     if (result === OK) {
-                        return ProcessResult.RUNNING
+                        return RUNNING
                     }
-                    Utils.Logger.log(`${creep.name} generated error code ${result} while building.`, LogLevel.ERROR)
-                    return ProcessResult.INCOMPLETE
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while building.`, ERROR)
+                    return INCOMPLETE
                 } else {
 
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
@@ -262,7 +266,7 @@ export class Engineer extends CreepRole {
                         } else if (creep.room.storage) {
                             creep.memory.target = creep.room.storage.id;
                         } else {
-                            return ProcessResult.RUNNING
+                            return RUNNING
                         }
                     }
                     let target = Game.getObjectById(creep.memory.target);
@@ -271,31 +275,31 @@ export class Engineer extends CreepRole {
                         'store' in target && target.store.energy < 25 ||
                         'amount' in target && target.amount < 25) {
                         delete creep.memory.target;
-                        ProcessResult.RUNNING;
+                        RUNNING;
                     }
 
                     result = creep.take(target, RESOURCE_ENERGY);
 
                     if (result === OK) {
-                        return ProcessResult.RUNNING
+                        return RUNNING
                     }
-                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
-                    return ProcessResult.INCOMPLETE
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, ERROR)
+                    return INCOMPLETE
                 }
             }
 
-            creep.memory.task = Task.ENGINEER_REPAIRING
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, repairingTask)
+            creep.memory.task = ENGINEER_REPAIRING
+            let newProcess = new Process(creep.name, LOW, repairingTask)
             global.scheduler.addProcess(newProcess)
         },
         engineer_upgrading: function(creep: Creep) {
             let creepId = creep.id
 
             const upgradingTask = () => {
-                Utils.Logger.log("CreepTask -> eUpgradingTask()", LogLevel.TRACE)
+                Utils.Logger.log("CreepTask -> eUpgradingTask()", TRACE)
                 let creep = Game.getObjectById(creepId);
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 if (creep.memory.working == undefined) creep.memory.working = false;
                 if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
@@ -312,17 +316,17 @@ export class Engineer extends CreepRole {
                         if (potentialTargets.length > 0) {
                             creep.memory.target = potentialTargets[0].id;
                         } else {
-                            return ProcessResult.RUNNING
+                            return RUNNING
                         }
                     }
                     let target = Game.getObjectById(creep.memory.target);
 
                     var result = creep.work(target);
                     if (result === OK) {
-                        return ProcessResult.RUNNING
+                        return RUNNING
                     }
-                    Utils.Logger.log(`${creep.name} generated error code ${result} while building.`, LogLevel.ERROR)
-                    return ProcessResult.INCOMPLETE
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while building.`, ERROR)
+                    return INCOMPLETE
                 } else {
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         let potentialTargets: (AnyStoreStructure | Resource | Tombstone)[] = [];
@@ -351,7 +355,7 @@ export class Engineer extends CreepRole {
                         } else if (creep.room.storage) {
                             creep.memory.target = creep.room.storage.id;
                         } else {
-                            return ProcessResult.RUNNING
+                            return RUNNING
                         }
                     }
                     let target = Game.getObjectById(creep.memory.target);
@@ -360,21 +364,21 @@ export class Engineer extends CreepRole {
                         'store' in target && target.store.energy < 25 ||
                         'amount' in target && target.amount < 25) {
                         delete creep.memory.target;
-                        ProcessResult.RUNNING;
+                        RUNNING;
                     }
 
                     result = creep.take(target, RESOURCE_ENERGY);
 
                     if (result === OK) {
-                        return ProcessResult.RUNNING
+                        return RUNNING
                     }
-                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, LogLevel.ERROR)
-                    return ProcessResult.INCOMPLETE
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, ERROR)
+                    return INCOMPLETE
                 }
             }
 
-            creep.memory.task = Task.ENGINEER_UPGRADING
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
+            creep.memory.task = ENGINEER_UPGRADING
+            let newProcess = new Process(creep.name, LOW, upgradingTask)
             global.scheduler.addProcess(newProcess)
         }
     }

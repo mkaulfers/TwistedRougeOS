@@ -4,14 +4,11 @@ prototypeExtender();
 
 // Imports
 import { Utils } from './utils/Index';
-import { LogLevel } from './utils/Enums'
 import { OS } from "OS/Index";
 import { memHack } from "Models/MemHack";
-
 import { colors } from "Models/Process";
 import { preTick, reconcileTraffic } from 'screeps-cartographer';
-
-
+import { ALL, DEBUG, INFO } from "Constants/LogConstants";
 declare global {
   interface RawMemory {
     [key: string]: any
@@ -27,7 +24,7 @@ declare global {
 // Once and Done code here
 
 // DEV MODE LOGGING
-Utils.Logger.devLogLevel = LogLevel.DEBUG;
+Utils.Logger.devLogLevel = DEBUG;
 
 export const loop = Utils.ErrorMapper.wrapLoop(() => {
   clearConsole()
@@ -42,11 +39,11 @@ function setup() {
   memHack.modifyMemory()
   // TODO: Deserialize scheduler and kernel.
   if (!global.kernel) {
-    Utils.Logger.log("Building new kernel.", LogLevel.DEBUG)
+    Utils.Logger.log("Building new kernel.", DEBUG)
     global.kernel = new OS.Kernel()
   }
   if (!global.scheduler) {
-    Utils.Logger.log("Building new scheduler.", LogLevel.DEBUG)
+    Utils.Logger.log("Building new scheduler.", DEBUG)
     global.scheduler = new OS.Scheduler()
   }
 }
@@ -64,6 +61,7 @@ function execute() {
 
 function end() {
   //TODO: Serialize scheduler and kernel.
+  RESOURCES_ALL
 }
 
 function displaySimpleStats() {
@@ -82,9 +80,9 @@ function displaySimpleStats() {
 
 function loggingProcess() {
   displaySimpleStats()
-  if (Utils.Logger.devLogLevel == LogLevel.DEBUG ||
-    Utils.Logger.devLogLevel == LogLevel.ALL ||
-    Utils.Logger.devLogLevel == LogLevel.INFO) {
+  if (Utils.Logger.devLogLevel == DEBUG ||
+    Utils.Logger.devLogLevel == ALL ||
+    Utils.Logger.devLogLevel == INFO) {
     for (let [, value] of global.scheduler.processQueue) {
       console.log(value.toString())
     }

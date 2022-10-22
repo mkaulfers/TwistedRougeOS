@@ -1,6 +1,5 @@
-import { LogLevel } from 'utils/Enums';
+import { TRACE } from 'Constants/LogConstants';
 import { Utils } from 'utils/Index';
-
 declare global {
     interface Source {
         assignablePosition(): RoomPosition | undefined
@@ -21,17 +20,17 @@ declare global {
 
 export default class Source_Extended extends Source {
     assignablePosition(): RoomPosition | undefined {
-        Utils.Logger.log("Source -> assignablePosition()", LogLevel.TRACE);
+        Utils.Logger.log("Source -> assignablePosition()", TRACE);
         let validPositions = this.validPositions
         let assignedPositions = this.room.localCreeps.harvester.map(x => x.memory.assignedPos)
         let unassignedPositions = validPositions.filter(x => !assignedPositions.includes(Utils.Utility.packPosition(x)))
-        // Logger.log(`Source ${this.id} has ${unassignedPositions.length} unassigned positions.`, LogLevel.DEBUG)
+        // Logger.log(`Source ${this.id} has ${unassignedPositions.length} unassigned positions.`, DEBUG)
         return unassignedPositions[0]
     }
 
     private _isHarvestingAtMaxEfficiency: boolean | undefined;
     get isHarvestingAtMaxEfficiency(): boolean {
-        Utils.Logger.log("Source -> isHarvestingAtMaxEfficiency", LogLevel.TRACE);
+        Utils.Logger.log("Source -> isHarvestingAtMaxEfficiency", TRACE);
         if (this._isHarvestingAtMaxEfficiency !== undefined) {
             return this._isHarvestingAtMaxEfficiency;
         } else if (this.room.my === true) {
@@ -84,14 +83,14 @@ export default class Source_Extended extends Source {
 
     private _nearbyEnergy: number | undefined;
     get nearbyEnergy(): number {
-        Utils.Logger.log("Source -> nearbyEnergy", LogLevel.TRACE);
+        Utils.Logger.log("Source -> nearbyEnergy", TRACE);
         if (!this._nearbyEnergy) this._nearbyEnergy =this.pos.findInRange(FIND_DROPPED_RESOURCES, 1).filter(x => x.resourceType == RESOURCE_ENERGY).length
         return this._nearbyEnergy;
     }
 
     private _validPositions: RoomPosition[] | undefined
     get validPositions(): RoomPosition[] {
-        Utils.Logger.log("Source -> validPositions", LogLevel.TRACE);
+        Utils.Logger.log("Source -> validPositions", TRACE);
         if (!this._validPositions) {
             let validPositions: RoomPosition[] = []
             let nonValidatedPositions: { x: number, y: number }[] = []

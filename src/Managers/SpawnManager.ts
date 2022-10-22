@@ -1,9 +1,11 @@
 import { Utils } from '../utils/Index'
-import Roles from '../Creeps/Index';
-import { Role, LogLevel, ProcessPriority, ProcessResult } from '../utils/Enums'
 import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
-
+import CreepClasses from 'Creeps/Index';
+import { TRACE, INFO, ERROR, DEBUG, ALL } from 'Constants/LogConstants';
+import { HIGH } from 'Constants/ProcessPriorityConstants';
+import { FATAL, RUNNING } from 'Constants/ProcessStateConstants';
+import { Role, Roles, TRUCKER, HARVESTER } from 'Constants/RoleConstants';
 export default class SpawnManager {
     static scheduleSpawnMonitor(room: Room) {
         const roomId = room.name
@@ -13,9 +15,9 @@ export default class SpawnManager {
             // TODO: Modify to allow for spawn-limiting due to security issues.
 
             let room = Game.rooms[roomId]
-            if (!room || !room.my) return ProcessResult.FATAL;
+            if (!room || !room.my) return FATAL;
 
-            Utils.Logger.log(`SpawnManager -> ${room.name}_spawn_monitor`, LogLevel.TRACE)
+            Utils.Logger.log(`SpawnManager -> ${room.name}_spawn_monitor`, TRACE)
             let spawns = room.spawns;
             if (!room.cache.spawnSchedules) room.cache.spawnSchedules = [];
 
@@ -35,10 +37,10 @@ export default class SpawnManager {
             for (let spawnSchedule of spawnSchedules) {
 
                 // Generic Data logging, if you want it.
-                if (Utils.Logger.devLogLevel == LogLevel.INFO || Utils.Logger.devLogLevel == LogLevel.ALL) {
-                    Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} tick: ${spawnSchedule.tick}, pausedTick: ${spawnSchedule.pausedTicks}.`, LogLevel.INFO)
+                if (Utils.Logger.devLogLevel == INFO || Utils.Logger.devLogLevel == ALL) {
+                    Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} tick: ${spawnSchedule.tick}, pausedTick: ${spawnSchedule.pausedTicks}.`, INFO)
                     let nextOrder = spawnSchedule.schedule.find((o) => o.scheduleTick && o.scheduleTick >= spawnSchedule.tick);
-                    spawnSchedule.schedule.length > 0 ? Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id} in ${nextOrder && nextOrder.scheduleTick ? nextOrder.scheduleTick - spawnSchedule.tick : spawnSchedule.schedule[0].scheduleTick ? 1500 + spawnSchedule.schedule[0].scheduleTick - spawnSchedule.tick : undefined} ticks.`, LogLevel.INFO) : undefined;
+                    spawnSchedule.schedule.length > 0 ? Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id} in ${nextOrder && nextOrder.scheduleTick ? nextOrder.scheduleTick - spawnSchedule.tick : spawnSchedule.schedule[0].scheduleTick ? 1500 + spawnSchedule.schedule[0].scheduleTick - spawnSchedule.tick : undefined} ticks.`, INFO) : undefined;
                 }
 
                 let spawnOrder: SpawnOrder | undefined = spawnSchedule.schedule.find(o => o.scheduleTick == spawnSchedule.tick);
@@ -130,7 +132,7 @@ export default class SpawnManager {
                     if (spawn) {
                         let name = missingSpawnOrder.id + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false);
                         spawn.spawnCreep(missingSpawnOrder.body, name, { memory: missingSpawnOrder.memory, energyStructures: (room.spawnEnergyStructures.length > 0 ? room.spawnEnergyStructures : undefined) });
-                        Utils.Logger.log(`Found missing Creep: ${missingSpawnOrder.id}. Attempting spawn on ${spawn.name}.`, LogLevel.INFO);
+                        Utils.Logger.log(`Found missing Creep: ${missingSpawnOrder.id}. Attempting spawn on ${spawn.name}.`, INFO);
 
                         // WARNING: Currently makes freespace-breaking changes to spawn schedule. Currently, shifts and reschedules cover it, but will need fixed.
                         // TODO: Make this adjustment not break the spawn schedule's internal data.
@@ -141,10 +143,10 @@ export default class SpawnManager {
             }
 
             room.cache.spawnSchedules = spawnSchedules;
-            return ProcessResult.RUNNING;
+            return RUNNING;
         }
 
-        let newProcess = new Process(`${room.name}_spawn_monitor`, ProcessPriority.HIGH, spawnMonitorTask)
+        let newProcess = new Process(`${room.name}_spawn_monitor`, HIGH, spawnMonitorTask)
         global.scheduler.addProcess(newProcess)
     }
 
@@ -154,14 +156,14 @@ export default class SpawnManager {
      * @param minimum Limits SpawnOrder generation to just ones considered required for room functionality.
      */
     private static genSpawnOrders(room: Room, rolesWanted: Role[]): SpawnOrder[] {
-        Utils.Logger.log(`SpawnManager -> genSpawnOrders(${room.name})`, LogLevel.TRACE)
+        Utils.Logger.log(`SpawnManager -> genSpawnOrders(${room.name})`, TRACE)
 
         // Build each SpawnOrder
         let spawnOrders: SpawnOrder[] = [];
         for (const role of rolesWanted) {
             let roleName = Utils.Utility.truncateString(role);
             let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
-            const theRole = Roles[role];
+            const theRole = CreepClasses[role];
             if (!theRole) continue;
             if (!theRole.partLimits || theRole.partLimits.length == 0) theRole.partLimits = Utils.Utility.buildPartLimits(theRole.baseBody, theRole.segment);
             let partLimits: number[] = theRole.partLimits;
@@ -169,7 +171,7 @@ export default class SpawnManager {
             let body = theRole[room.spawnEnergyLimit];
 
             if (body.length === 0) {
-                Utils.Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, LogLevel.ERROR);
+                Utils.Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, ERROR);
                 continue;
             }
             // TODO: Reconsider if SpawnOrder should really have creep memory stored within
@@ -198,10 +200,9 @@ export default class SpawnManager {
         // Find all Roles Required for room functionality.
         for (let allFound = false; allFound == false;) {
             allFound = true;
-            for (const role of Object.values(Role)) {
-                if (role in Roles) {
-                    let cpu = Game.cpu.getUsed();
-                    const theRole = Roles[role];
+            for (const role of Roles) {
+                if (role in CreepClasses) {
+                    const theRole = CreepClasses[role];
                     if (!theRole) continue;
                     let count: number = theRole.quantityWanted(room, rolesNeeded, true);
                     if (count > 0) allFound = false;
@@ -210,26 +211,25 @@ export default class SpawnManager {
             }
         }
 
-        Utils.Logger.log(`rolesNeeded Minimum: ${JSON.stringify(rolesNeeded)}`, LogLevel.INFO)
+        Utils.Logger.log(`rolesNeeded Minimum: ${JSON.stringify(rolesNeeded)}`, INFO)
         yield rolesNeeded;
 
         // Find All Roles the the room could want.
         for (let allFound = false; allFound == false;) {
             allFound = true;
-            for (const role of Object.values(Role)) {
-                if (role in Roles) {
-                    let cpu = Game.cpu.getUsed();
-                    const theRole = Roles[role];
+            for (const role of Roles) {
+                if (role in CreepClasses) {
+                    const theRole = CreepClasses[role as Role];
                     if (!theRole) continue;
                     let count: number = theRole.quantityWanted(room, rolesNeeded, false);
 
                     if (count > 0) allFound = false;
-                    for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role);
+                    for (let i = 0; i < (count ? count : 0); i++) rolesNeeded.push(role as Role);
                 }
             }
         }
 
-        Utils.Logger.log(`rolesNeeded final: ${JSON.stringify(rolesNeeded)}`, LogLevel.INFO)
+        Utils.Logger.log(`rolesNeeded final: ${JSON.stringify(rolesNeeded)}`, INFO)
         yield rolesNeeded;
         return rolesNeeded;
     }
@@ -266,7 +266,7 @@ export default class SpawnManager {
 
             spawnOrders = this.addToSchedules(room, spawnOrders);
 
-            Utils.Logger.log(`Failed to schedule ${spawnOrders ? spawnOrders.length : 0} spawn orders.`, LogLevel.INFO)
+            Utils.Logger.log(`Failed to schedule ${spawnOrders ? spawnOrders.length : 0} spawn orders.`, INFO)
         }
 
     }
@@ -308,7 +308,7 @@ export default class SpawnManager {
     private static handleEmergency(spawnSchedule: SpawnSchedule, emergency: boolean): SpawnSchedule {
         let room = Game.rooms[spawnSchedule.roomName];
         if (emergency === true) {
-            Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, LogLevel.DEBUG);
+            Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, DEBUG);
 
             // Handle Restarting
             if (spawnSchedule.pausedTicks > 25 && room.localCreeps.trucker.length == 0 && room.controller && room.controller.level > 2) {
@@ -319,11 +319,11 @@ export default class SpawnManager {
                 if (room.storage && room.storage.store.energy > (room.energyCapacityAvailable * 3)) {
                     segment = [CARRY, CARRY, MOVE];
                     modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
-                    role = Role.TRUCKER;
+                    role = TRUCKER;
                 } else {
                     segment = [WORK, CARRY, MOVE];
                     modifier = Math.floor(room.energyAvailable / Utils.Utility.bodyCost(segment));
-                    role = Role.HARVESTER;
+                    role = HARVESTER;
                 }
 
                 let body: BodyPartConstant[] = [];
@@ -332,7 +332,7 @@ export default class SpawnManager {
                 }
 
                 let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 'RE' + role, { memory: {role: role, working: false, homeRoom: room.name }, energyStructures: (room.spawnEnergyStructures.length > 0 ? room.spawnEnergyStructures : undefined)})
-                Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, LogLevel.DEBUG);
+                Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, DEBUG);
             }
 
             spawnSchedule.pausedTicks++;

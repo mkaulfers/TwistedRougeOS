@@ -1,32 +1,32 @@
-import { StampType } from './Enums'
 import { Utils } from "utils/Index";
 import { Stamps } from "Models/Stamps";
 import { getCutTiles, Rectangle, Coord } from './RampartPlanner';
 import { Utility } from './Utilities';
+import { StampType, FAST_FILLER, HUB, LABS, EXTENSIONS, OBSERVER, TOWER, EXTENSION } from "Constants/StampConstants";
 
 const buildOrder: (StampType)[] = [
-    StampType.FAST_FILLER,
-    StampType.ANCHOR,
-    StampType.LABS,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
-    StampType.OBSERVER,
-    StampType.EXTENSIONS,
-    StampType.EXTENSIONS,
-    StampType.TOWER,
-    StampType.TOWER,
-    StampType.EXTENSION,
-    StampType.EXTENSION,
-    StampType.TOWER,
-    StampType.TOWER,
-    StampType.EXTENSION,
-    StampType.EXTENSION,
-    StampType.TOWER,
-    StampType.TOWER,
+    FAST_FILLER,
+    HUB,
+    LABS,
+    EXTENSIONS,
+    EXTENSIONS,
+    EXTENSIONS,
+    EXTENSIONS,
+    EXTENSIONS,
+    EXTENSIONS,
+    OBSERVER,
+    EXTENSIONS,
+    EXTENSIONS,
+    TOWER,
+    TOWER,
+    EXTENSION,
+    EXTENSION,
+    TOWER,
+    TOWER,
+    EXTENSION,
+    EXTENSION,
+    TOWER,
+    TOWER,
 ]
 
 export function planRoom(room: Room) {
@@ -238,14 +238,14 @@ function setRampartPositions(room: Room, allExitSections: RoomPosition[][][], bl
 
         let modifier = 0
         switch (stampType) {
-            case StampType.FAST_FILLER:
-            case StampType.ANCHOR:
-            case StampType.LABS:
+            case FAST_FILLER:
+            case HUB:
+            case LABS:
                 modifier = 2; break
-            case StampType.EXTENSIONS:
-            case StampType.TOWER:
-            case StampType.EXTENSION:
-            case StampType.OBSERVER:
+            case EXTENSIONS:
+            case TOWER:
+            case EXTENSION:
+            case OBSERVER:
                 modifier = 1; break
         }
         rectsToProtect.push({ x1: stampPos.x - modifier - 2, y1: stampPos.y - modifier - 2, x2: stampPos.x + modifier + 2, y2: stampPos.y + modifier + 2 })
@@ -369,13 +369,13 @@ function doesStampFitAtPosition(x: number, y: number, room: Room, structure: Sta
     }
 
 
-    if (structure == StampType.ANCHOR ||
-        structure == StampType.LABS ||
-        structure == StampType.EXTENSIONS ||
-        structure == StampType.FAST_FILLER ||
-        structure == StampType.TOWER ||
-        structure == StampType.EXTENSION ||
-        structure == StampType.OBSERVER) {
+    if (structure == HUB ||
+        structure == LABS ||
+        structure == EXTENSIONS ||
+        structure == FAST_FILLER ||
+        structure == TOWER ||
+        structure == EXTENSION ||
+        structure == OBSERVER) {
         let rawStamp = Stamps.getStampParts(structure)
 
         let stampPositions: { x: number, y: number }[] = []
@@ -507,7 +507,7 @@ function generateBluePrintAnchor(room: Room, positions: RoomPosition[] = []): Ro
     x /= centeredPositions.length
     y /= centeredPositions.length
 
-    let returningPosition = floodFillSearch(room, new RoomPosition(x, y, room.name), StampType.FAST_FILLER, positions)
+    let returningPosition = floodFillSearch(room, new RoomPosition(x, y, room.name), FAST_FILLER, positions)
     return returningPosition
 }
 

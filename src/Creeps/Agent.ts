@@ -1,3 +1,9 @@
+import { DangerLevel, INVADERS, WARY, DANGER, DEATH, PEACEFUL } from "Constants/DangerLevelConstants"
+import { Developers, Developer } from "Constants/DeveloperConstants"
+import { LOW } from "Constants/ProcessPriorityConstants"
+import { FATAL, RUNNING } from "Constants/ProcessStateConstants"
+import { Role, AGENT, HARVESTER, TRUCKER, SCIENTIST } from "Constants/RoleConstants"
+import { Task, AGENT_SCOUTING } from "Constants/TaskConstants"
 import CreepRole from "Models/CreepRole"
 import { InvaderDetail } from "Models/InvaderDetail"
 import { MineralDetail } from "Models/MineralDetail"
@@ -5,21 +11,19 @@ import { DefenseStructuresDetail, HostileStructuresDetail, PlayerDetail, Storage
 import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
-import { DangerLevel, Developer, LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums"
-import { Utils } from "utils/Index"
-
+import { Utils } from "utils"
 export class Agent extends CreepRole {
 
     readonly baseBody = [MOVE]
     readonly segment = []
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        let agentCount = rolesNeeded.filter(x => x == Role.AGENT).length;
-        if (min && min == true) return rolesNeeded.filter(x => x == Role.HARVESTER).length > 0 && rolesNeeded.filter(x => x == Role.TRUCKER).length > 0 ? 1 - agentCount : 0;
+        let agentCount = rolesNeeded.filter(x => x == AGENT).length;
+        if (min && min == true) return rolesNeeded.filter(x => x == HARVESTER).length > 0 && rolesNeeded.filter(x => x == TRUCKER).length > 0 ? 1 - agentCount : 0;
         if (!room.memory.frontiers || room.observer) return 0;
-        if (rolesNeeded.filter(x => x == Role.HARVESTER).length > 0 &&
-            rolesNeeded.filter(x => x == Role.SCIENTIST).length > 0 &&
-            rolesNeeded.filter(x => x == Role.TRUCKER).length > 0 &&
+        if (rolesNeeded.filter(x => x == HARVESTER).length > 0 &&
+            rolesNeeded.filter(x => x == SCIENTIST).length > 0 &&
+            rolesNeeded.filter(x => x == TRUCKER).length > 0 &&
             agentCount < 1 &&
             room.memory.frontiers.length > 0) {
             return agentCount < 1 ? 1 - agentCount : 0;
@@ -30,19 +34,19 @@ export class Agent extends CreepRole {
     dispatch(room: Room) {
         let agents = room.stationedCreeps.agent
         for (let agent of agents) {
-            if (!this.tasks.agent) continue;
-            this.tasks.agent(agent);
+            if (!this.tasks.agent_scouting) continue;
+            this.tasks.agent_scouting(agent);
         }
     }
 
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
-        agent: function (creep: Creep) {
+        agent_scouting: function (creep: Creep) {
             let creepId = creep.id
 
             const agentTask = () => {
                 let creep = Game.getObjectById(creepId)
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 let currentRoom = creep.room
                 let homeFrontiers = Game.rooms[creep.memory.homeRoom].memory.frontiers
@@ -79,11 +83,11 @@ export class Agent extends CreepRole {
                     }
 
                 }
-                return ProcessResult.RUNNING
+                return RUNNING
             }
 
-            creep.memory.task = Task.AGENT
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, agentTask)
+            creep.memory.task = AGENT_SCOUTING
+            let newProcess = new Process(creep.name, LOW, agentTask)
             global.scheduler.addProcess(newProcess)
         }
     }
@@ -211,26 +215,26 @@ export class Agent extends CreepRole {
         if (!controller) {
             //Check for invaders, stronghold
             for (const core of targetRoom.invaderCores) {
-                if (core.level === 0) return DangerLevel.INVADERS;
-                if (core.level < 3) return DangerLevel.WARY;
-                if (core.level < 5) return DangerLevel.DANGER;
-                return DangerLevel.DEATH;
+                if (core.level === 0) return INVADERS;
+                if (core.level < 3) return WARY;
+                if (core.level < 5) return DANGER;
+                return DEATH;
             }
-            if (targetRoom.keeperLairs.length > 0) return DangerLevel.INVADERS;
-            else if (targetRoom.find(FIND_HOSTILE_CREEPS, { filter: (c) => c.owner.username !== 'Invader' }).length > 1 || targetRoom.find(FIND_HOSTILE_POWER_CREEPS).length > 0) return DangerLevel.WARY;
-            else return DangerLevel.PEACEFUL;
+            if (targetRoom.keeperLairs.length > 0) return INVADERS;
+            else if (targetRoom.find(FIND_HOSTILE_CREEPS, { filter: (c) => c.owner.username !== 'Invader' }).length > 1 || targetRoom.find(FIND_HOSTILE_POWER_CREEPS).length > 0) return WARY;
+            else return PEACEFUL;
         } else {
             // Check reservations and owners
             if (controller.reservation) {
-                if (controller.reservation.username === 'Invader') return DangerLevel.PEACEFUL;
-                if (Object.values(Developer).includes(controller.reservation.username as Developer)) return DangerLevel.PEACEFUL;
-                return DangerLevel.WARY;
+                if (controller.reservation.username === 'Invader') return PEACEFUL;
+                if (Developers.includes(controller.reservation.username as Developer)) return PEACEFUL;
+                return WARY;
             } else if (controller.owner) {
-                if (Object.values(Developer).includes(controller.owner.username as Developer)) return DangerLevel.PEACEFUL;
-                if (targetRoom.towers.length < 3) return DangerLevel.WARY;
-                if (targetRoom.towers.length < 6) return DangerLevel.DANGER;
-                return DangerLevel.DEATH;
-            } else return DangerLevel.PEACEFUL;
+                if (Developers.includes(controller.owner.username as Developer)) return PEACEFUL;
+                if (targetRoom.towers.length < 3) return WARY;
+                if (targetRoom.towers.length < 6) return DANGER;
+                return DEATH;
+            } else return PEACEFUL;
         }
 
     }

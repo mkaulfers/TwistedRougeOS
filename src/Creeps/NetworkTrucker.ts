@@ -1,5 +1,9 @@
+import { DEBUG, TRACE, ERROR } from "Constants/LogConstants";
+import { LOW } from "Constants/ProcessPriorityConstants";
+import { FATAL, RUNNING, INCOMPLETE } from "Constants/ProcessStateConstants";
+import { Role, nTRUCKER } from "Constants/RoleConstants";
+import { TRUCKER_STORAGE, nTRUCKER_TRANSPORTING, Task } from "Constants/TaskConstants";
 import { Process } from "Models/Process";
-import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums";
 import { Utils } from "utils/Index";
 import { Logger } from "utils/Logger";
 import { Trucker } from "./Trucker";
@@ -12,10 +16,9 @@ export class NetworkTrucker extends Trucker {
     dispatch(room: Room): void {
         let networkHaulers = room.stationedCreeps.nTrucker;
         for (let hauler of networkHaulers) {
-            if (!hauler.memory.task || hauler.memory.task !== Task.nTRUCKER) {
-                Logger.log(`Setting Task to nTrucker`, LogLevel.DEBUG)
-                global.scheduler.swapProcess(hauler, Task.nTRUCKER)
-                console.log(hauler.name)
+            if (!hauler.memory.task || hauler.memory.task !== nTRUCKER_TRANSPORTING) {
+                Logger.log(`Setting Task to nTrucker`, TRACE)
+                global.scheduler.swapProcess(hauler, nTRUCKER_TRANSPORTING)
             }
         }
     }
@@ -24,7 +27,7 @@ export class NetworkTrucker extends Trucker {
         if (!room.storage) return 0
         if (min && min == true) return 0;
 
-        let networkHaulers = rolesNeeded.filter(x => x == Role.nTRUCKER).length
+        let networkHaulers = rolesNeeded.filter(x => x == nTRUCKER).length
         let remotes = room.memory.remoteSites || {}
         let sourceCount = 0
 
@@ -44,13 +47,13 @@ export class NetworkTrucker extends Trucker {
     }
 
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
-        nTrucker: function (creep: Creep) {
+        nTrucker_transporting: function (creep: Creep) {
             let creepId = creep.id
 
             const networkHaulerTask = () => {
                 let creep = Game.getObjectById(creepId)
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 // Pull remote target IFF not set.
                 if (!creep.memory.remoteTarget) {
@@ -113,7 +116,7 @@ export class NetworkTrucker extends Trucker {
                     // Determines new target to dump energy into.
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target)) || (creep.pos.roomName === creep.memory.homeRoom && (creep.pos.x === 0 || creep.pos.x === 49 || creep.pos.y === 0 || creep.pos.y === 49))) {
                         Trucker.storageTruckerWorkingTargeting(creep);
-                        if (!creep.memory.target) return ProcessResult.RUNNING;
+                        if (!creep.memory.target) return RUNNING;
                     }
                     let target = Game.getObjectById(creep.memory.target);
 
@@ -122,9 +125,9 @@ export class NetworkTrucker extends Trucker {
                         'store' in target && target.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                         delete creep.memory.target;
                         Trucker.storageTruckerWorkingTargeting(creep);
-                        if (!creep.memory.target) return ProcessResult.RUNNING;
+                        if (!creep.memory.target) return RUNNING;
                         target = Game.getObjectById(creep.memory.target);
-                        if (!target) return ProcessResult.RUNNING;
+                        if (!target) return RUNNING;
                     }
 
                     // Runs give and handles return value.
@@ -135,10 +138,10 @@ export class NetworkTrucker extends Trucker {
                             let newTarget = Game.getObjectById(creep.memory.target);
                             if (target.id !== creep.memory.target && newTarget && creep.pos.getRangeTo(newTarget) > 1) creep.moveToDefault(newTarget);
                         }
-                        return ProcessResult.RUNNING
+                        return RUNNING
                     }
-                    Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, LogLevel.ERROR)
-                    return ProcessResult.RUNNING
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, ERROR)
+                    return RUNNING
                 }
 
                 // EOL target management
@@ -153,10 +156,10 @@ export class NetworkTrucker extends Trucker {
                     }
                 }
 
-                return ProcessResult.RUNNING;
+                return RUNNING;
             }
 
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, networkHaulerTask)
+            let newProcess = new Process(creep.name, LOW, networkHaulerTask)
             global.scheduler.addProcess(newProcess)
         }
     }

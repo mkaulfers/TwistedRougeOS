@@ -8,6 +8,7 @@ import { RemoteAssignments } from "./RemoteAssignments"
 import { RoomStatistics } from "./RoomStatistics"
 import SpawnSchedule from "./SpawnSchedule"
 import { Stamps } from "./Stamps"
+import { Target } from "./Target"
 
 export var Models = {
     InvaderDetail: InvaderDetail,
@@ -22,5 +23,6 @@ export var Models = {
     SpawnSchedule: SpawnSchedule,
     Stamps: Stamps,
     CreepRole: CreepRole,
-    RemoteAssignments: RemoteAssignments
+    RemoteAssignments: RemoteAssignments,
+    Target: Target
 }

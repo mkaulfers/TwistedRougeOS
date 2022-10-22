@@ -1,9 +1,10 @@
+import { TRACE, DEBUG } from 'Constants/LogConstants'
+import { Role, Roles } from 'Constants/RoleConstants'
+import { HUB } from 'Constants/StampConstants'
+import CreepRoles from 'Creeps/Index'
 import { Managers } from 'Managers/Index'
 import { Utils } from 'utils/Index'
 import { Logger } from 'utils/Logger'
-import Roles from '../Creeps/Index'
-
-import { Role, LogLevel, StampType } from '../utils/Enums'
 
 type CreepFind = { [key in Role | 'all' | 'unknown']: Creep[] }
 type LooseCreepFind = { [key in Role | 'all' | 'unknown']?: Creep[] }
@@ -311,16 +312,16 @@ export default class Room_Extended extends Room {
             let setup: LooseCreepFind = {}
             setup['all'] = []
             setup['unknown'] = []
-            for (const role of Object.values(Role)) setup[role] = []
+            for (const role in CreepRoles) setup[role as Role] = []
 
             this._localCreeps = setup as CreepFind
 
             for (const creep of this.find(FIND_MY_CREEPS)) {
                 const role = creep.memory.role
-                if (!role || !(Object.values(Role).includes(role))) {
+                if (!role || !(Roles.includes(role))) {
                     this._localCreeps.unknown.push(creep)
                 } else {
-                    this._localCreeps[role].push(creep)
+                    this._localCreeps[role as Role].push(creep)
                 }
                 this._localCreeps.all.push(creep)
             }
@@ -335,17 +336,17 @@ export default class Room_Extended extends Room {
             let setup: LooseCreepFind = {}
             setup['all'] = []
             setup['unknown'] = []
-            for (const role of Object.values(Role)) setup[role] = []
+            for (const role in CreepRoles) setup[role as Role] = []
 
             this._stationedCreeps = setup as CreepFind
 
             for (const creep of Object.values(Game.creeps)) {
                 if (creep.memory.homeRoom !== this.name) continue
                 const role = creep.memory.role
-                if (!role || !(Object.values(Role).includes(role))) {
+                if (!role || !(Roles.includes(role))) {
                     this._stationedCreeps.unknown.push(creep)
                 } else {
-                    this._stationedCreeps[role].push(creep)
+                    this._stationedCreeps[role as Role].push(creep)
                 }
                 this._stationedCreeps.all.push(creep)
             }
@@ -455,7 +456,7 @@ export default class Room_Extended extends Room {
 
                 // Anchor Spawn
                 if (spawns.length > 0) {
-                    let anchorStamp = this.memory.blueprint.stamps.find(stamp => stamp.type == StampType.ANCHOR)
+                    let anchorStamp = this.memory.blueprint.stamps.find(stamp => stamp.type == HUB)
                     let anchorStampPos: RoomPosition | undefined
                     let theSpawn: StructureSpawn | undefined
                     if (anchorStamp) anchorStampPos = Utils.Utility.unpackPostionToRoom(anchorStamp.stampPos, this.name)
@@ -506,7 +507,7 @@ export default class Room_Extended extends Room {
     */
 
     scheduleTasks() {
-        Utils.Logger.log("Room -> setupTasks()", LogLevel.TRACE)
+        Utils.Logger.log("Room -> setupTasks()", TRACE)
         Managers.UtilityManager.schedulePixelSale()
         Managers.ThreatManager.scheduleThreatMonitor(this)
         Managers.CreepManager.scheduleCreepTask(this)
@@ -535,7 +536,7 @@ export default class Room_Extended extends Room {
             y += deltaY
             ++segmentPassed
 
-            Logger.log(`WX: ${currentRoomGlobalPos.wx + x} WY: ${currentRoomGlobalPos.wy + y}`, LogLevel.DEBUG)
+            Logger.log(`WX: ${currentRoomGlobalPos.wx + x} WY: ${currentRoomGlobalPos.wy + y}`, DEBUG)
             let prospectFrontier = Utils.Utility.roomNameFromCoords(currentRoomGlobalPos.wx + x, currentRoomGlobalPos.wy + y)
             let result = Game.map.describeExits(prospectFrontier)
             if (result != null && Game.map.getRoomStatus(prospectFrontier).status == Game.map.getRoomStatus(room.name).status) {
@@ -638,7 +639,7 @@ export default class Room_Extended extends Room {
     get isAnchorFunctional() {
         if (!this._isAnchorFunctional) {
             if (!this.memory.blueprint || this.memory.blueprint.anchor === 0) return this._isAnchorFunctional = false
-            const anchorStamp = this.memory.blueprint.stamps.find((s) => s.type === StampType.ANCHOR)
+            const anchorStamp = this.memory.blueprint.stamps.find((s) => s.type === HUB)
             if (!anchorStamp) return this._isAnchorFunctional = false
 
             const wantThese: StructureConstant[] = [

@@ -1,24 +1,23 @@
-import { StampType } from "utils/Enums";
+import { StampType, FAST_FILLER, EXTENSIONS, LABS, HUB, OBSERVER, TOWER, EXTENSION } from "Constants/StampConstants";
 import { Utils } from "utils/Index";
-
 export class Stamps {
 
     static plan(startPos: RoomPosition, stamp: StampType, plannedPositions: RoomPosition[], roadPositions: RoomPosition[], roomVisual?: RoomVisual) {
         let site: { xMod: number, yMod: number, structureType: BuildableStructureConstant }[]
         switch (stamp) {
-            case StampType.FAST_FILLER:
+            case FAST_FILLER:
                 site = this.fastFiller; break
-            case StampType.EXTENSIONS:
+            case EXTENSIONS:
                 site = this.extensions; break
-            case StampType.LABS:
+            case LABS:
                 site = this.labs; break
-            case StampType.ANCHOR:
-                site = this.anchor; break
-            case StampType.OBSERVER:
+            case HUB:
+                site = this.hub; break
+            case OBSERVER:
                 site = this.observer; break
-            case StampType.TOWER:
+            case TOWER:
                 site = this.tower; break
-            case StampType.EXTENSION:
+            case EXTENSION:
                 site = this.extension; break
         }
 
@@ -77,36 +76,36 @@ export class Stamps {
 
     static getStampParts(type: StampType): { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] {
         switch (type) {
-            case StampType.FAST_FILLER:
+            case FAST_FILLER:
                 return this.fastFiller
-            case StampType.EXTENSIONS:
+            case EXTENSIONS:
                 return this.extensions
-            case StampType.LABS:
+            case LABS:
                 return this.labs
-            case StampType.ANCHOR:
-                return this.anchor
-            case StampType.OBSERVER:
+            case HUB:
+                return this.hub
+            case OBSERVER:
                 return this.observer
-            case StampType.TOWER:
+            case TOWER:
                 return this.tower
-            case StampType.EXTENSION:
+            case EXTENSION:
                 return this.extension
         }
     }
 
     static getStampSize(type: StampType): number {
         switch (type) {
-            case StampType.FAST_FILLER:
+            case FAST_FILLER:
                 return 5
-            case StampType.EXTENSIONS:
+            case EXTENSIONS:
                 return 3
-            case StampType.LABS:
+            case LABS:
                 return 5
-            case StampType.ANCHOR:
+            case HUB:
                 return 5
-            case StampType.TOWER:
-            case StampType.EXTENSION:
-            case StampType.OBSERVER:
+            case TOWER:
+            case EXTENSION:
+            case OBSERVER:
                 return 1
         }
     }
@@ -221,7 +220,7 @@ export class Stamps {
         { xMod: 1, yMod: 3, structureType: STRUCTURE_ROAD },
     ]
 
-    static anchor: { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] = [
+    static hub: { xMod: number, yMod: number, structureType: BuildableStructureConstant }[] = [
         { xMod: -1, yMod: -2, structureType: STRUCTURE_ROAD },
         { xMod: 0, yMod: -2, structureType: STRUCTURE_ROAD },
         { xMod: 1, yMod: -2, structureType: STRUCTURE_ROAD },

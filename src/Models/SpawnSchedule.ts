@@ -1,7 +1,7 @@
-import Roles from "Creeps/Index"
-import { LogLevel, Role } from "utils/Enums"
+import { INFO } from "Constants/LogConstants"
+import { Role } from "Constants/RoleConstants"
+import CreepClasses from "Creeps/Index"
 import { Utils } from "utils/Index"
-
 export default class SpawnSchedule {
     roomName: string
     spawnName: string
@@ -62,7 +62,7 @@ export default class SpawnSchedule {
             for (const c of relCreeps) if (c.spawning === true || (c.ticksToLive && c.ticksToLive > (relCreep ? relCreep.ticksToLive ? relCreep.ticksToLive : 1501 : 0))) relCreep = c;
 
             // Calculate preSpawnOffset
-            const theRole = Roles[spawnOrder.memory.role]
+            const theRole = CreepClasses[spawnOrder.memory.role]
             let preSpawnOffset = Math.ceil(spawnOrder.spawnTime + (theRole ? theRole.preSpawnBy(room, Game.spawns[this.spawnName], relCreep) : 0));
 
             // Determine freespace, scheduleTick
@@ -120,7 +120,7 @@ export default class SpawnSchedule {
                 this.usedSpace += spawnOrder.spawnTime + 1;
                 this.schedule.push(spawnOrder);
                 externalSpawnOrders.shift();
-                Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.INFO);
+                Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, INFO);
             } else if (foundFreeSpace && typeof spawnOrder.scheduleTick === 'number' && spawnOrder.scheduleTick >= 0 && spawnOrder.scheduleTick < 1500 && foundFreeSpace[1] < spawnOrder.spawnTime && theRole) {
                 // Handle undersized freespaces.. DESPERATION Scheduling
 
@@ -140,9 +140,9 @@ export default class SpawnSchedule {
                     this.usedSpace += spawnOrder.spawnTime + 1;
                     this.schedule.push(spawnOrder);
                     externalSpawnOrders.shift();
-                    Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, LogLevel.INFO);
+                    Utils.Logger.log(`${this.spawnName} schedule added ${spawnOrder.id}`, INFO);
                 } else {
-                    Utils.Logger.log(`Desparation Spawn Scheduling for ${spawnOrder.id} failed.`, LogLevel.INFO)
+                    Utils.Logger.log(`Desparation Spawn Scheduling for ${spawnOrder.id} failed.`, INFO)
                     let order = externalSpawnOrders.shift();
                     if (order) externalSpawnOrders.push(order);
                 }
@@ -150,7 +150,7 @@ export default class SpawnSchedule {
                 // No freespace found that qualifies
                 let order = externalSpawnOrders.shift();
                 if (order) externalSpawnOrders.push(order);
-                Utils.Logger.log(`${this.spawnName} failed to add ${spawnOrder.id} due to no scheduleTick being set.`, LogLevel.INFO);
+                Utils.Logger.log(`${this.spawnName} failed to add ${spawnOrder.id} due to no scheduleTick being set.`, INFO);
             }
         }
 

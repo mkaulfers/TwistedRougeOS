@@ -1,8 +1,9 @@
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
+import { ProcessPriority, INDIFFERENT, LOW, MEDIUM_LOW, MEDIUM, MEDIUM_HIGH, HIGH, CRITICAL } from "Constants/ProcessPriorityConstants"
+import { ProcessState } from "Constants/ProcessStateConstants"
 
 export class Process {
     id: string
-    run: () => ProcessResult
+    run: () => ProcessState
     cpuUsedHistory: number[]
 
     currentPriority: ProcessPriority
@@ -26,23 +27,23 @@ export class Process {
 
     increasePriority() {
         switch (this.currentPriority) {
-            case ProcessPriority.INDIFFERENT:
-                this.currentPriority = ProcessPriority.LOW
+            case INDIFFERENT:
+                this.currentPriority = LOW
                 break
-            case ProcessPriority.LOW:
-                this.currentPriority = ProcessPriority.MEDIUM_LOW
+            case LOW:
+                this.currentPriority = MEDIUM_LOW
                 break
-            case ProcessPriority.MEDIUM_LOW:
-                this.currentPriority = ProcessPriority.MEDIUM
+            case MEDIUM_LOW:
+                this.currentPriority = MEDIUM
                 break
-            case ProcessPriority.MEDIUM:
-                this.currentPriority = ProcessPriority.MEDIUM_HIGH
+            case MEDIUM:
+                this.currentPriority = MEDIUM_HIGH
                 break
-            case ProcessPriority.MEDIUM_HIGH:
-                this.currentPriority = ProcessPriority.HIGH
+            case MEDIUM_HIGH:
+                this.currentPriority = HIGH
                 break
-            case ProcessPriority.HIGH:
-                this.currentPriority = ProcessPriority.CRITICAL
+            case HIGH:
+                this.currentPriority = CRITICAL
                 break
             default:
                 console.log("Process with id, " + this.id + " marked critical.")

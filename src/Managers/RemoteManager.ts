@@ -1,7 +1,7 @@
+import { CRITICAL } from "Constants/ProcessPriorityConstants"
+import { ProcessState, FATAL, RUNNING } from "Constants/ProcessStateConstants"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
-import { ProcessPriority, ProcessResult } from "utils/Enums"
-
 export default class RemoteManager {
     /**
      * Computes the maximum number of remotes to run.
@@ -10,11 +10,11 @@ export default class RemoteManager {
         return 6
     }
 
-    static scheduleRemoteMonitor(room: Room): void | ProcessResult {
+    static scheduleRemoteMonitor(room: Room): void | ProcessState {
         const roomId = room.name
         const remoteTask = () => {
             let room = Game.rooms[roomId]
-            if (!room || !room.my) return ProcessResult.FATAL;
+            if (!room || !room.my) return FATAL;
             //If room doesn't have remotes, fetch them.
             //TODO: Modify so that remotes are added if the number of allowed remotes changes.
             if ((!room.memory ||
@@ -32,10 +32,10 @@ export default class RemoteManager {
                 }
             }
 
-            return ProcessResult.RUNNING
+            return RUNNING
         }
 
-        let process = new Process(`${room.name}_remote_monitor`, ProcessPriority.CRITICAL, remoteTask)
+        let process = new Process(`${room.name}_remote_monitor`, CRITICAL, remoteTask)
         global.scheduler.addProcess(process)
     }
 
