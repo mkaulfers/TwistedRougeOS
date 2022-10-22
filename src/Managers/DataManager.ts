@@ -2,9 +2,13 @@ import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
 import { RoomStatistics } from 'Models/RoomStatistics';
 import { Utils } from '../utils/Index';
-import { Role, Task, ProcessState, INFO, CRITICAL, RUNNING, StampType } from 'Constants';
+import { INFO } from 'Constants/LogConstants';
+import { CRITICAL } from 'Constants/ProcessPriorityConstants';
+import { ProcessState, RUNNING } from 'Constants/ProcessStateConstants';
+import { Role } from 'Constants/RoleConstants';
+import { StampType } from 'Constants/StampConstants';
+import { Task } from 'Constants/TaskConstants';
 
-// Add new Memory or Cache properties in this file.
 declare global {
     interface CreepMemory {
         assignedPos?: number
@@ -62,7 +66,6 @@ declare global {
     interface Memory {
         kernel: string
         scheduler: string
-
         autoMarket?: boolean
     }
 

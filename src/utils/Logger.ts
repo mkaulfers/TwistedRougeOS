@@ -1,4 +1,4 @@
-import { LogLevel, OFF, ALL } from "Constants"
+import { LogLevel, OFF, ALL } from "Constants/LogConstants"
 export class Logger {
     static devLogLevel: LogLevel
     static log(message: string, level: LogLevel): void {

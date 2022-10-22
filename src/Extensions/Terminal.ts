@@ -1,4 +1,4 @@
-import { TRACE, INFO } from 'Constants';
+import { TRACE, INFO } from 'Constants/LogConstants';
 import { Utils } from 'utils/Index';
 declare global {
     interface StructureTerminal {

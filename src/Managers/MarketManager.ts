@@ -1,4 +1,5 @@
-import { FATAL, RUNNING, INDIFFERENT } from "Constants";
+import { INDIFFERENT } from "Constants/ProcessPriorityConstants";
+import { FATAL, RUNNING } from "Constants/ProcessStateConstants";
 import { Process } from "../Models/Process"
 export default class MarketManager {
     static schedule(room: Room) {

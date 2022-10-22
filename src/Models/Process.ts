@@ -1,4 +1,5 @@
-import { ProcessState, ProcessPriority, INDIFFERENT, LOW, MEDIUM_LOW, MEDIUM, MEDIUM_HIGH, HIGH, CRITICAL } from "Constants"
+import { ProcessPriority, INDIFFERENT, LOW, MEDIUM_LOW, MEDIUM, MEDIUM_HIGH, HIGH, CRITICAL } from "Constants/ProcessPriorityConstants"
+import { ProcessState } from "Constants/ProcessStateConstants"
 
 export class Process {
     id: string

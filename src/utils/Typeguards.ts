@@ -1,4 +1,12 @@
-import { Role, Task, ProcessPriority, ProcessState, LogLevel, StampType, Developer, LinkState, DangerLevel, LogLevels, Roles, ProcessPriorities, Tasks, StampTypes, Developers, LinkStates, DangerLevels, ProcessStates } from "Constants";
+import { DangerLevel, DangerLevels } from "Constants/DangerLevelConstants";
+import { Developer, Developers } from "Constants/DeveloperConstants";
+import { LinkState, LinkStates } from "Constants/LinkStateConstants";
+import { LogLevel, LogLevels } from "Constants/LogConstants";
+import { ProcessPriority, ProcessPriorities } from "Constants/ProcessPriorityConstants";
+import { ProcessState, ProcessStates } from "Constants/ProcessStateConstants";
+import { Role, Roles } from "Constants/RoleConstants";
+import { StampType, StampTypes } from "Constants/StampConstants";
+import { Task, Tasks } from "Constants/TaskConstants";
 
 export default class Typeguards {
 

@@ -1,4 +1,6 @@
-import { TRACE, FATAL, RUNNING, LOW } from "Constants";
+import { TRACE } from "Constants/LogConstants";
+import { LOW } from "Constants/ProcessPriorityConstants";
+import { FATAL, RUNNING } from "Constants/ProcessStateConstants";
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
 export default class ThreatManager {

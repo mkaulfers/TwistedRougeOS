@@ -1,4 +1,8 @@
-import { SCIENTIST_UPGRADING, Role, TRACE, SCIENTIST, HARVESTER, Task, FATAL, RUNNING, FAILED, ERROR, INCOMPLETE, LOW } from "Constants";
+import { TRACE, ERROR } from "Constants/LogConstants";
+import { LOW } from "Constants/ProcessPriorityConstants";
+import { FATAL, RUNNING, FAILED, INCOMPLETE } from "Constants/ProcessStateConstants";
+import { Role, SCIENTIST, HARVESTER } from "Constants/RoleConstants";
+import { SCIENTIST_UPGRADING, Task } from "Constants/TaskConstants";
 import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
 import { Utils } from "utils/Index";

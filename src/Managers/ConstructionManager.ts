@@ -2,8 +2,10 @@ import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
 import { planRoom } from "utils/RoomPlanner"
 import { Stamps } from "Models/Stamps"
-import { ProcessState, FATAL, EXTENSION, OBSERVER, LABS, EXTENSIONS, HUB, TOWER, FAST_FILLER, INFO, RUNNING, MEDIUM } from "Constants"
-
+import { INFO } from "Constants/LogConstants"
+import { MEDIUM } from "Constants/ProcessPriorityConstants"
+import { ProcessState, FATAL, RUNNING } from "Constants/ProcessStateConstants"
+import { EXTENSION, OBSERVER, LABS, EXTENSIONS, HUB, TOWER, FAST_FILLER } from "Constants/StampConstants"
 export default class ConstructionManager {
     static scheduleConstructionMonitor(room: Room): void | ProcessState {
         const roomName = room.name

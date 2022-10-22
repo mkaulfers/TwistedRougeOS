@@ -1,7 +1,9 @@
 import { Logger } from "utils/Logger"
 import { Process } from "../Models/Process"
 import { Managers } from "Managers/Index"
-import { SUCCESS, FATAL, RUNNING, FAILED, ERROR, INCOMPLETE, TRACE, ProcessPriority, ProcessPriorities } from "Constants"
+import { ERROR, TRACE } from "Constants/LogConstants"
+import { ProcessPriorities } from "Constants/ProcessPriorityConstants"
+import { SUCCESS, FATAL, RUNNING, FAILED, INCOMPLETE } from "Constants/ProcessStateConstants"
 
 export default class Kernel {
     executeProcesses() {

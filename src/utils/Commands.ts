@@ -1,6 +1,6 @@
 import { Utility } from './Utilities';
 import { Logger } from './Logger';
-import { ALL, OFF, TRACE, DEBUG, INFO, WARN, ERROR, LogLevels } from 'Constants';
+import { ALL, OFF, TRACE, DEBUG, INFO, WARN, ERROR, LogLevels } from 'Constants/LogConstants';
 
 declare global {
             /**

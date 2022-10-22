@@ -1,4 +1,4 @@
-import { TRACE, ERROR } from 'Constants';
+import { TRACE, ERROR } from 'Constants/LogConstants';
 import { moveTo, MoveOpts, MoveTarget } from 'screeps-cartographer';
 import { Utils } from 'utils/Index';
 

@@ -8,7 +8,7 @@ import CreepRole from 'Models/CreepRole';
 import { NetworkHarvester } from './NetworkHarvester';
 import { Anchor } from './Anchor';
 import { NetworkTrucker } from './NetworkTrucker';
-import { Role } from 'Constants';
+import { Role } from 'Constants/RoleConstants';
 
 var CreepClasses: {[key in Role]?: CreepRole} = {
     harvester: new Harvester,

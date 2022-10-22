@@ -2,8 +2,10 @@ import { Utils } from '../utils/Index'
 import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
 import CreepClasses from 'Creeps/Index';
-import { ALL, DEBUG, ERROR, FATAL, HARVESTER, HIGH, INFO, Role, Roles, RUNNING, TRACE, TRUCKER } from 'Constants';
-
+import { TRACE, INFO, ERROR, DEBUG, ALL } from 'Constants/LogConstants';
+import { HIGH } from 'Constants/ProcessPriorityConstants';
+import { FATAL, RUNNING } from 'Constants/ProcessStateConstants';
+import { Role, Roles, TRUCKER, HARVESTER } from 'Constants/RoleConstants';
 export default class SpawnManager {
     static scheduleSpawnMonitor(room: Room) {
         const roomId = room.name

@@ -8,7 +8,7 @@ import { OS } from "OS/Index";
 import { memHack } from "Models/MemHack";
 import { colors } from "Models/Process";
 import { preTick, reconcileTraffic } from 'screeps-cartographer';
-import { ALL, DEBUG, INFO } from "Constants";
+import { ALL, DEBUG, INFO } from "Constants/LogConstants";
 declare global {
   interface RawMemory {
     [key: string]: any
