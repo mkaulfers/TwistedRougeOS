@@ -1,8 +1,7 @@
+import { SCIENTIST_UPGRADING, Role, TRACE, SCIENTIST, HARVESTER, Task, FATAL, RUNNING, FAILED, ERROR, INCOMPLETE, LOW } from "Constants";
 import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
 import { Utils } from "utils/Index";
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
-
 export class Scientist extends CreepRole {
 
     readonly baseBody = [CARRY, MOVE, WORK, WORK]
@@ -12,18 +11,18 @@ export class Scientist extends CreepRole {
         let scientists = room.localCreeps.scientist
         for (let scientist of scientists) {
             if (!scientist.memory.task) {
-                global.scheduler.swapProcess(scientist, Task.SCIENTIST_UPGRADING)
+                global.scheduler.swapProcess(scientist, SCIENTIST_UPGRADING)
             }
         }
     }
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        Utils.Logger.log("quantityWanted -> scientist.quantityWanted()", LogLevel.TRACE)
+        Utils.Logger.log("quantityWanted -> scientist.quantityWanted()", TRACE)
         let controller = room.controller
         if (!controller) return 0
-        let sciCount = rolesNeeded.filter(x => x == Role.SCIENTIST).length
+        let sciCount = rolesNeeded.filter(x => x == SCIENTIST).length
         let sources = room.sources.length;
-        if (min && min == true) return rolesNeeded.filter(x => x == Role.HARVESTER).length < sources ? 0 : 1 - sciCount;
+        if (min && min == true) return rolesNeeded.filter(x => x == HARVESTER).length < sources ? 0 : 1 - sciCount;
 
         if (!room.storage) return 0;
 
@@ -56,11 +55,11 @@ export class Scientist extends CreepRole {
             let creepId = creep.id
 
             const upgradingTask = () => {
-                Utils.Logger.log("CreepTask -> upgradingTask()", LogLevel.TRACE);
+                Utils.Logger.log("CreepTask -> upgradingTask()", TRACE);
 
                 let creep = Game.getObjectById(creepId);
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 // Switches working value if full or empty
                 if (creep.memory.working == undefined) creep.memory.working = false;
@@ -71,20 +70,20 @@ export class Scientist extends CreepRole {
                 const working = creep.memory.working;
 
                 // Controller targeting
-                if (!Game.rooms[creep.memory.homeRoom]) return ProcessResult.FAILED;
+                if (!Game.rooms[creep.memory.homeRoom]) return FAILED;
                 let controller = Game.rooms[creep.memory.homeRoom].controller;
-                if (!controller) return ProcessResult.FAILED;
+                if (!controller) return FAILED;
 
                 let result: number | undefined;
                 result = creep.praise(controller, working);
 
-                if (result === OK || result === ERR_NOT_ENOUGH_ENERGY) return ProcessResult.RUNNING;
-                Utils.Logger.log(`${creep.name} generated error code ${result} while attempting to praise ${controller.structureType}${JSON.stringify(controller.pos)}.`, LogLevel.ERROR);
-                return ProcessResult.INCOMPLETE;
+                if (result === OK || result === ERR_NOT_ENOUGH_ENERGY) return RUNNING;
+                Utils.Logger.log(`${creep.name} generated error code ${result} while attempting to praise ${controller.structureType}${JSON.stringify(controller.pos)}.`, ERROR);
+                return INCOMPLETE;
             }
 
-            creep.memory.task = Task.SCIENTIST_UPGRADING
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, upgradingTask)
+            creep.memory.task = SCIENTIST_UPGRADING
+            let newProcess = new Process(creep.name, LOW, upgradingTask)
             global.scheduler.addProcess(newProcess)
         }
     }

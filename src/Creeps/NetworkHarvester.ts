@@ -1,10 +1,7 @@
+import { nHARVESTING_EARLY, nHARVESTING_LATE, Role, nHARVESTER, Task, FATAL, RUNNING, LOW, TRACE } from "Constants";
 import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
-import { LogLevel, ProcessPriority, ProcessResult, Role, Task } from "utils/Enums";
 import { Utils } from "utils/Index";
-import { Logger } from "utils/Logger";
-import { Harvester } from "./Harvester";
-
 export class NetworkHarvester extends CreepRole {
     readonly baseBody = [CARRY, MOVE, WORK]
     readonly segment = [WORK, MOVE]
@@ -14,9 +11,9 @@ export class NetworkHarvester extends CreepRole {
         let networkHarvesters = room.stationedCreeps.nHarvester;
         for (let harv of networkHarvesters) {
             if (!room.storage) {
-                if (!harv.memory.task) global.scheduler.swapProcess(harv, Task.nHARVESTING_EARLY)
+                if (!harv.memory.task) global.scheduler.swapProcess(harv, nHARVESTING_EARLY)
             } else {
-                if (!harv.memory.task || (harv.memory.task && harv.memory.task == Task.nHARVESTING_EARLY)) global.scheduler.swapProcess(harv, Task.nHARVESTING)
+                if (!harv.memory.task || (harv.memory.task && harv.memory.task == nHARVESTING_EARLY)) global.scheduler.swapProcess(harv, nHARVESTING_LATE)
             }
         }
     }
@@ -24,7 +21,7 @@ export class NetworkHarvester extends CreepRole {
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean | undefined): number {
         if (min && min == true) return 0;
 
-        let networkHarvesters = rolesNeeded.filter(x => x == Role.nHARVESTER).length
+        let networkHarvesters = rolesNeeded.filter(x => x == nHARVESTER).length
         let remotes = room.memory.remoteSites || {}
 
         if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
@@ -62,8 +59,8 @@ export class NetworkHarvester extends CreepRole {
 
             const networkHarvestingEarlyTask = () => {
                 let creep = Game.getObjectById(creepId)
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 if (!creep.memory.remoteTarget) {
                     NetworkHarvester.setRemoteSource(creep.room, creep)
@@ -81,14 +78,14 @@ export class NetworkHarvester extends CreepRole {
                 //Home Logic
                 if (!creep.memory.working) {
                     let controller = Game.rooms[creep.memory.homeRoom].controller
-                    if (!controller) return ProcessResult.FATAL
+                    if (!controller) return FATAL
                     creep.praise(controller, false)
                 }
 
                 //Remote Logic
                 if (creep.memory.working) {
                     let remoteTarget = creep.memory.remoteTarget
-                    if (!remoteTarget) return ProcessResult.FATAL
+                    if (!remoteTarget) return FATAL
 
                     let remoteName = Object.keys(remoteTarget)[0]
                     let remoteRoomPosition = new RoomPosition(remoteTarget[remoteName].x, remoteTarget[remoteName].y, remoteName)
@@ -107,21 +104,21 @@ export class NetworkHarvester extends CreepRole {
                     }
                 }
 
-                return ProcessResult.RUNNING
+                return RUNNING
             }
 
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, networkHarvestingEarlyTask)
+            let newProcess = new Process(creep.name, LOW, networkHarvestingEarlyTask)
             global.scheduler.addProcess(newProcess)
         },
-        nHarvesting: function (creep: Creep) {
+        nHarvesting_late: function (creep: Creep) {
             let creepId = creep.id
 
             const networkHarvesterTask = () => {
-                Utils.Logger.log("CreepTask -> networkHarvesterTask()", LogLevel.TRACE);
+                Utils.Logger.log("CreepTask -> networkHarvesterTask()", TRACE);
 
                 let creep = Game.getObjectById(creepId)
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 if (!creep.memory.remoteTarget) {
                     NetworkHarvester.setRemoteSource(creep.room, creep)
@@ -191,10 +188,10 @@ export class NetworkHarvester extends CreepRole {
                     }
                 }
 
-                return ProcessResult.RUNNING
+                return RUNNING
             }
 
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, networkHarvesterTask)
+            let newProcess = new Process(creep.name, LOW, networkHarvesterTask)
             global.scheduler.addProcess(newProcess)
         }
     }

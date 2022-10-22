@@ -1,6 +1,5 @@
-import { LogLevel } from 'utils/Enums';
+import { TRACE, INFO } from 'Constants';
 import { Utils } from 'utils/Index';
-
 declare global {
     interface StructureTerminal {
         /**
@@ -27,7 +26,7 @@ declare global {
 
 export default class Terminal_Extended extends StructureTerminal {
     sell(type: ResourceConstant, opts?: { quantity?: number, stddev?: number, range?: number, eMin?: number}): ScreepsReturnCode {
-        Utils.Logger.log("Terminal -> sell()", LogLevel.TRACE);
+        Utils.Logger.log("Terminal -> sell()", TRACE);
 
         // Handle opts
         let options = {
@@ -71,13 +70,13 @@ export default class Terminal_Extended extends StructureTerminal {
         if (type === RESOURCE_ENERGY) options.quantity = options.quantity - sendCost
 
         // Sell the resource
-        Utils.Logger.log(`Sell ${type} bestOrder: ${bestOrder.id}, ${bestOrder.price}, ${bestOrder.amount}, dist: ${bestOrder.roomName ? Game.map.getRoomLinearDistance(this.room.name, bestOrder.roomName, true) : undefined}.`, LogLevel.INFO)
+        Utils.Logger.log(`Sell ${type} bestOrder: ${bestOrder.id}, ${bestOrder.price}, ${bestOrder.amount}, dist: ${bestOrder.roomName ? Game.map.getRoomLinearDistance(this.room.name, bestOrder.roomName, true) : undefined}.`, INFO)
         if (Memory.autoMarket === true) return Game.market.deal(bestOrder.id, Math.min(bestOrder.amount, options.quantity), this.room.name);
         return OK;
     }
 
     buy(type: ResourceConstant, opts?: { quantity?: number, stddev?: number, range?: number, eMin?: number}): ScreepsReturnCode {
-        Utils.Logger.log("Terminal -> buy()", LogLevel.TRACE);
+        Utils.Logger.log("Terminal -> buy()", TRACE);
 
         // Handle opts
         let options = {
@@ -120,7 +119,7 @@ export default class Terminal_Extended extends StructureTerminal {
         }
 
         // Buy the resource
-        Utils.Logger.log(`Buy ${type} bestOrder: ${bestOrder.id}, ${bestOrder.price}, ${bestOrder.amount}, dist: ${bestOrder.roomName ? Game.map.getRoomLinearDistance(this.room.name, bestOrder.roomName, true) : undefined}.`, LogLevel.INFO)
+        Utils.Logger.log(`Buy ${type} bestOrder: ${bestOrder.id}, ${bestOrder.price}, ${bestOrder.amount}, dist: ${bestOrder.roomName ? Game.map.getRoomLinearDistance(this.room.name, bestOrder.roomName, true) : undefined}.`, INFO)
         if (Memory.autoMarket === true) return Game.market.deal(bestOrder.id, Math.min(bestOrder.amount, options.quantity), this.room.name);
         return OK;
     }

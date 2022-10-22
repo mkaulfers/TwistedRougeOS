@@ -1,12 +1,11 @@
+import { ProcessState, RUNNING, Task } from "Constants"
 import { Process } from "Models/Process"
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
-
 export default class Scheduler {
     processQueue: Map<string, Process>
     pausedProcesses: Map<string, Process>
 
-    addProcess(process: Process): void | ProcessResult{
-        if (this.processQueue.has(process.id)) return ProcessResult.RUNNING
+    addProcess(process: Process): void | ProcessState{
+        if (this.processQueue.has(process.id)) return RUNNING
         this.processQueue.set(process.id, process)
     }
 

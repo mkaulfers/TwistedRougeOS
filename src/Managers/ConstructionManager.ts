@@ -1,25 +1,25 @@
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
 import { planRoom } from "utils/RoomPlanner"
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel, LinkState } from '../utils/Enums'
 import { Stamps } from "Models/Stamps"
+import { ProcessState, FATAL, EXTENSION, OBSERVER, LABS, EXTENSIONS, HUB, TOWER, FAST_FILLER, INFO, RUNNING, MEDIUM } from "Constants"
 
 export default class ConstructionManager {
-    static scheduleConstructionMonitor(room: Room): void | ProcessResult {
+    static scheduleConstructionMonitor(room: Room): void | ProcessState {
         const roomName = room.name
 
         if (global.scheduler.processQueue.has(`${roomName}_construction_monitor`)) { return }
 
         const constructionMonitor = () => {
             let room = Game.rooms[roomName]
-            if (!room || !room.my) return ProcessResult.FATAL;
+            if (!room || !room.my) return FATAL;
 
             if (!room.memory.frontiers) {
                 room.setFrontiers(room)
             }
 
             let controller = room.controller
-            if (!controller) return ProcessResult.FATAL;
+            if (!controller) return FATAL;
 
             if (room.cache.recentlyAttacked && room.memory.blueprint) {
                 let constructionSites = room.constructionSites()
@@ -71,13 +71,13 @@ export default class ConstructionManager {
                     case 8:
                         fastFillerStructuresSkipped = []
                         hubSkipped = []
-                        let danglingExtensions = blueprint.stamps.filter(stamp => { return stamp.type == StampType.EXTENSION })
+                        let danglingExtensions = blueprint.stamps.filter(stamp => { return stamp.type == EXTENSION })
                         for (let ext of danglingExtensions) {
                             let pos = Utils.Utility.unpackPostionToRoom(ext.stampPos, room.name)
                             Stamps.buildStructure(pos, ext.type)
                         }
 
-                        let observer = blueprint.stamps.find(stamp => { return stamp.type == StampType.OBSERVER })
+                        let observer = blueprint.stamps.find(stamp => { return stamp.type == OBSERVER })
                         if (observer) {
                             let pos = Utils.Utility.unpackPostionToRoom(observer.stampPos, room.name)
                             Stamps.buildStructure(pos, observer.type)
@@ -136,7 +136,7 @@ export default class ConstructionManager {
                         // Remove STRUCTURE_TERMINAL from hubSkipped
                         hubSkipped.splice(hubSkipped.indexOf(STRUCTURE_TERMINAL), 1)
 
-                        let labs = blueprint.stamps.filter(stamp => stamp.type == StampType.LABS)
+                        let labs = blueprint.stamps.filter(stamp => stamp.type == LABS)
                         let labsCount = room.labs.length
                         let labsConstCount = room.constructionSites(STRUCTURE_LAB).length
 
@@ -180,26 +180,26 @@ export default class ConstructionManager {
                             pos.createConstructionSite(STRUCTURE_RAMPART)
                         }
                     case 4:
-                        let extensions = blueprint.stamps.filter(x => x.type == StampType.EXTENSIONS)
+                        let extensions = blueprint.stamps.filter(x => x.type == EXTENSIONS)
                         for (let extension of extensions) {
                             let roomExtConstSites = room.constructionSites(STRUCTURE_EXTENSION)
                             let extensions = room.extensions
                             if (roomExtConstSites.length + extensions.length < room.maxExtensionsAvail && room.areFastFillerExtensionsBuilt) {
-                                Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(extension.stampPos, room.name), StampType.EXTENSIONS)
+                                Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(extension.stampPos, room.name), EXTENSIONS)
                             }
                         }
 
-                        let hub = blueprint.stamps.filter(x => x.type == StampType.ANCHOR)[0]
+                        let hub = blueprint.stamps.filter(x => x.type == HUB)[0]
                         let hubPos = Utils.Utility.unpackPostionToRoom(hub.stampPos, room.name)
-                        Stamps.buildStructure(hubPos, StampType.ANCHOR, hubSkipped)
+                        Stamps.buildStructure(hubPos, HUB, hubSkipped)
 
                     case 3:
                         let towers = room.towers
                         let towerConstructionSites = room.constructionSites(STRUCTURE_TOWER)
-                        let towerStamps = blueprint.stamps.filter(x => x.type == StampType.TOWER)
+                        let towerStamps = blueprint.stamps.filter(x => x.type == TOWER)
                         for (let stamp of towerStamps) {
                             if (towerConstructionSites.length + towers.length < room.maxTowersAvail) {
-                                Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(stamp.stampPos, room.name), StampType.TOWER, [STRUCTURE_RAMPART])
+                                Stamps.buildStructure(Utils.Utility.unpackPostionToRoom(stamp.stampPos, room.name), TOWER, [STRUCTURE_RAMPART])
                             }
                         }
 
@@ -219,9 +219,9 @@ export default class ConstructionManager {
                             }
                         }
 
-                        let fastFiller = blueprint.stamps.find(s => s.type === StampType.FAST_FILLER)
+                        let fastFiller = blueprint.stamps.find(s => s.type === FAST_FILLER)
                         if (fastFiller) {
-                            Utils.Logger.log(`Level ${controller.level}`, LogLevel.INFO)
+                            Utils.Logger.log(`Level ${controller.level}`, INFO)
                             if (room.areFastFillerExtensionsBuilt) {
                                 fastFillerStructuresSkipped.splice(fastFillerStructuresSkipped.indexOf(STRUCTURE_CONTAINER), 1)
                             }
@@ -230,10 +230,10 @@ export default class ConstructionManager {
                 }
             }
 
-            return ProcessResult.RUNNING;
+            return RUNNING;
         }
 
-        let process = new Process(`${roomName}_construction_monitor`, ProcessPriority.MEDIUM, constructionMonitor)
+        let process = new Process(`${roomName}_construction_monitor`, MEDIUM, constructionMonitor)
         global.scheduler.addProcess(process)
     }
 }

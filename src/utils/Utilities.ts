@@ -1,7 +1,5 @@
+import { TRACE, HUB } from 'Constants';
 import { Logger } from './Logger';
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from './Enums';
-import { Coord } from 'screeps-cartographer/dist/utils/packrat';
-
 interface IPrototype {
     prototype?: any
 }
@@ -171,7 +169,7 @@ export class Utility {
      * Defaults to TOUGH, WORK, ATTACK, RANGED_ATTACK, CARRY, MOVE, HEAL, and CLAIM with values ranging from 0-7 respectively.
      */
     static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], opts?: { sizeLimit?: number, overrideELimit?: boolean, sortOrder?: { [key in BodyPartConstant]?: number } }): BodyPartConstant[] {
-        Logger.log("SpawnManager -> getBodyFor()", LogLevel.TRACE)
+        Logger.log("SpawnManager -> getBodyFor()", TRACE)
 
         let tempBody = [...baseBody];
         let tempSegment = [...segment];
@@ -241,7 +239,7 @@ export class Utility {
             }
         });
 
-        Logger.log(`Temp Body Length: ${tempBody.length}`, LogLevel.TRACE)
+        Logger.log(`Temp Body Length: ${tempBody.length}`, TRACE)
         return tempBody
     }
 
@@ -250,7 +248,7 @@ export class Utility {
      * Example: [CARRY, CARRY, MOVE, CARRY, MOVE, WORK] would have a partLimits reference array of [CARRY, MOVE, WORK]
      */
     static buildPartLimits(tempBody: BodyPartConstant[], tempSegment: BodyPartConstant[]): number[] {
-        Logger.log("SpawnManager -> buildPartLimits()", LogLevel.TRACE)
+        Logger.log("SpawnManager -> buildPartLimits()", TRACE)
         // Separate delivered from used
         let usedBody = [...tempBody];
         let usedSegment = [...tempSegment];
@@ -324,7 +322,7 @@ export class Utility {
 
             // Consider Anchor
             if (room.memory.blueprint && room.isAnchorFunctional) {
-                const anchorStamp = room.memory.blueprint.stamps.find((s) => s.type === StampType.ANCHOR);
+                const anchorStamp = room.memory.blueprint.stamps.find((s) => s.type === HUB);
                 let anchorStampPos: RoomPosition | undefined;
                 if (anchorStamp) anchorStampPos = this.unpackPostionToRoom(anchorStamp.stampPos, room.name);
                 if (anchorStampPos) cm.set(anchorStampPos.x, anchorStampPos.y, 50);

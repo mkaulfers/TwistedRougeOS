@@ -1,7 +1,5 @@
+import { INDIFFERENT } from "Constants"
 import { Process } from "../Models/Process"
-import { Logger } from "../utils/Logger";
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
-
 export default class UtilityManager {
     static schedulePixelSale() {
         let pixelSaleProcessId = "generate_pixels"
@@ -13,7 +11,7 @@ export default class UtilityManager {
             return Game.cpu.generatePixel()
         }
 
-        let newProcess = new Process(pixelSaleProcessId, ProcessPriority.INDIFFERENT, pixelSaleTask)
+        let newProcess = new Process(pixelSaleProcessId, INDIFFERENT, pixelSaleTask)
         global.scheduler.addProcess(newProcess)
     }
 

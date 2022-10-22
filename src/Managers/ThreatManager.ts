@@ -1,7 +1,6 @@
+import { TRACE, FATAL, RUNNING, LOW } from "Constants";
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType, DangerLevel } from '../utils/Enums'
-
 export default class ThreatManager {
 
     static scheduleThreatMonitor(room: Room) {
@@ -10,9 +9,9 @@ export default class ThreatManager {
         if (global.scheduler.processQueue.has(roomProcessId)) return;
 
         const monitorTask = () => {
-            Utils.Logger.log(`ThreatManager -> ${roomProcessId}`, LogLevel.TRACE)
+            Utils.Logger.log(`ThreatManager -> ${roomProcessId}`, TRACE)
             let room = Game.rooms[roomName]
-            if (!room || !room.my) return ProcessResult.FATAL;
+            if (!room || !room.my) return FATAL;
 
             if (room.cache.recentlyAttacked == undefined) {
                 room.cache.recentlyAttacked = false
@@ -70,15 +69,15 @@ export default class ThreatManager {
                     this.safeModer(room);
                     break;
             }
-            return ProcessResult.RUNNING;
+            return RUNNING;
         }
 
-        let newProcess = new Process(roomProcessId, ProcessPriority.LOW, monitorTask)
+        let newProcess = new Process(roomProcessId, LOW, monitorTask)
         global.scheduler.addProcess(newProcess)
     }
 
     static safeModer(room: Room) {
-        Utils.Logger.log(`ThreatManager -> safeModer`, LogLevel.TRACE)
+        Utils.Logger.log(`ThreatManager -> safeModer`, TRACE)
 
         let controller = room.controller
         if (!controller) return
@@ -145,7 +144,7 @@ export default class ThreatManager {
     }
 
     static canKill(creep: AnyCreep): boolean {
-        Utils.Logger.log(`ThreatManager -> canKill`, LogLevel.TRACE)
+        Utils.Logger.log(`ThreatManager -> canKill`, TRACE)
 
         // TODO: Flesh out power creep handling
         if ('rename' in creep) return true;
@@ -178,7 +177,7 @@ export default class ThreatManager {
             damage = damage + tower.damage(creep.pos);
         }
 
-        // Logger.log(`Damage: ${damage}. Heal: ${totalHealValue}.`, LogLevel.TRACE)
+        // Logger.log(`Damage: ${damage}. Heal: ${totalHealValue}.`, TRACE)
         if (damage > totalHealValue) {
             return true;
         } else {
@@ -187,7 +186,7 @@ export default class ThreatManager {
     }
 
     static towerAttack(target: AnyCreep) {
-        Utils.Logger.log(`ThreatManager -> towerAttack`, LogLevel.TRACE)
+        Utils.Logger.log(`ThreatManager -> towerAttack`, TRACE)
 
         let room = target.room
         if (!room) return;
@@ -202,7 +201,7 @@ export default class ThreatManager {
     }
 
     static towerHeal(room: Room) {
-        Utils.Logger.log(`ThreatManager -> towerHeal`, LogLevel.TRACE)
+        Utils.Logger.log(`ThreatManager -> towerHeal`, TRACE)
 
         let towers = room.towers;
         if (towers.length === 0) return;

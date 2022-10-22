@@ -1,6 +1,5 @@
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from '../utils/Enums'
+import { TRACE } from 'Constants';
 import { Utils } from 'utils/Index';
-
 declare global {
     interface StructureController {
         isSigned: boolean;
@@ -11,7 +10,7 @@ export default class Controller_Extended extends StructureController {
 
     _isSigned: boolean | undefined
     get isSigned() {
-        Utils.Logger.log("Controller -> isSigned", LogLevel.TRACE);
+        Utils.Logger.log("Controller -> isSigned", TRACE);
         if (this._isSigned) {
             return this._isSigned
         } else {

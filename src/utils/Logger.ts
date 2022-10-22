@@ -1,10 +1,9 @@
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel } from './Enums';
-
+import { LogLevel, OFF, ALL } from "Constants"
 export class Logger {
     static devLogLevel: LogLevel
     static log(message: string, level: LogLevel): void {
-        if (this.devLogLevel == LogLevel.OFF) return
-        if (this.devLogLevel == LogLevel.ALL || this.devLogLevel == level) {
+        if (this.devLogLevel == OFF) return
+        if (this.devLogLevel == ALL || this.devLogLevel == level) {
             console.log(`${level} ${message}`)
         }
     }

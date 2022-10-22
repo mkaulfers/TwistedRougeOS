@@ -1,4 +1,4 @@
-import { LogLevel } from '../utils/Enums'
+import { TRACE, ERROR } from 'Constants';
 import { moveTo, MoveOpts, MoveTarget } from 'screeps-cartographer';
 import { Utils } from 'utils/Index';
 
@@ -58,7 +58,7 @@ export default class Creep_Extended extends Creep {
     }
 
     destroy(target?: Structure | Creep): number {
-        Utils.Logger.log("Creep -> destroy()", LogLevel.TRACE)
+        Utils.Logger.log("Creep -> destroy()", TRACE)
 
         let result: number;
         let work = this.getActiveBodyparts(WORK);
@@ -89,17 +89,17 @@ export default class Creep_Extended extends Creep {
                 return OK;
             case ERR_NOT_IN_RANGE:
                 if (!target) {
-                    Utils.Logger.log(`${this.name} recieved result ERR_NOT_IN_RANGE from Firstaid without an UNDEFINED target.`, LogLevel.FATAL);
+                    Utils.Logger.log(`${this.name} recieved result ERR_NOT_IN_RANGE from Firstaid without an UNDEFINED target.`, ERROR);
                     return ERR_INVALID_TARGET;
                 }
                 return this.moveToDefault(target.pos);
             case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
                 if (target && 'fatigue' in target) {
-                    Utils.Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target.name}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
+                    Utils.Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target.name}${JSON.stringify(target.pos)}*).`, ERROR);
                 } else if (target) {
-                    Utils.Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target?.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
+                    Utils.Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target?.structureType}${JSON.stringify(target.pos)}*).`, ERROR);
                 } else {
-                    Utils.Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target}).`, LogLevel.ERROR);
+                    Utils.Logger.log(`${this.name} recieved result ${result} from Destroy with args (${target}).`, ERROR);
                 }
                 return result;
         }
@@ -107,7 +107,7 @@ export default class Creep_Extended extends Creep {
     }
 
     firstaid(target: Creep): number {
-        Utils.Logger.log("Creep -> firstaid()", LogLevel.TRACE)
+        Utils.Logger.log("Creep -> firstaid()", TRACE)
 
         let result: number;
         if (this.pos.getRangeTo(target) < 2) {
@@ -122,7 +122,7 @@ export default class Creep_Extended extends Creep {
             case ERR_NOT_IN_RANGE:
                 return this.moveToDefault(target.pos);
             case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-                Utils.Logger.log(`${this.name} recieved result ${result} from Firstaid with args (${target.name}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
+                Utils.Logger.log(`${this.name} recieved result ${result} from Firstaid with args (${target.name}${JSON.stringify(target.pos)}*).`, ERROR);
                 return result;
         }
         return OK;
@@ -130,7 +130,7 @@ export default class Creep_Extended extends Creep {
 
     // TODO: Rewrite to use cartographer
     getOffExit(): number {
-        Utils.Logger.log("Creep -> getOffExit()", LogLevel.TRACE)
+        Utils.Logger.log("Creep -> getOffExit()", TRACE)
 
         let exits = [0, 49];
         switch (true) {
@@ -151,7 +151,7 @@ export default class Creep_Extended extends Creep {
     }
 
     give(target: AnyStoreStructure | Creep, resource: ResourceConstant, quantity?: number): number {
-        Utils.Logger.log("Creep -> give()", LogLevel.TRACE)
+        Utils.Logger.log("Creep -> give()", TRACE)
 
         this.travel(target.pos);
         let result = this.transfer(target, resource, quantity);
@@ -166,7 +166,7 @@ export default class Creep_Extended extends Creep {
     }
 
     mine(target: Source | Mineral): number {
-        Utils.Logger.log("Creep -> give()", LogLevel.TRACE)
+        Utils.Logger.log("Creep -> give()", TRACE)
 
         this.travel(target.pos);
         let result: number = this.harvest(target);
@@ -175,14 +175,14 @@ export default class Creep_Extended extends Creep {
             case OK: case ERR_BUSY: case ERR_TIRED: case ERR_NOT_IN_RANGE:
                 return OK;
             case ERR_NOT_OWNER: case ERR_NOT_FOUND: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-                Utils.Logger.log(`${this.name} recieved result ${result} from Mine with args (${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
+                Utils.Logger.log(`${this.name} recieved result ${result} from Mine with args (${JSON.stringify(target.pos)}*).`, ERROR);
                 return result;
         }
         return OK;
     }
 
     moveToDefault(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number {
-        Utils.Logger.log("Creep -> moveToDefault()", LogLevel.TRACE)
+        Utils.Logger.log("Creep -> moveToDefault()", TRACE)
         if (!opts) opts = {}
         if (!fallbackOpts) fallbackOpts = {};
 
@@ -213,7 +213,7 @@ export default class Creep_Extended extends Creep {
     }
 
     nMRController(roomName: string): number {
-        Utils.Logger.log("Creep -> nMRController()", LogLevel.TRACE)
+        Utils.Logger.log("Creep -> nMRController()", TRACE)
 
         let result: number = OK;
 
@@ -249,14 +249,14 @@ export default class Creep_Extended extends Creep {
             case OK: case ERR_BUSY: case ERR_NOT_IN_RANGE:
                 return OK;
             case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_FULL: case ERR_NO_BODYPART: case ERR_GCL_NOT_ENOUGH:
-                Utils.Logger.log(`${this.name} recieved result ${result} from nMRController with args (${roomName}).`, LogLevel.ERROR);
+                Utils.Logger.log(`${this.name} recieved result ${result} from nMRController with args (${roomName}).`, ERROR);
                 return result;
         }
         return OK;
     }
 
     praise(target: StructureController, working: boolean): number {
-        Utils.Logger.log("Creep -> praise()", LogLevel.TRACE)
+        Utils.Logger.log("Creep -> praise()", TRACE)
 
         // Link targeting
         if (!this.cache.supply && Game.time % 50 === 0) {
@@ -282,14 +282,14 @@ export default class Creep_Extended extends Creep {
             case OK: case ERR_BUSY: case ERR_NOT_IN_RANGE:
                 return OK;
             case ERR_NOT_ENOUGH_ENERGY: case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-                Utils.Logger.log(`${this.name} recieved result ${result} from Praise with args (${target.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
+                Utils.Logger.log(`${this.name} recieved result ${result} from Praise with args (${target.structureType}${JSON.stringify(target.pos)}*).`, ERROR);
                 return result;
         }
         return OK;
     }
 
     take(target: AnyStoreStructure | Resource | Tombstone, resource: ResourceConstant, quantity?: number): number {
-        Utils.Logger.log("Creep -> take()", LogLevel.TRACE)
+        Utils.Logger.log("Creep -> take()", TRACE)
 
         this.travel(target.pos);
         let result: number;
@@ -303,7 +303,7 @@ export default class Creep_Extended extends Creep {
             case OK: case ERR_BUSY: case ERR_NOT_IN_RANGE:
                 return OK;
             case ERR_NOT_OWNER: case ERR_INVALID_TARGET: case ERR_INVALID_ARGS: case ERR_NOT_ENOUGH_RESOURCES: case ERR_FULL:
-                Utils.Logger.log(`${this.name} recieved result ${result} from Take with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, LogLevel.ERROR);
+                Utils.Logger.log(`${this.name} recieved result ${result} from Take with args (${JSON.stringify(target.pos)}*, ${resource}, ${quantity}).`, ERROR);
                 return result;
         }
 
@@ -311,7 +311,7 @@ export default class Creep_Extended extends Creep {
     }
 
     travel(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number {
-        Utils.Logger.log("Creep -> travel()", LogLevel.TRACE)
+        Utils.Logger.log("Creep -> travel()", TRACE)
 
         // TODO: Add hostile creep avoidance
 
@@ -360,7 +360,7 @@ export default class Creep_Extended extends Creep {
     }
 
     work(target: Structure | ConstructionSite): number {
-        Utils.Logger.log("Creep -> work()", LogLevel.TRACE)
+        Utils.Logger.log("Creep -> work()", TRACE)
         if (!target) return ERR_INVALID_TARGET;
 
         this.travel({ pos: target.pos, range: 3 });
@@ -375,7 +375,7 @@ export default class Creep_Extended extends Creep {
             case OK: case ERR_BUSY: case ERR_NOT_IN_RANGE:
                 return OK;
             case ERR_NOT_OWNER: case ERR_NOT_ENOUGH_RESOURCES: case ERR_INVALID_TARGET: case ERR_NO_BODYPART:
-                Utils.Logger.log(`${this.name} recieved result ${result} from Work with args (${target.structureType}${JSON.stringify(target.pos)}*).`, LogLevel.ERROR);
+                Utils.Logger.log(`${this.name} recieved result ${result} from Work with args (${target.structureType}${JSON.stringify(target.pos)}*).`, ERROR);
                 return result;
         }
         return OK;
@@ -435,8 +435,8 @@ export default class Creep_Extended extends Creep {
 
     private _isBoosted: boolean | undefined;
     isBoosted(): boolean {
-        Utils.Logger.log("Creep -> isBoosted()", LogLevel.TRACE)
-        Utils.Logger.log(`${this.name} -> isBoosted(). IsBoosted is currently a placeholder.`, LogLevel.ERROR);
+        Utils.Logger.log("Creep -> isBoosted()", TRACE)
+        Utils.Logger.log(`${this.name} -> isBoosted(). IsBoosted is currently a placeholder.`, ERROR);
         if (this._isBoosted === undefined) this._isBoosted = false;
         return this._isBoosted;
     }

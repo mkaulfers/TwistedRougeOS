@@ -1,8 +1,7 @@
 import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
 import { Utils } from "utils/Index";
-import { Role, Task, ProcessPriority, ProcessResult, LogLevel, StampType } from '../utils/Enums'
-
+import { ANCHOR, ANCHOR_WORKING, FAILED, FATAL, HUB, INFO, LOW, Role, RUNNING, Task, TRACE } from "Constants";
 export class Anchor extends CreepRole {
 
     readonly baseBody = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE]
@@ -12,16 +11,16 @@ export class Anchor extends CreepRole {
     dispatch(room: Room) {
         for (let anchor of room.localCreeps.anchor) {
             if (!anchor.memory.task) {
-                global.scheduler.swapProcess(anchor, Task.ANCHOR)
+                global.scheduler.swapProcess(anchor, ANCHOR_WORKING)
             }
         }
     }
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        Utils.Logger.log("quantityWanted -> anchor.quantityWanted()", LogLevel.TRACE)
+        Utils.Logger.log("quantityWanted -> anchor.quantityWanted()", TRACE)
         if (min && min == true) return 0;
 
-        let anchorCount = rolesNeeded.filter(x => x == Role.ANCHOR).length
+        let anchorCount = rolesNeeded.filter(x => x == ANCHOR).length
         let shouldBe = room.isAnchorFunctional ? 1 : 0;
         return anchorCount < shouldBe ? shouldBe - anchorCount : 0;
     }
@@ -29,7 +28,7 @@ export class Anchor extends CreepRole {
     preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number {
         if (!room || !spawn) return 0;
         if (!room.memory.blueprint || room.memory.blueprint.anchor === 0) return 0;
-        const anchorStamp = room.memory.blueprint.stamps.find((s) => s.type === StampType.ANCHOR);
+        const anchorStamp = room.memory.blueprint.stamps.find((s) => s.type === HUB);
         if (!anchorStamp) return 0;
 
         // return path dist to anchor
@@ -37,24 +36,24 @@ export class Anchor extends CreepRole {
     }
 
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
-        anchor: function(creep: Creep) {
+        anchor_working: function(creep: Creep) {
             let creepId = creep.id
 
             const task = () => {
-                Utils.Logger.log("CreepTask -> anchor()", LogLevel.TRACE);
+                Utils.Logger.log("CreepTask -> anchor()", TRACE);
 
                 let creep = Game.getObjectById(creepId);
-                if (!creep) return ProcessResult.FATAL;
-                if (creep.spawning) return ProcessResult.RUNNING;
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
 
                 // Handle positioning
-                if (!creep.room.memory.blueprint || creep.room.memory.blueprint.anchor === 0) return ProcessResult.FAILED;
-                const anchorStamp = creep.room.memory.blueprint.stamps.find((s) => s.type === StampType.ANCHOR);
-                if (!anchorStamp) return ProcessResult.FAILED;
+                if (!creep.room.memory.blueprint || creep.room.memory.blueprint.anchor === 0) return FAILED;
+                const anchorStamp = creep.room.memory.blueprint.stamps.find((s) => s.type === HUB);
+                if (!anchorStamp) return FAILED;
                 const anchorPos = Utils.Utility.unpackPostionToRoom(anchorStamp.stampPos, creep.room.name);
                 if (creep.pos.getRangeTo(anchorPos) > 0) {
                     creep.travel({pos: anchorPos, range: 0});
-                    return ProcessResult.RUNNING;
+                    return RUNNING;
                 }
 
                 // Targeting
@@ -155,12 +154,12 @@ export class Anchor extends CreepRole {
                             break;
                     }
                 }
-                Utils.Logger.log(`${creep.name}: ${result}`, LogLevel.INFO)
-                return ProcessResult.RUNNING;
+                Utils.Logger.log(`${creep.name}: ${result}`, INFO)
+                return RUNNING;
             }
 
-            creep.memory.task = Task.ANCHOR
-            let newProcess = new Process(creep.name, ProcessPriority.LOW, task)
+            creep.memory.task = ANCHOR_WORKING
+            let newProcess = new Process(creep.name, LOW, task)
             global.scheduler.addProcess(newProcess)
         }
     }

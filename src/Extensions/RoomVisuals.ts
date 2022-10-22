@@ -1,6 +1,5 @@
-import { LogLevel } from 'utils/Enums';
+import { TRACE } from 'Constants';
 import { Utils } from 'utils/Index';
-
 declare global {
     interface RoomVisual {
         animatedPosition(x: number, y: number, opts?: {color?: string, opacity?: number, radius?: number, frames?: number}): RoomVisual;
@@ -20,7 +19,7 @@ declare global {
 
 export default class RoomVisuals_Extended extends RoomVisual {
     animatedPosition(x: number, y: number, opts: {color?: string, opacity?: number, radius?: number, frames?: number}): RoomVisual {
-        Utils.Logger.log("RoomVisual -> animatedPosition()", LogLevel.TRACE);
+        Utils.Logger.log("RoomVisual -> animatedPosition()", TRACE);
 
         let color = !!opts.color ? opts.color : 'blue'
         let opacity = !!opts.opacity ? opts.opacity : 0.5
@@ -49,7 +48,7 @@ export default class RoomVisuals_Extended extends RoomVisual {
     }
 
     connectRoads(opts: {color?: string, opacity?: number}): RoomVisual | undefined {
-        Utils.Logger.log("RoomVisual -> connectRoads()", LogLevel.TRACE);
+        Utils.Logger.log("RoomVisual -> connectRoads()", TRACE);
         if (!opts) opts = { opacity: 1, color: colors.road };
         let color = opts.color || colors.road || 'white'
         if(!this.roads) return
@@ -72,7 +71,7 @@ export default class RoomVisuals_Extended extends RoomVisual {
     }
 
     costMatrix(costMatrix: CostMatrix, renderZero?: boolean): RoomVisual {
-        Utils.Logger.log("RoomVisual -> costMatrix()", LogLevel.TRACE);
+        Utils.Logger.log("RoomVisual -> costMatrix()", TRACE);
         for (let x = 0; x < 50; x++) {
             for (let y = 0; y < 50; y++) {
                 const value = costMatrix.get(x,y);
@@ -83,7 +82,7 @@ export default class RoomVisuals_Extended extends RoomVisual {
     }
 
     resource(type: string, x: number, y: number, size: number): number {
-        Utils.Logger.log("RoomVisual -> resource()", LogLevel.TRACE);
+        Utils.Logger.log("RoomVisual -> resource()", TRACE);
         if (type == RESOURCE_ENERGY || type == RESOURCE_POWER)
             this._fluid(type, x, y, size)
         else if (MINERALS.includes(type))
@@ -98,7 +97,7 @@ export default class RoomVisuals_Extended extends RoomVisual {
     }
 
     speech(text: string, x: number, y: number, opts: {background?: string, textcolor?: string, textstyle?: boolean, textsize?: number, textfont?: string, opacity?: number}): RoomVisual {
-        Utils.Logger.log("RoomVisual -> speech()", LogLevel.TRACE);
+        Utils.Logger.log("RoomVisual -> speech()", TRACE);
         var background = !!opts.background ? opts.background : colors.speechBackground
         var textcolor = !!opts.textcolor ? opts.textcolor : colors.speechText
         var textstyle = !!opts.textstyle ? opts.textstyle : false
@@ -139,7 +138,7 @@ export default class RoomVisuals_Extended extends RoomVisual {
     }
 
     structure(x: number, y: number, type: string, opts?: { opacity?: number }): RoomVisual {
-        Utils.Logger.log("RoomVisual -> structure()", LogLevel.TRACE);
+        Utils.Logger.log("RoomVisual -> structure()", TRACE);
         if (!opts) opts = { opacity: 1 };
         switch(type){
           case STRUCTURE_FACTORY: {
@@ -548,7 +547,7 @@ export default class RoomVisuals_Extended extends RoomVisual {
     }
 
     test() {
-        Utils.Logger.log("RoomVisual -> test()", LogLevel.TRACE);
+        Utils.Logger.log("RoomVisual -> test()", TRACE);
         let demopos = [19,24]
         this.clear()
         this.structure(demopos[0]+0,demopos[1]+0,STRUCTURE_LAB)
@@ -573,7 +572,7 @@ export default class RoomVisuals_Extended extends RoomVisual {
     }
 
     _compound(type: string, x: number, y: number, size: number): void {
-        Utils.Logger.log("RoomVisual -> _compound()", LogLevel.TRACE);
+        Utils.Logger.log("RoomVisual -> _compound()", TRACE);
         let label = type.replace("2", '₂');
 
         this.text(label, x, y, {
@@ -585,7 +584,7 @@ export default class RoomVisuals_Extended extends RoomVisual {
     }
 
     _fluid(type: string, x: number, y: number, size: number): void {
-        Utils.Logger.log("RoomVisual -> _fluid()", LogLevel.TRACE);
+        Utils.Logger.log("RoomVisual -> _fluid()", TRACE);
         this.circle(x, y, {
             radius: size,
             fill: ResourceColors[type][0],
@@ -600,7 +599,7 @@ export default class RoomVisuals_Extended extends RoomVisual {
     }
 
     _mineral(type: string, x: number, y: number, size: number): void {
-        Utils.Logger.log("RoomVisual -> _mineral()", LogLevel.TRACE);
+        Utils.Logger.log("RoomVisual -> _mineral()", TRACE);
         this.circle(x, y, {
             radius: size,
             fill: ResourceColors[type][0],
@@ -792,7 +791,7 @@ const speechFont = 'Times New Roman'
 //   }
 
 function calculateFactoryLevelGapsPoly() {
-    Utils.Logger.log("RoomVisual -> calculateFactoryLevelGapsPoly()", LogLevel.TRACE);
+    Utils.Logger.log("RoomVisual -> calculateFactoryLevelGapsPoly()", TRACE);
     let x = -0.08;
     let y = -0.52;
     let result = [];
@@ -817,7 +816,7 @@ function calculateFactoryLevelGapsPoly() {
 }
 
 function relPoly(x: number,y: number, poly: [number, number][]): [number, number][] {
-    Utils.Logger.log("RoomVisual -> relPoly()", LogLevel.TRACE);
+    Utils.Logger.log("RoomVisual -> relPoly()", TRACE);
     return poly.map(p=>{
       p[0] += x
       p[1] += y
@@ -826,7 +825,7 @@ function relPoly(x: number,y: number, poly: [number, number][]): [number, number
 }
 
 function rotate(x: number, y: number, s: number, c: number, px: number, py: number): [number, number] {
-    Utils.Logger.log("RoomVisual -> rotate()", LogLevel.TRACE);
+    Utils.Logger.log("RoomVisual -> rotate()", TRACE);
     let xDelta = x * c - y * s;
     let yDelta = x * s + y * c;
     return [ px + xDelta, py + yDelta ];

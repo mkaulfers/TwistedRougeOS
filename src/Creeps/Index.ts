@@ -3,14 +3,14 @@ import { Harvester } from './Harvester';
 import { Scientist } from './Scientist';
 import { Trucker } from './Trucker';
 import { Filler } from './Filler';
-import { Role } from 'utils/Enums';
 import { Agent } from './Agent';
 import CreepRole from 'Models/CreepRole';
 import { NetworkHarvester } from './NetworkHarvester';
 import { Anchor } from './Anchor';
 import { NetworkTrucker } from './NetworkTrucker';
+import { Role } from 'Constants';
 
-var Roles: {[key in Role]?: CreepRole} = {
+var CreepClasses: {[key in Role]?: CreepRole} = {
     harvester: new Harvester,
     trucker: new Trucker,
     filler: new Filler,
@@ -22,5 +22,5 @@ var Roles: {[key in Role]?: CreepRole} = {
     nTrucker: new NetworkTrucker,
 }
 
-export default Roles;
+export default CreepClasses;
 

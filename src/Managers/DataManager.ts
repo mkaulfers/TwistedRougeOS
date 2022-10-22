@@ -1,8 +1,8 @@
 import { Process } from 'Models/Process';
 import SpawnSchedule from 'Models/SpawnSchedule';
 import { RoomStatistics } from 'Models/RoomStatistics';
-import { LogLevel, ProcessPriority, ProcessResult, Role, StampType, Task } from 'utils/Enums';
 import { Utils } from '../utils/Index';
+import { Role, Task, ProcessState, INFO, CRITICAL, RUNNING, StampType } from 'Constants';
 
 // Add new Memory or Cache properties in this file.
 declare global {
@@ -98,13 +98,13 @@ declare global {
 }
 
 export default class DataManager {
-    static scheduleMemoryMonitor(): void | ProcessResult {
+    static scheduleMemoryMonitor(): void | ProcessState {
 
         const memoryTask = () => {
             // Cleanup Dead Creeps
             for (const name in Memory.creeps) {
                 if (!Game.creeps[name]) {
-                    Utils.Logger.log(`Removing dead creep: ${name}`, LogLevel.INFO)
+                    Utils.Logger.log(`Removing dead creep: ${name}`, INFO)
                     global.scheduler.removeProcess(name)
                     delete Memory.creeps[name]
                 }
@@ -114,13 +114,13 @@ export default class DataManager {
                 //Delete the room from Memory if it is not owned by me AND it does not contain intel.
                 if (Game.rooms[name] && Game.rooms[name].my && Memory.rooms[name].intel) delete Memory.rooms[name].intel;
                 if (!Game.rooms[name] && !Memory.rooms[name].intel) {
-                    Utils.Logger.log(`Removing room: ${name}`, LogLevel.INFO)
+                    Utils.Logger.log(`Removing room: ${name}`, INFO)
                     delete Memory.rooms[name]
                 }
             }
         }
 
-        let process = new Process('memory_monitor', ProcessPriority.CRITICAL, memoryTask)
+        let process = new Process('memory_monitor', CRITICAL, memoryTask)
         global.scheduler.addProcess(process)
     }
 
@@ -208,10 +208,10 @@ export default class DataManager {
                     delete global.Cache.creeps[name];
                 }
             }
-            return ProcessResult.RUNNING;
+            return RUNNING;
         }
 
-        let process = new Process('cache_monitor', ProcessPriority.CRITICAL, cacheTask);
+        let process = new Process('cache_monitor', CRITICAL, cacheTask);
         global.scheduler.addProcess(process);
     }
 }
