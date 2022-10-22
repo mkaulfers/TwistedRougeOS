@@ -1,4 +1,5 @@
-import { ProcessState, RUNNING, Task } from "Constants"
+import { ProcessState, RUNNING } from "Constants/ProcessStateConstants"
+import { Task } from "Constants/TaskConstants"
 import { Process } from "Models/Process"
 export default class Scheduler {
     processQueue: Map<string, Process>

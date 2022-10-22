@@ -1,4 +1,8 @@
-import { nHARVESTING_EARLY, nHARVESTING_LATE, Role, nHARVESTER, Task, FATAL, RUNNING, LOW, TRACE } from "Constants";
+import { TRACE } from "Constants/LogConstants";
+import { LOW } from "Constants/ProcessPriorityConstants";
+import { FATAL, RUNNING } from "Constants/ProcessStateConstants";
+import { Role, nHARVESTER } from "Constants/RoleConstants";
+import { nHARVESTING_EARLY, nHARVESTING_LATE, Task } from "Constants/TaskConstants";
 import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
 import { Utils } from "utils/Index";

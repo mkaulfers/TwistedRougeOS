@@ -1,4 +1,4 @@
-import { TRACE } from 'Constants';
+import { TRACE } from 'Constants/LogConstants';
 import { Utils } from 'utils/Index';
 declare global {
     interface Source {

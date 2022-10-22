@@ -1,4 +1,4 @@
-import { StampType, FAST_FILLER, EXTENSIONS, LABS, HUB, OBSERVER, TOWER, EXTENSION } from "Constants";
+import { StampType, FAST_FILLER, EXTENSIONS, LABS, HUB, OBSERVER, TOWER, EXTENSION } from "Constants/StampConstants";
 import { Utils } from "utils/Index";
 export class Stamps {
 

@@ -1,4 +1,7 @@
-import { TRACE, FATAL, INPUT, BOTH, OUTPUT, RUNNING, OFF, LOW } from "Constants";
+import { INPUT, BOTH, OUTPUT } from "Constants/LinkStateConstants";
+import { TRACE, OFF } from "Constants/LogConstants";
+import { LOW } from "Constants/ProcessPriorityConstants";
+import { FATAL, RUNNING } from "Constants/ProcessStateConstants";
 import { link } from "fs"
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"

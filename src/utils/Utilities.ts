@@ -1,4 +1,5 @@
-import { TRACE, HUB } from 'Constants';
+import { TRACE } from 'Constants/LogConstants';
+import { HUB } from 'Constants/StampConstants';
 import { Logger } from './Logger';
 interface IPrototype {
     prototype?: any

@@ -1,7 +1,9 @@
 import { Process } from "Models/Process";
 import { Utils } from "../utils/Index";
 import { Stamps } from 'Models/Stamps'
-import { DangerLevel, TRACE, LOW, PEACEFUL, INVADERS, WARY, DANGER, DEATH } from "Constants";
+import { DangerLevel, PEACEFUL, INVADERS, WARY, DANGER, DEATH } from "Constants/DangerLevelConstants";
+import { TRACE } from "Constants/LogConstants";
+import { LOW } from "Constants/ProcessPriorityConstants";
 declare global {
 
     interface worldRoomScoring {

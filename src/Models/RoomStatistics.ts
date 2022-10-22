@@ -1,4 +1,4 @@
-import { DangerLevel } from "Constants"
+import { DangerLevel } from "Constants/DangerLevelConstants"
 import { Coord } from "screeps-cartographer/dist/utils/packrat"
 import { InvaderDetail } from "./InvaderDetail"
 import { MineralDetail } from "./MineralDetail"

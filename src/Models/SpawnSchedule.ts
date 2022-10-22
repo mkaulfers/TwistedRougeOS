@@ -1,4 +1,5 @@
-import { Role, INFO } from "Constants"
+import { INFO } from "Constants/LogConstants"
+import { Role } from "Constants/RoleConstants"
 import CreepClasses from "Creeps/Index"
 import { Utils } from "utils/Index"
 export default class SpawnSchedule {

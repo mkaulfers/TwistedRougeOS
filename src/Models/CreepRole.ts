@@ -1,4 +1,5 @@
-import { Role, Task } from "Constants";
+import { Role } from "Constants/RoleConstants";
+import { Task } from "Constants/TaskConstants";
 
 export default abstract class CreepRole {
 

@@ -1,4 +1,4 @@
-import { INDIFFERENT } from "Constants"
+import { INDIFFERENT } from "Constants/ProcessPriorityConstants"
 import { Process } from "../Models/Process"
 export default class UtilityManager {
     static schedulePixelSale() {

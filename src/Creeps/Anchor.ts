@@ -1,7 +1,12 @@
+import { TRACE, INFO } from "Constants/LogConstants";
+import { LOW } from "Constants/ProcessPriorityConstants";
+import { FATAL, RUNNING, FAILED } from "Constants/ProcessStateConstants";
+import { Role, ANCHOR } from "Constants/RoleConstants";
+import { HUB } from "Constants/StampConstants";
+import { ANCHOR_WORKING, Task } from "Constants/TaskConstants";
 import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
 import { Utils } from "utils/Index";
-import { ANCHOR, ANCHOR_WORKING, FAILED, FATAL, HUB, INFO, LOW, Role, RUNNING, Task, TRACE } from "Constants";
 export class Anchor extends CreepRole {
 
     readonly baseBody = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE]

@@ -1,8 +1,11 @@
 
-import { TRACE, ProcessState, FATAL, RUNNING, CRITICAL } from "Constants"
+import { TRACE } from "Constants/LogConstants"
+import { CRITICAL } from "Constants/ProcessPriorityConstants"
+import { ProcessState, FATAL, RUNNING } from "Constants/ProcessStateConstants"
 import CreepClasses from "Creeps/Index"
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
+import { Role } from "Constants/RoleConstants"
 export default class CreepManager {
     static scheduleCreepTask(room: Room) {
         Utils.Logger.log("Room -> scheduleCreepTask()", TRACE)
@@ -11,7 +14,7 @@ export default class CreepManager {
             let creep = creeps[i]
             if (global.scheduler.processQueue.has(creep.name)) { continue }
 
-            let activeRole = CreepClasses[creep.memory.role];
+            let activeRole = CreepClasses[creep.memory.role as Role];
             if (!activeRole || !creep.memory.task) continue;
             let task: ((creep: Creep) => void) | undefined = activeRole.tasks[creep.memory.task];
             if (!task) continue;

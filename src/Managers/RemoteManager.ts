@@ -1,4 +1,5 @@
-import { ProcessState, FATAL, RUNNING, CRITICAL } from "Constants"
+import { CRITICAL } from "Constants/ProcessPriorityConstants"
+import { ProcessState, FATAL, RUNNING } from "Constants/ProcessStateConstants"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
 export default class RemoteManager {

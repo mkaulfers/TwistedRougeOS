@@ -1,4 +1,6 @@
-import { Role, HUB, TRACE, DEBUG, Roles } from 'Constants'
+import { TRACE, DEBUG } from 'Constants/LogConstants'
+import { Role, Roles } from 'Constants/RoleConstants'
+import { HUB } from 'Constants/StampConstants'
 import CreepRoles from 'Creeps/Index'
 import { Managers } from 'Managers/Index'
 import { Utils } from 'utils/Index'
