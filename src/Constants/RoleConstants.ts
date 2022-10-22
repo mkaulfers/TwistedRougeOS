@@ -22,14 +22,14 @@ export type Role =
     typeof nTRUCKER
 
 export const Roles: Role[] = [
+    HARVESTER,
+    TRUCKER,
     AGENT,
     ANCHOR,
-    ENGINEER,
     FILLER,
-    HARVESTER,
+    ENGINEER,
     SCIENTIST,
-    TRUCKER,
-    nENGINEER,
     nHARVESTER,
-    nTRUCKER
+    nTRUCKER,
+    nENGINEER,
 ]
