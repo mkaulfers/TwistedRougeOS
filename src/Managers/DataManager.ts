@@ -10,6 +10,46 @@ import { StampType } from 'Constants/StampConstants';
 import { Task } from 'Constants/TaskConstants';
 
 declare global {
+  interface Stats {
+    gcl: {
+      level: number;
+      progress: number;
+      progressTotal: number;
+    };
+    gpl: {
+      level: number;
+      progress: number;
+      progressTotal: number;
+    };
+    cpu: {
+      bucket: number;
+      usage: number;
+      limit: number;
+    };
+    resources: {
+      pixels: number;
+      cpuUnlock: number;
+      accessKey: number;
+    };
+    roomCount: number;
+    creepCount: number;
+    spawnCount: number;
+    constructionSiteCount: number;
+    flagCount: number;
+    rooms: {
+      [roomName: string]: {
+        controller: {
+          level: number;
+          progress: number;
+          progressTotal: number;
+        };
+        energyAvailable: number;
+        energyCapacityAvailable: number;
+        energyInStorage: number;
+        energyInTerminal: number;
+      };
+    };
+  }
     interface CreepMemory {
         assignedPos?: number
         homeRoom: string
@@ -67,6 +107,7 @@ declare global {
         kernel: string
         scheduler: string
         autoMarket?: boolean
+        stats: Stats
     }
 
     // Add properties you wish to have stored in a room's cache in the interface below.
