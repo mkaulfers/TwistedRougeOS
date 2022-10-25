@@ -200,27 +200,26 @@ global.destroyCSitesInRoom = function(name) {
 }
 
 global.setLogLevel = function(level) {
-    if (!(level in LogLevels))
-    switch (level) {
-        case 'OFF': case 'Off': case 'off':
+    switch (level.toUpperCase()) {
+        case 'OFF':
             Logger.devLogLevel = OFF;
             break;
-        case 'ALL': case 'All': case 'all':
+        case 'ALL':
             Logger.devLogLevel = ALL;
             break;
-        case 'TRACE': case 'Trace': case 'trace':
+        case 'TRACE':
             Logger.devLogLevel = TRACE;
             break;
-        case 'DEBUG': case 'Debug': case 'debug':
+        case 'DEBUG':
             Logger.devLogLevel = DEBUG;
             break;
-        case 'INFO': case 'Info': case 'info':
+        case 'INFO':
             Logger.devLogLevel = INFO;
             break;
-        case 'WARN': case 'Warn': case 'warn':
+        case 'WARN':
             Logger.devLogLevel = WARN;
             break;
-        case 'ERROR': case 'Error': case 'error':
+        case 'ERROR':
             Logger.devLogLevel = ERROR;
             break;
         default:
