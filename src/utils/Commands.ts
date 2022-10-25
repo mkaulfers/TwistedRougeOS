@@ -200,29 +200,31 @@ global.destroyCSitesInRoom = function(name) {
 }
 
 global.setLogLevel = function(level) {
-    if (!(level in LogLevels)) return `Requested string is not a  Please use: ALL, OFF, TRACE, DEBUG, INFO, WARN, ERROR, or FATAL.`;
+    if (!(level in LogLevels))
     switch (level) {
-        case 'OFF':
+        case 'OFF': case 'Off': case 'off':
             Logger.devLogLevel = OFF;
             break;
-        case 'ALL':
+        case 'ALL': case 'All': case 'all':
             Logger.devLogLevel = ALL;
             break;
-        case 'TRACE':
+        case 'TRACE': case 'Trace': case 'trace':
             Logger.devLogLevel = TRACE;
             break;
-        case 'DEBUG':
+        case 'DEBUG': case 'Debug': case 'debug':
             Logger.devLogLevel = DEBUG;
             break;
-        case 'INFO':
+        case 'INFO': case 'Info': case 'info':
             Logger.devLogLevel = INFO;
             break;
-        case 'WARN':
+        case 'WARN': case 'Warn': case 'warn':
             Logger.devLogLevel = WARN;
             break;
-        case 'ERROR':
+        case 'ERROR': case 'Error': case 'error':
             Logger.devLogLevel = ERROR;
             break;
+        default:
+            return `Requested string is not a Log Level. Please use: ALL, OFF, TRACE, DEBUG, INFO, WARN, ERROR, or FATAL.`;
     }
     return `LogLevel set to ${level}.`
 }

@@ -37,10 +37,10 @@ export class Engineer extends CreepRole {
             STRUCTURE_NUKER,
             STRUCTURE_FACTORY
         ];
-        rSites = Utils.Utility.organizeTargets('hits', rSites, { structures: accepted })
+        rSites = Utils.Utility.organizeTargets('hits', rSites, { structures: accepted, needs: true })
 
         let uSites: AnyStructure[] = room.find(FIND_STRUCTURES);
-        uSites = Utils.Utility.organizeTargets('hits', uSites, { structures: [STRUCTURE_WALL, STRUCTURE_RAMPART] })
+        uSites = Utils.Utility.organizeTargets('hits', uSites, { structures: [STRUCTURE_WALL, STRUCTURE_RAMPART], needs: true })
 
         let eRSites = Array.prototype.concat(
             _.filter(rSites, (r) => (r.hits <= (r.hitsMax / 2) )),
@@ -122,7 +122,7 @@ export class Engineer extends CreepRole {
                 if (working) {
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         let potentialTargets: ConstructionSite[] = creep.room.find(FIND_CONSTRUCTION_SITES);
-                        potentialTargets = Utils.Utility.organizeTargets('hits', potentialTargets, { order: 'asc' })
+                        potentialTargets = Utils.Utility.organizeTargets('hits', potentialTargets, { needs: true })
 
                         if (potentialTargets.length > 0) {
                             creep.memory.target = potentialTargets[0].id;
@@ -312,7 +312,7 @@ export class Engineer extends CreepRole {
                 if (working) {
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         let potentialTargets: AnyStructure[] = creep.room.find(FIND_STRUCTURES);
-                        potentialTargets = Utils.Utility.organizeTargets('hits', potentialTargets, { structures: [STRUCTURE_WALL, STRUCTURE_RAMPART] })
+                        potentialTargets = Utils.Utility.organizeTargets('hits', potentialTargets, { structures: [STRUCTURE_WALL, STRUCTURE_RAMPART], needs: true })
                         if (potentialTargets.length > 0) {
                             creep.memory.target = potentialTargets[0].id;
                         } else {

@@ -68,7 +68,7 @@ declare global {
         remoteMultiplier: number
         /** Gets the distance from sources to each storage capable structure in the room. */
         averageDistanceFromSourcesToStructures: number
-        /** Returns a per tick energy income */
+        /** Returns energy generation per tick in the room, considering only fully utilized sources within the room. */
         energyIncome: number
         isAnchorFunctional: boolean
         isSpawning(role: Role): boolean
@@ -78,6 +78,7 @@ declare global {
         my: boolean
         /** Returns target goal for rampart HP in the room */
         rampartHPTarget: number
+        /** Determines max energy to spend on a single creep, based on quantity of creeps desired and energy income of the room. */
         spawnEnergyLimit: number
     }
 }
@@ -614,23 +615,6 @@ export default class Room_Extended extends Room {
             this._energyIncome = 0
             // Local Sources
             for (const source of this.sources) if (source.isHarvestingAtMaxEfficiency) this._energyIncome += 10
-
-            // Remote Sources
-            if (this.controller && this.controller.level > 4) {
-                if (this.memory.remoteSites) {
-                    for (const roomName in this.memory.remoteSites) {
-                        // Determine potential source energy generation
-                        let energyPerTick = 5;
-                        if (Game.rooms[roomName]?.controller?.reservation) energyPerTick = 10;
-                        if (Utils.Typeguards.isSourceKeeperRoom(roomName)) energyPerTick = 12;
-
-                        for (const sourceId in this.memory.remoteSites[roomName].sourceDetail) {
-                            let source = Game.getObjectById(sourceId as Id<Source>);
-                            if (source && source.isHarvestingAtMaxEfficiency) this._energyIncome += energyPerTick;
-                        }
-                    }
-                }
-            }
         }
         return this._energyIncome
     }
@@ -793,20 +777,18 @@ export default class Room_Extended extends Room {
                 case 1:
                 case 2:
                 case 3:
-                    this._rampartHPTarget = 100000
+                    this._rampartHPTarget = 50000
                     break
                 case 4:
-                    this._rampartHPTarget = 500000
+                    this._rampartHPTarget = 100000
                     break
                 case 5:
-                    this._rampartHPTarget = 1000000
-                    break
                 case 6:
-                    this._rampartHPTarget = 1500000
+                    this._rampartHPTarget = 500000
                     break
                 case 7:
                 case 8:
-                    this._rampartHPTarget = 2000000
+                    this._rampartHPTarget = 1000000
                     break
                 default:
                     this._rampartHPTarget = 0
@@ -819,9 +801,18 @@ export default class Room_Extended extends Room {
     private _spawnEnergyLimit: number | undefined
     get spawnEnergyLimit() {
         if (!this._spawnEnergyLimit) {
-            this._spawnEnergyLimit = 0
+            // Set at hard minimum
+            this._spawnEnergyLimit = 300;
+
+            // Determine wanted creep count
+            let creepCount = 20;
+            if (this.cache.spawnSchedules && this.cache.spawnSchedules[0] && this.cache.spawnSchedules[0].rolesNeeded && this.cache.spawnSchedules[0].rolesNeeded.length > 20) creepCount = this.cache.spawnSchedules[0].rolesNeeded.length;
+            else if (this.stationedCreeps.all.length > 20) creepCount = this.stationedCreeps.all.length;
+
+            // Determine energy and Convert to Limit
             const roomIncome = (this.energyIncome * 1500)
-            this._spawnEnergyLimit = roomIncome == 0 ? 300 : (this.energyCapacityAvailable > (roomIncome / 20)) ? roomIncome / 20 : this.energyCapacityAvailable
+            const potentialLimit = Math.floor(this.energyCapacityAvailable > (roomIncome / creepCount) ? roomIncome / creepCount : this.energyCapacityAvailable)
+            this._spawnEnergyLimit = !potentialLimit || potentialLimit < 300 ? 300 : potentialLimit
         }
         return this._spawnEnergyLimit
     }
