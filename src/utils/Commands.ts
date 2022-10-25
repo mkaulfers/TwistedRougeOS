@@ -200,32 +200,14 @@ global.destroyCSitesInRoom = function(name) {
 }
 
 global.setLogLevel = function(level) {
-    switch (level.toUpperCase()) {
-        case 'OFF':
-            Logger.devLogLevel = OFF;
-            break;
-        case 'ALL':
-            Logger.devLogLevel = ALL;
-            break;
-        case 'TRACE':
-            Logger.devLogLevel = TRACE;
-            break;
-        case 'DEBUG':
-            Logger.devLogLevel = DEBUG;
-            break;
-        case 'INFO':
-            Logger.devLogLevel = INFO;
-            break;
-        case 'WARN':
-            Logger.devLogLevel = WARN;
-            break;
-        case 'ERROR':
-            Logger.devLogLevel = ERROR;
-            break;
-        default:
-            return `Requested string is not a Log Level. Please use: ALL, OFF, TRACE, DEBUG, INFO, WARN, ERROR, or FATAL.`;
+    level = level.toUpperCase();
+    for (const logLevel of LogLevels) {
+        if (logLevel.includes(level)) {
+            Logger.devLogLevel = logLevel;
+            return `LogLevel set to ${logLevel}.`;
+        }
     }
-    return `LogLevel set to ${level}.`
+    return `Requested string is not a Log Level. Please use: ALL, OFF, TRACE, DEBUG, INFO, WARN, ERROR, or FATAL.`;
 }
 
 global.schedule = function(name, full) {
