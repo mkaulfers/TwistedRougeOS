@@ -1,7 +1,7 @@
 import { DangerLevel } from "Constants/DangerLevelConstants"
 import { Coord } from "screeps-cartographer/dist/utils/packrat"
 import { InvaderDetail } from "./InvaderDetail"
-import { MineralDetail } from "./MineralDetail"
+import { MineralDetail, SourceDetail } from "./MineralDetail"
 import { PlayerDetail } from "./PlayerDetail"
 import { PortalDetail } from "./PortalDetail"
 
@@ -14,16 +14,7 @@ export class RoomStatistics {
     highestDT: number
     threatLevel: DangerLevel
 
-    sourceDetail?: {
-        [id: Id<Source>]: {
-            posCount: number,
-            x: number,
-            y: number,
-            assignedHarvIds: Id<Creep>[],
-            assignedTruckerIds: Id<Creep>[],
-            assignedEngIds: Id<Creep>[]
-        }
-    }
+    sourceDetail?: { [id: Id<Source>]: SourceDetail }
 
     powerBankId?: string
     publicTerminalId?: string
@@ -44,16 +35,7 @@ export class RoomStatistics {
         wallCount: number,
         highestDT: number,
         threatLevel: DangerLevel,
-        sourceDetail?: {
-            [id: Id<Source>]: {
-                posCount: number,
-                x: number,
-                y: number,
-                assignedHarvIds: Id<Creep>[],
-                assignedTruckerIds: Id<Creep>[],
-                assignedEngIds: Id<Creep>[]
-            }
-        },
+        sourceDetail?: { [id: Id<Source>]: SourceDetail },
         powerBankId?: string,
         publicTerminalId?: string,
         portal?: PortalDetail,
