@@ -53,7 +53,7 @@ declare global {
     interface CreepMemory {
         assignedPos?: number
         homeRoom: string
-        remoteTarget?: { [roomName: string]: { targetId: Id<any>, x: number, y: number } }
+        remoteTarget?: { roomName: string, targetId: Id<Source> }[]
         role: Role
         target?: Id<any>
         task?: Task
@@ -86,21 +86,7 @@ declare global {
         rclSeven?: number
         rclEight?: number
 
-        // remotes?: RoomStatistics[]
-        remoteSites?: {
-            [roomName: string]: {
-                sourceDetail: {
-                    [sourceId: Id<Source>]: {
-                        posCount: number,
-                        x: number,
-                        y: number,
-                        assignedHarvIds: Id<Creep>[],
-                        assignedTruckerIds: Id<Creep>[],
-                        assignedEngIds: Id<Creep>[]
-                    }
-                }
-            }
-        }
+        remoteSites?: { [roomName: string]: RemoteDetails }
     }
 
     interface Memory {

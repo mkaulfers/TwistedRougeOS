@@ -80,8 +80,15 @@ export default class RemoteManager {
         for (let remote of selectedRemotes) {
             if (!Cache.rooms[remote.name].remoteOf) Cache.rooms[remote.name].remoteOf = room.name;
             if (!room.memory.remoteSites) room.memory.remoteSites = {}
-            if (!room.memory.remoteSites[remote.name]) room.memory.remoteSites[remote.name] = {sourceDetail: {}}
-            room.memory.remoteSites[remote.name].sourceDetail = remote.sourceDetail ?? {}
+            if (!room.memory.remoteSites[remote.name]) {
+                room.memory.remoteSites[remote.name] = {
+                    ...remote.sourceDetail,
+                    assignedHarvIds: [],
+                    assignedTruckerIds: [],
+                    assignedEngIds: [],
+                };
+                // TODO: Add dist and carryReq calculations.
+            }
         }
     }
 }
