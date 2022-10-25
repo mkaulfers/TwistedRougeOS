@@ -3,7 +3,7 @@ import { Utils } from 'utils/Index';
 declare global {
     interface Source {
         assignablePosition(): RoomPosition | undefined
-        isHarvestingAtMaxEfficiency: boolean
+        fullyHarvesting: boolean
         /** Returns count of Resources of Energy adjacent to the Source. */
         nearbyEnergy: number
         /**
@@ -28,11 +28,11 @@ export default class Source_Extended extends Source {
         return unassignedPositions[0]
     }
 
-    private _isHarvestingAtMaxEfficiency: boolean | undefined;
-    get isHarvestingAtMaxEfficiency(): boolean {
+    private _fullyHarvesting: boolean | undefined;
+    get fullyHarvesting(): boolean {
         Utils.Logger.log("Source -> isHarvestingAtMaxEfficiency", TRACE);
-        if (this._isHarvestingAtMaxEfficiency !== undefined) {
-            return this._isHarvestingAtMaxEfficiency;
+        if (this._fullyHarvesting !== undefined) {
+            return this._fullyHarvesting;
         } else if (this.room.my === true) {
             // Handle owned room
             let harvesters = this.room.localCreeps.harvester
@@ -52,16 +52,16 @@ export default class Source_Extended extends Source {
             }
 
             if (harvestablePerTick >= 10 || harvestersAssignedHere.length == this.validPositions.length) {
-                return this._isHarvestingAtMaxEfficiency = true;
+                return this._fullyHarvesting = true;
             } else {
-                return this._isHarvestingAtMaxEfficiency = false;
+                return this._fullyHarvesting = false;
             }
         } else if (this.room.cache.remoteOf) {
             // Handle remote room
             // Get Harvesters Assigned
             let homeRoom = Game.rooms[this.room.cache.remoteOf];
-            if (!homeRoom || !homeRoom.memory.remoteSites || !homeRoom.memory.remoteSites[this.room.name] || !homeRoom.memory.remoteSites[this.room.name].sourceDetail[this.id]) return this._isHarvestingAtMaxEfficiency = false;
-            let harvesterIds = homeRoom.memory.remoteSites[this.room.name].sourceDetail[this.id].assignedHarvIds;
+            if (!homeRoom || !homeRoom.memory.remoteSites || !homeRoom.memory.remoteSites[this.room.name] || !homeRoom.memory.remoteSites[this.room.name][this.id]) return this._fullyHarvesting = false;
+            let harvesterIds = homeRoom.memory.remoteSites[this.room.name].assignedHarvIds;
 
             // Get work needed
             let workNeeded = 3
@@ -72,10 +72,10 @@ export default class Source_Extended extends Source {
             let workPresent = 0;
             for (const id of harvesterIds) {
                 let har = Game.getObjectById(id);
-                if (har) workPresent += har.workParts;
+                if (har && har.memory.remoteTarget && har.memory.remoteTarget[0].targetId === this.id) workPresent += har.workParts;
             }
-            if (workPresent >= workNeeded) return this._isHarvestingAtMaxEfficiency = true;
-            return this._isHarvestingAtMaxEfficiency = false;
+            if (workPresent >= workNeeded) return this._fullyHarvesting = true;
+            return this._fullyHarvesting = false;
         } else {
             return false;
         }

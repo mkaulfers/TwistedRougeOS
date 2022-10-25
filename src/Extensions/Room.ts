@@ -65,10 +65,9 @@ declare global {
 
         /* Other Calculations and Checks */
         areFastFillerExtensionsBuilt: boolean
-        remoteMultiplier: number
         /** Gets the distance from sources to each storage capable structure in the room. */
         averageDistanceFromSourcesToStructures: number
-        /** Returns energy generation per tick in the room, considering only fully utilized sources within the room. */
+        /** Returns energy generation per tick for the room, considering only fully utilized sources within the room or remote rooms. */
         energyIncome: number
         isAnchorFunctional: boolean
         isSpawning(role: Role): boolean
@@ -599,22 +598,30 @@ export default class Room_Extended extends Room {
         return this._areFastFillerExtensionsBuilt
     }
 
-    // TODO: Modify 3 to be a calculated value based on path distances and expenditure times.
-    private _remoteMultiplier: number | undefined
-    get remoteMultiplier() {
-        if (!this._remoteMultiplier) {
-            this._remoteMultiplier = !this.storage ? 3 : 1
-        }
-        return this._remoteMultiplier
-    }
-
     // TODO: Modify to consider Power Creep Effects
     private _energyIncome: number | undefined
     get energyIncome() {
         if (!this._energyIncome) {
             this._energyIncome = 0
             // Local Sources
-            for (const source of this.sources) if (source.isHarvestingAtMaxEfficiency) this._energyIncome += 10
+            for (const source of this.sources) if (source.fullyHarvesting) this._energyIncome += 10
+
+            // Remote Sources
+            if (this.memory.remoteSites) {
+                for (const roomName in this.memory.remoteSites) {
+                    // Determine potential source energy generation
+                    let energyPerTick = 5;
+                    if (Game.rooms[roomName]?.controller?.reservation) energyPerTick = 10;
+                    if (Utils.Typeguards.isSourceKeeperRoom(roomName)) energyPerTick = 12;
+
+                    for (const sourceId in this.memory.remoteSites[roomName]) {
+                        if (['assignedHarvIds', 'assignedTruckerIds', 'assignedEngIds'].indexOf(sourceId) >= 0) continue;
+                        let source = Game.getObjectById(sourceId as Id<Source>);
+                        // TODO: Add trucker coverage check
+                        if (source && source.fullyHarvesting) this._energyIncome += energyPerTick;
+                    }
+                }
+            }
         }
         return this._energyIncome
     }

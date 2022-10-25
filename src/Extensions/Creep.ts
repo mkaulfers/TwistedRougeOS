@@ -1,4 +1,5 @@
 import { TRACE, ERROR } from 'Constants/LogConstants';
+import { MOVE_OPTS_CIVILIAN, MOVE_OPTS_CIVILIAN_FALLBACK, MOVE_OPTS_DEFAULT, MOVE_OPTS_DEFAULT_FALLBACK } from 'Constants/MoveOptsConstants';
 import { moveTo, MoveOpts, MoveTarget } from 'screeps-cartographer';
 import { Utils } from 'utils/Index';
 
@@ -187,29 +188,17 @@ export default class Creep_Extended extends Creep {
         if (!fallbackOpts) fallbackOpts = {};
 
         // Apply provided opts over default opts
-        let defaultOpts: MoveOpts = {
-            visualizePathStyle: {
-                fill: 'transparent',
-                stroke: '#fff',
-                lineStyle: 'dashed',
-                strokeWidth: .15,
-                opacity: .2
-            },
-        };
-        opts = Object.assign(defaultOpts, opts)
+        opts = {
+            ...MOVE_OPTS_DEFAULT,
+            ...opts,
+        }
 
-        let defaultFallbackOpts: MoveOpts = {
-            visualizePathStyle: {
-                fill: 'transparent',
-                stroke: '#f00',
-                lineStyle: 'dashed',
-                strokeWidth: .15,
-                opacity: .2
-            },
-            avoidCreeps: true,
-        };
-        fallbackOpts = Object.assign(defaultFallbackOpts, fallbackOpts)
-        return moveTo(this, targets, opts, defaultFallbackOpts);
+        fallbackOpts = {
+            ...MOVE_OPTS_DEFAULT_FALLBACK,
+            ...opts,
+        }
+
+        return moveTo(this, targets, opts, fallbackOpts);
     }
 
     nMRController(roomName: string): number {
@@ -320,42 +309,16 @@ export default class Creep_Extended extends Creep {
         // TODO: Add Portal Avoidance
 
         // Apply civilian creep defaults
-        let defaultOpts: MoveOpts = {
-            avoidSourceKeepers: true,
-            visualizePathStyle: {
-                fill: 'transparent',
-                stroke: '#fff',
-                lineStyle: 'dashed',
-                strokeWidth: .15,
-                opacity: .2
-            },
-            routeCallback: (roomName: string, fromRoomName: string) => {
-                return Utils.Utility.checkRoomSafety(roomName);
-            },
-            roomCallback(roomName) {
-                return Utils.Utility.genPathfindingCM(roomName);
-            },
-        };
-        opts = Object.assign(defaultOpts, opts)
+        opts = {
+            ...MOVE_OPTS_CIVILIAN,
+            ...opts,
+        }
 
-        let defaultFallbackOpts: MoveOpts = {
-            avoidSourceKeepers: true,
-            visualizePathStyle: {
-                fill: 'transparent',
-                stroke: '#f00',
-                lineStyle: 'dashed',
-                strokeWidth: .15,
-                opacity: .2
-            },
-            routeCallback: (roomName: string, fromRoomName: string) => {
-                return Utils.Utility.checkRoomSafety(roomName);
-            },
-            roomCallback(roomName) {
-                return Utils.Utility.genPathfindingCM(roomName);
-            },
-        };
+        fallbackOpts = {
+            ...MOVE_OPTS_CIVILIAN_FALLBACK,
+            ...opts,
+        }
 
-        fallbackOpts = Object.assign(defaultFallbackOpts, fallbackOpts)
         return this.moveToDefault(targets, opts, fallbackOpts);
     }
 
