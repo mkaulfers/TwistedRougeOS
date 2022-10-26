@@ -61,10 +61,34 @@ export class NetworkHarvester extends CreepRole {
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
         nHarvesting_early: function (creep: Creep) {
             let creepId = creep.id
+            let creepName = creep.name;
+            let homeRoom = creep.memory.homeRoom;
 
             const networkHarvestingEarlyTask = () => {
                 let creep = Game.getObjectById(creepId)
-                if (!creep) return FATAL;
+
+                // Handle creep death assignment cleanup
+                if (!creep || (creep.ticksToLive && creep.ticksToLive < 1)) {
+                    let creepMemory = Memory.creeps[creepName];
+                    if (!creepMemory || !creepMemory.remoteTarget) {
+                        let remoteSites = Memory.rooms[homeRoom].remoteSites;
+                        if (!remoteSites) return FATAL;
+                        for (const remoteRoomName in remoteSites) {
+                            let index = remoteSites[remoteRoomName].assignedHarvIds.indexOf(creepId);
+                            if (index >= 0) remoteSites[remoteRoomName].assignedHarvIds.splice(index, 1);
+                        }
+                    } else {
+                        // Use memory to precisely clean up remoteSites
+                        let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
+                        if (homeRoomMemory.remoteSites) {
+                            let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName]
+                            remoteDetail.assignedHarvIds.splice(remoteDetail.assignedHarvIds.indexOf(creepId), 1)
+                        }
+                    }
+
+                    return FATAL;
+                }
+
                 if (creep.spawning) return RUNNING;
 
                 if (!creep.memory.remoteTarget) {
@@ -114,27 +138,38 @@ export class NetworkHarvester extends CreepRole {
         nHarvesting_late: function (creep: Creep) {
             let creepId = creep.id
             let creepName = creep.name;
+            let homeRoom = creep.memory.homeRoom;
 
             const networkHarvesterTask = () => {
                 Utils.Logger.log("CreepTask -> networkHarvesterTask()", TRACE);
                 let creep = Game.getObjectById(creepId)
 
                 // Handle creep death assignment cleanup
-                if (!creep || (creep.ticksToLive && creep.memory.remoteTarget && creep.ticksToLive < 1)) {
+                if (!creep || (creep.ticksToLive && creep.ticksToLive < 1)) {
                     let creepMemory = Memory.creeps[creepName];
-                    if (!creepMemory || !creepMemory.remoteTarget) return FATAL;
-                    let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
-                    if (homeRoomMemory.remoteSites) {
-                        let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName]
-                        remoteDetail.assignedHarvIds.splice(remoteDetail.assignedHarvIds.indexOf(creepId), 1)
+                    if (!creepMemory || !creepMemory.remoteTarget) {
+                        let remoteSites = Memory.rooms[homeRoom].remoteSites;
+                        if (!remoteSites) return FATAL;
+                        for (const remoteRoomName in remoteSites) {
+                            let index = remoteSites[remoteRoomName].assignedHarvIds.indexOf(creepId);
+                            if (index >= 0) remoteSites[remoteRoomName].assignedHarvIds.splice(index, 1);
+                        }
+                    } else {
+                        // Use memory to precisely clean up remoteSites
+                        let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
+                        if (homeRoomMemory.remoteSites) {
+                            let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName]
+                            remoteDetail.assignedHarvIds.splice(remoteDetail.assignedHarvIds.indexOf(creepId), 1)
+                        }
                     }
+
                     return FATAL;
                 }
 
                 if (creep.spawning) return RUNNING;
 
                 if (!creep.memory.remoteTarget) {
-                    NetworkHarvester.setRemoteSource(creep.room, creep)
+                    NetworkHarvester.setRemoteSource(Game.rooms[creep.memory.homeRoom], creep)
                 }
 
                 let creepTarget = creep.memory.remoteTarget ? creep.memory.remoteTarget[0] : undefined
@@ -205,8 +240,7 @@ export class NetworkHarvester extends CreepRole {
      * @returns void
      */
     static setRemoteSource(baseRoom: Room, creep: Creep) {
-        if (!baseRoom.memory.remoteSites) return
-        this.validateRemoteHarvesters(baseRoom)
+        if (!baseRoom.memory.remoteSites || !baseRoom) return
 
         let remotes = baseRoom.memory.remoteSites || {}
 

@@ -50,22 +50,32 @@ export class NetworkTrucker extends Trucker {
         nTrucker_transporting: function (creep: Creep) {
             let creepId = creep.id
             let creepName = creep.name;
+            let homeRoom = creep.memory.homeRoom;
 
             const networkHaulerTask = () => {
                 let creep = Game.getObjectById(creepId)
 
                 // Handle creep death assignment cleanup
-                if (!creep || (creep.ticksToLive && creep.memory.remoteTarget && creep.ticksToLive < 1)) {
+                if (!creep || (creep.ticksToLive && creep.ticksToLive < 1)) {
                     let creepMemory = Memory.creeps[creepName];
-                    if (!creepMemory || !creepMemory.remoteTarget) return FATAL;
-                    let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
-                    if (homeRoomMemory.remoteSites) {
-                        let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName]
-                        remoteDetail.assignedTruckerIds.splice(remoteDetail.assignedTruckerIds.indexOf(creepId), 1)
+                    if (!creepMemory || !creepMemory.remoteTarget) {
+                        let remoteSites = Memory.rooms[homeRoom].remoteSites;
+                        if (!remoteSites) return FATAL;
+                        for (const remoteRoomName in remoteSites) {
+                            let index = remoteSites[remoteRoomName].assignedTruckerIds.indexOf(creepId);
+                            if (index >= 0) remoteSites[remoteRoomName].assignedTruckerIds.splice(index, 1);
+                        }
+                    } else {
+                        // Use memory to precisely clean up remoteSites
+                        let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
+                        if (homeRoomMemory.remoteSites) {
+                            let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName]
+                            remoteDetail.assignedTruckerIds.splice(remoteDetail.assignedTruckerIds.indexOf(creepId), 1)
+                        }
                     }
+
                     return FATAL;
                 }
-
 
                 if (creep.spawning) return RUNNING;
 
@@ -144,7 +154,6 @@ export class NetworkTrucker extends Trucker {
 
     static setRemoteSource(baseRoom: Room, creep: Creep) {
         if (!baseRoom.memory.remoteSites) return
-        this.validateRemoteTruckers(baseRoom)
         let remotes = baseRoom.memory.remoteSites || {}
 
         for (let remoteRoomName in remotes) {
