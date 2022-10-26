@@ -22,7 +22,7 @@ declare global {
          * @Returns Constructions sites in the room.
          * */
         constructionSites(ofType?: BuildableStructureConstant): ConstructionSite[]
-        structures(ofType?: StructureConstant): Structure[]
+        structures(ofType?: StructureConstant): AnyStructure[]
 
         containers: StructureContainer[]
         exits: RoomPosition[] | undefined

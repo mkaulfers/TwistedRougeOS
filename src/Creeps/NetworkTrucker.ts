@@ -34,7 +34,7 @@ export class NetworkTrucker extends Trucker {
         for (let remoteName in remotes) {
             let remote = remotes[remoteName]
             if (!remote) continue;
-            sourceCount += Object.keys(remote).length
+            sourceCount += (Object.keys(remote).length - 3)
         }
 
         return sourceCount - networkHaulers;
@@ -49,10 +49,24 @@ export class NetworkTrucker extends Trucker {
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
         nTrucker_transporting: function (creep: Creep) {
             let creepId = creep.id
+            let creepName = creep.name;
 
             const networkHaulerTask = () => {
                 let creep = Game.getObjectById(creepId)
-                if (!creep) return FATAL;
+
+                // Handle creep death assignment cleanup
+                if (!creep || (creep.ticksToLive && creep.memory.remoteTarget && creep.ticksToLive < 1)) {
+                    let creepMemory = Memory.creeps[creepName];
+                    if (!creepMemory || !creepMemory.remoteTarget) return FATAL;
+                    let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
+                    if (homeRoomMemory.remoteSites) {
+                        let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName]
+                        remoteDetail.assignedTruckerIds.splice(remoteDetail.assignedTruckerIds.indexOf(creepId), 1)
+                    }
+                    return FATAL;
+                }
+
+
                 if (creep.spawning) return RUNNING;
 
                 // Pull remote target IFF not set.
@@ -118,17 +132,6 @@ export class NetworkTrucker extends Trucker {
                     }
                     Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, ERROR)
                     return RUNNING
-                }
-
-                // TODO: Move to when creep is detected as missing to remove need to validate.
-                // EOL target management
-                if (creep.ticksToLive && creep.memory.remoteTarget && creep.ticksToLive < 1 && creep.hits >= creep.hitsMax / 2) {
-                    let creepTarget = creep.memory.remoteTarget[0]
-                    let homeRoomMemory = Memory.rooms[creep.memory.homeRoom]
-                    if (homeRoomMemory.remoteSites) {
-                        let remoteDetail = homeRoomMemory.remoteSites[creepTarget.roomName]
-                        remoteDetail.assignedTruckerIds.splice(remoteDetail.assignedTruckerIds.indexOf(creep.id), 1)
-                    }
                 }
 
                 return RUNNING;

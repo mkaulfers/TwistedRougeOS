@@ -3,7 +3,7 @@ import SpawnSchedule from 'Models/SpawnSchedule';
 import { RoomStatistics } from 'Models/RoomStatistics';
 import { Utils } from '../utils/Index';
 import { INFO } from 'Constants/LogConstants';
-import { CRITICAL } from 'Constants/ProcessPriorityConstants';
+import { CRITICAL, INDIFFERENT} from 'Constants/ProcessPriorityConstants';
 import { ProcessState, RUNNING } from 'Constants/ProcessStateConstants';
 import { Role } from 'Constants/RoleConstants';
 import { StampType } from 'Constants/StampConstants';
@@ -150,7 +150,7 @@ export default class DataManager {
             }
         }
 
-        let process = new Process('memory_monitor', CRITICAL, memoryTask)
+        let process = new Process('memory_monitor', INDIFFERENT, memoryTask)
         global.scheduler.addProcess(process)
     }
 

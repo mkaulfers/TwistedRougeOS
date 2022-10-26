@@ -113,12 +113,24 @@ export class NetworkHarvester extends CreepRole {
         },
         nHarvesting_late: function (creep: Creep) {
             let creepId = creep.id
+            let creepName = creep.name;
 
             const networkHarvesterTask = () => {
                 Utils.Logger.log("CreepTask -> networkHarvesterTask()", TRACE);
-
                 let creep = Game.getObjectById(creepId)
-                if (!creep) return FATAL;
+
+                // Handle creep death assignment cleanup
+                if (!creep || (creep.ticksToLive && creep.memory.remoteTarget && creep.ticksToLive < 1)) {
+                    let creepMemory = Memory.creeps[creepName];
+                    if (!creepMemory || !creepMemory.remoteTarget) return FATAL;
+                    let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
+                    if (homeRoomMemory.remoteSites) {
+                        let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName]
+                        remoteDetail.assignedHarvIds.splice(remoteDetail.assignedHarvIds.indexOf(creepId), 1)
+                    }
+                    return FATAL;
+                }
+
                 if (creep.spawning) return RUNNING;
 
                 if (!creep.memory.remoteTarget) {
@@ -175,15 +187,6 @@ export class NetworkHarvester extends CreepRole {
 
                             creep.mine(target)
                         }
-                    }
-                }
-
-                if (creep.ticksToLive && creep.memory.remoteTarget && creep.ticksToLive < 1 && creep.hits >= creep.hitsMax / 2) {
-                    let remoteRoomName = Object.keys(creep.memory.remoteTarget)[0]
-                    let homeRoomMemory = Memory.rooms[creep.memory.homeRoom]
-                    if (homeRoomMemory.remoteSites) {
-                        let remoteDetail = homeRoomMemory.remoteSites[remoteRoomName]
-                        remoteDetail.assignedHarvIds.splice(remoteDetail.assignedHarvIds.indexOf(creep.id), 1)
                     }
                 }
 
