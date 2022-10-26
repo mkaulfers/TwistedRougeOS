@@ -153,7 +153,7 @@ export class NetworkTrucker extends Trucker {
                 if (remoteSite.assignedTruckerIds.length < (Object.keys(remoteSite).length - 3)) {
                     if (!creep.memory.remoteTarget) creep.memory.remoteTarget = [];
                     creep.memory.remoteTarget.push({ roomName: remoteRoomName, targetId: sourceId as Id<Source> })
-                    baseRoom.memory.remoteSites[remoteRoomName].assignedHarvIds.push(creep.id)
+                    baseRoom.memory.remoteSites[remoteRoomName].assignedTruckerIds.push(creep.id)
                     return;
                 }
             }
@@ -166,7 +166,7 @@ export class NetworkTrucker extends Trucker {
 
             for (let truId of baseRoom.memory.remoteSites[remoteRoomName].assignedTruckerIds) if (Game.getObjectById(truId)) updatedAssignedTruckers.push(truId);
 
-            baseRoom.memory.remoteSites[remoteRoomName].assignedHarvIds = updatedAssignedTruckers;
+            baseRoom.memory.remoteSites[remoteRoomName].assignedTruckerIds = updatedAssignedTruckers;
         }
     }
 }
