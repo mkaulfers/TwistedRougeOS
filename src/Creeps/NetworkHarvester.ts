@@ -366,7 +366,7 @@ export class NetworkHarvester extends CreepRole {
         // Fetch eLimit
         if (!homeRoom.cache.spawnSchedules || !sourceDetails.dist) return ERR_INVALID_TARGET;
         let eLimit = homeRoom.cache.spawnSchedules[0].activeELimit;
-        if (!eLimit) eLimit = homeRoom.energyIncome;
+        if (!eLimit) eLimit = homeRoom.spawnEnergyLimit;
         if (!eLimit) return ERR_INVALID_TARGET;
 
         // Get Body

@@ -135,7 +135,7 @@ export class NetworkTrucker extends Trucker {
                     let remoteDetails = Memory.rooms[creep.memory.homeRoom].remoteSites && remoteTarget ? Memory.rooms[creep.memory.homeRoom].remoteSites![remoteTarget.roomName] : undefined
                     if (remoteTarget && remoteDetails) {
                         let remoteSourceTarget = Utils.Utility.unpackPostionToRoom(remoteDetails[remoteTarget.targetId].packedPos, remoteTarget.roomName);
-                        if (creep.pos.roomName !== remoteSourceTarget.roomName || creep.pos.getRangeTo(remoteSourceTarget) > 3) {
+                        if (creep.pos.roomName !== remoteSourceTarget.roomName || creep.pos.onEdge) {
                             creep.travel(remoteSourceTarget)
                         } else {
                             // Get target
