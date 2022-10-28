@@ -7,7 +7,6 @@ import { Process } from "Models/Process";
 import { Utils } from "utils/Index";
 import { Logger } from "utils/Logger";
 import { Trucker } from "./Trucker";
-import { generatePath } from "screeps-cartographer";
 
 export class NetworkTrucker extends Trucker {
     readonly baseBody = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]

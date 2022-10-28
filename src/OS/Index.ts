@@ -10,6 +10,15 @@ declare global {
             recentlyAttacked: boolean,
             scheduler: Scheduler,
             targetManagerFor: {[roomName: string]: TargetManager}
+
+            button(name: string, command: string, primary?: boolean): void
+            setLogLevelALL(): void
+            setLogLevelOFF(): void
+            setLogLevelTRACE(): void
+            setLogLevelDEBUG(): void
+            setLogLevelINFO(): void
+            setLogLevelWARN(): void
+            setLogLevelERROR(): void
         }
     }
 }

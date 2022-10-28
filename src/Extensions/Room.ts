@@ -490,7 +490,7 @@ export default class Room_Extended extends Room {
         if (!this._spawnEnergyStructures && this.cache.spawnEnergyStructIds && this.cache.spawnEnergyStructIds.length > 0) {
             let structures: (StructureSpawn | StructureExtension)[] = []
             for (const id of this.cache.spawnEnergyStructIds) {
-                let struct = Game.getObjectById(id)
+                let struct = Game.getObjectById(id) as (StructureSpawn | StructureExtension)
                 if (struct) structures.push(struct)
                 else {
                     delete this.cache.spawnEnergyStructIds

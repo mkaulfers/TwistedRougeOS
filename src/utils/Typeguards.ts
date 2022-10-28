@@ -106,5 +106,10 @@ export default class Typeguards {
 
     static isDangerLevel(number: number): number is DangerLevel { return DangerLevels.includes(number as DangerLevel) }
 
+    // Other
+    static isResource(resource: unknown): resource is Resource { return resource instanceof Resource }
 
+    static isTombstone(resource: unknown): resource is Tombstone { return resource instanceof Tombstone }
+
+    static isRuin(resource: unknown): resource is Ruin { return resource instanceof Ruin }
 }
