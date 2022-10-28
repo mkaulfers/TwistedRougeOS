@@ -17,7 +17,7 @@ export default class RoomPosition_Extended extends RoomPosition {
                 this.x === 49 ||
                 this.y === 0 ||
                 this.y === 49) this._onEdge = true;
-            this._onEdge = false;
+            else this._onEdge = false;
         }
         return this._onEdge;
     }
