@@ -8,7 +8,8 @@ import { OS } from "OS/Index";
 import { memHack } from "Models/MemHack";
 import { colors } from "Models/Process";
 import { preTick, reconcileTraffic } from 'screeps-cartographer';
-import { ALL, DEBUG, INFO } from "Constants/LogConstants";
+import { ALL, DEBUG, ERROR, INFO, OFF, TRACE, WARN } from "Constants/LogConstants";
+import { Logger } from "utils/Logger";
 declare global {
   interface RawMemory {
     [key: string]: any
@@ -65,16 +66,43 @@ function end() {
 }
 
 function displaySimpleStats() {
-  // let cpuStats = `<div style='width: 50vw; text-align: left; align-items: left; justify-content: left; display: inline-block; background: ${colors.lightGrey};'><div style='padding: 2px; font-size: 18px; font-weight: 600; color: ${colors.black};'>============== CPU STATS ==============` +
-  // `<div style='height:20px;width:${global.kernel.estimatedQueueCpuCost() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>Avg: ${global.kernel.estimatedQueueCpuCost().toString().substring(0, 4)}</div>` +
-  // `<div style='height:20px;width:${Game.cpu.getUsed() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'> Current: ${Game.cpu.getUsed().toString().substring(0, 4)}</div>`
-
   let cpuStats =
     `<div style='width: 50vw; text-align: left; align-items: left; justify-content: center; display: inline-block; background: ${colors.lightGrey};'><div style='background: ${colors.lightGrey}; padding: 2px; font-size: 18px; font-weight: 600; color: ${colors.darkBlue};'>============== CPU STATS ==============</div>` +
     `<div style='height:20px;width:${global.kernel.estimatedQueueCpuCost() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>Average: ${global.kernel.estimatedQueueCpuCost().toString().substring(0, 4)}</div>` +
     `<div style='height:20px;width:${Game.cpu.getUsed() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>Current: ${Game.cpu.getUsed().toString().substring(0, 4)}</div>`
 
+  let spawnSchedule = ""
+  let reschedule = ""
+  let destroyCSitesinRoom = ""
+  let destroyStructuresInRoom = ""
+
+  for (let name in Game.rooms) {
+    let room = Game.rooms[name]
+    if (room.controller && room.controller.my) {
+      spawnSchedule += `${global.button(room.name, `global.schedule(\`${name}\`, true)`)} `
+      reschedule += `${global.button(room.name, `global.reschedule(\`${name}\`)`)} `
+      destroyCSitesinRoom += `${global.button(room.name, `global.destroyCSitesInRoom(\`${name}\`)`)} `
+      destroyStructuresInRoom += `${global.button(room.name, `global.destroyStructuresInRoom(\`${name}\`)`)} `
+    }
+  }
+
   console.log()
+
+  // console.log(`=============== Schedule Spawn Manager ===============`)
+  // console.log(spawnSchedule)
+
+  // console.log(`============== Reschedule Spawn Manager ==============`)
+  // console.log(reschedule)
+
+  // console.log("=================== Set Log Level ====================")
+  // console.log(`${global.button('ALL', 'setLogLevelALL()', Logger.devLogLevel == ALL)} ${global.button('OFF', 'setLogLevelOFF()', Logger.devLogLevel == OFF)} ${global.button('TRACE', 'setLogLevelTRACE()', Logger.devLogLevel == TRACE)} ${global.button('DEBUG', 'setLogLevelDEBUG()', Logger.devLogLevel == DEBUG)} ${global.button('INFO', 'setLogLevelINFO()', Logger.devLogLevel == INFO)} ${global.button('WARN', 'setLogLevelWARN()', Logger.devLogLevel == WARN)} ${global.button('ERROR', 'setLogLevelERROR()', Logger.devLogLevel == ERROR)}`)
+
+  // console.log(`============== Destroy Construction Sites ============`)
+  // console.log(destroyCSitesinRoom)
+
+  // console.log(`=============== Destroy Structures Sites =============`)
+  // console.log(destroyStructuresInRoom)
+
   console.log(cpuStats)
 }
 
