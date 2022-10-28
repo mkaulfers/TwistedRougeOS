@@ -632,7 +632,7 @@ export default class Room_Extended extends Room {
                     for (const sourceId in this.memory.remoteSites[roomName]) {
                         if (['assignedHarvIds', 'assignedTruckerIds', 'assignedEngIds'].indexOf(sourceId) >= 0) continue;
                         let source = Game.getObjectById(sourceId as Id<Source>);
-                        if (source && source.fullyHarvesting && source.fullyTransporting) this._energyIncome += energyPerTick;
+                        if (source && source.canHarvest && source.fullyHarvesting && source.fullyTransporting) this._energyIncome += energyPerTick;
                     }
                 }
             }

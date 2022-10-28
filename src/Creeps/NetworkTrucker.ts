@@ -82,7 +82,8 @@ export class NetworkTrucker extends Trucker {
                         let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
                         if (homeRoomMemory.remoteSites) {
                             let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName]
-                            remoteDetail.assignedTruckerIds.splice(remoteDetail.assignedTruckerIds.indexOf(creepId), 1)
+                            let index = remoteDetail.assignedTruckerIds.indexOf(creepId);
+                            if (index >= 0) remoteDetail.assignedTruckerIds.splice(index, 1);
                         }
                     }
 

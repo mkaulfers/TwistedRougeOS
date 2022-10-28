@@ -7,9 +7,13 @@ import CreepRole from "Models/CreepRole";
 import { Process } from "Models/Process";
 import { Utils } from "utils/Index";
 export class NetworkHarvester extends CreepRole {
-    readonly baseBody = [CARRY, MOVE, WORK]
-    readonly segment = [WORK, MOVE]
-    readonly partLimits = [6, 6]
+    readonly baseBody = NetworkHarvester.baseBody;
+    readonly segment = NetworkHarvester.segment;
+    readonly partLimits = NetworkHarvester.partLimits;
+    static baseBody = [CARRY, MOVE, WORK];
+    static segment = [CARRY, MOVE, WORK];
+    static partLimits = [6, 6];
+
 
     dispatch(room: Room): void {
         let networkHarvesters = room.stationedCreeps.nHarvester;
@@ -367,13 +371,13 @@ export class NetworkHarvester extends CreepRole {
 
     private static preStorageAssignRemote(creep: Creep, homeRoom: Room, sourceWorkNeeded: number, sourceDetails: SourceDetails, assigned: Creep[], remoteRoomName: string, sourceId: Id<Source>): number {
         // Fetch eLimit
-        if (!homeRoom.storage || !homeRoom.cache.spawnSchedules || !sourceDetails.dist) return ERR_INVALID_TARGET;
-        let eLimit = homeRoom.cache.spawnSchedules[0].activeELimit;
+        if (!sourceDetails.dist) return ERR_INVALID_TARGET;
+        let eLimit = homeRoom.cache.spawnSchedules && homeRoom.cache.spawnSchedules[0] ? homeRoom.cache.spawnSchedules[0].activeELimit : undefined;
         if (!eLimit) eLimit = homeRoom.spawnEnergyLimit;
         if (!eLimit) return ERR_INVALID_TARGET;
 
         // Get Body
-        if (!this.prototype[eLimit]) this.prototype[eLimit] = Utils.Utility.getBodyFor(homeRoom, this.prototype.baseBody, this.prototype.segment, this.prototype.partLimits);
+        if (!this.prototype[eLimit]) this.prototype[eLimit] = Utils.Utility.getBodyFor(homeRoom, this.baseBody, this.segment, this.partLimits);
         let workCount = this.prototype[eLimit].filter(p => p == WORK).length
 
         // Calculate UsedFactor

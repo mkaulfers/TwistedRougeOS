@@ -133,23 +133,24 @@ export default class RemoteManager {
         let energyPerTick = 5;
         if (Game.rooms[remoteRoomName]?.controller?.reservation) energyPerTick = 10;
         if (Utils.Typeguards.isSourceKeeperRoom(remoteRoomName)) energyPerTick = 12;
+        console.log(`remoteRoomName: ${remoteRoomName} found e/t/source: ${energyPerTick}`)
 
-            // Determine start point
-            let start: RoomPosition | undefined;
-            if (room.storage) start = room.storage.pos;
-            else if (room.spawns[0]) start = room.spawns[0].pos;
-            else if (room.controller) start = room.controller.pos;
-            if (!start) return;
+        // Determine start point
+        let start: RoomPosition | undefined;
+        if (room.storage) start = room.storage.pos;
+        else if (room.spawns[0]) start = room.spawns[0].pos;
+        else if (room.controller) start = room.controller.pos;
+        if (!start) return;
 
-            // Determine end point
-            let end: MoveTarget[] = [{ pos: Utils.Utility.unpackPostionToRoom(sourceDetails.packedPos, remoteRoomName), range: 1 }];
-            if (!end) return;
+        // Determine end point
+        let end: MoveTarget[] = [{ pos: Utils.Utility.unpackPostionToRoom(sourceDetails.packedPos, remoteRoomName), range: 1 }];
+        if (!end) return;
 
-            // Set dist value
-            dist = generatePath(start, end, MOVE_OPTS_CIVILIAN)?.length
-            if (!dist || dist <= 0) return;
-            if (dist && dist > 3) dist = dist - 2;
-            sourceDetails.dist = dist;
+        // Set dist value
+        dist = generatePath(start, end, MOVE_OPTS_CIVILIAN)?.length
+        if (!dist || dist <= 0) return;
+        if (dist && dist > 3) dist = dist - 2;
+        sourceDetails.dist = dist;
 
         // Calculate and set carryReq
         let carryReq = Math.ceil(((dist * 2) * energyPerTick) / 50)

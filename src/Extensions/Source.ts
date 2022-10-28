@@ -3,10 +3,12 @@ import { Utils } from 'utils/Index';
 declare global {
     interface Source {
         assignablePosition(): RoomPosition | undefined
+        /** Checks if the source is actually harvestable based on room state and effects. */
+        canHarvest: boolean
         /** Checks if creeps assigned to source fully harvest the source. */
         fullyHarvesting: boolean
         /** FOR REMOTES ONLY: Checks if creeps assigned fully transport generated energy from source. */
-        fullyTransporting: boolean | void
+        fullyTransporting: boolean
         /** Returns count of Resources of Energy adjacent to the Source. */
         nearbyEnergy: number
         /**
@@ -29,6 +31,24 @@ export default class Source_Extended extends Source {
         let unassignedPositions = validPositions.filter(x => !assignedPositions.includes(Utils.Utility.packPosition(x)))
         // Logger.log(`Source ${this.id} has ${unassignedPositions.length} unassigned positions.`, DEBUG)
         return unassignedPositions[0]
+    }
+
+    // TODO: Add effect analysis
+    private _canHarvest: boolean | undefined;
+    get canHarvest(): boolean {
+        if (!this._canHarvest) {
+            let spawn = Object.values(Game.spawns)[0];
+            if (!spawn || this.room.find(FIND_HOSTILE_CREEPS).length > 0) return this._canHarvest = false;
+            this._canHarvest = false;
+            switch (true) {
+                case this.room.my:
+                case !this.room.controller:
+                case this.room.controller && !this.room.controller.owner && !this.room.controller.reservation:
+                case this.room.controller && this.room.controller.reservation?.username === spawn.owner.username:
+                    this._canHarvest = true;
+            }
+        }
+        return this._canHarvest;
     }
 
     private _fullyHarvesting: boolean | undefined;
@@ -85,16 +105,16 @@ export default class Source_Extended extends Source {
     }
 
     private _fullyTransporting: boolean | undefined;
-    get fullyTransporting(): boolean | void {
+    get fullyTransporting(): boolean {
         Utils.Logger.log("Source -> fullyTransporting", TRACE);
 
         if (!this._fullyTransporting) {
             // Handle failure modes
-            if (!this.room.cache.remoteOf) return;
+            if (!this.room.cache.remoteOf) return false;
 
             const homeRoom = Game.rooms[this.room.cache.remoteOf];
             const remoteSites = homeRoom.memory.remoteSites;
-            if (!remoteSites) return;
+            if (!remoteSites) return false;
 
             let carryReq: number | undefined;
             let carryFound = 0;
@@ -112,7 +132,7 @@ export default class Source_Extended extends Source {
                     break;
                 }
             }
-            if (!carryReq) return;
+            if (!carryReq) return false;
             this._fullyTransporting = carryFound >= carryReq;
         }
 
