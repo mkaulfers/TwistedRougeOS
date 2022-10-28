@@ -1,5 +1,5 @@
 import { MOVE_OPTS_CIVILIAN } from "Constants/MoveOptsConstants"
-import { CRITICAL } from "Constants/ProcessPriorityConstants"
+import { HIGH } from "Constants/ProcessPriorityConstants"
 import { ProcessState, FATAL, RUNNING } from "Constants/ProcessStateConstants"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
@@ -29,7 +29,7 @@ export default class RemoteManager {
             }
 
             // Add remote room marker in cache
-            if (Game.time % 50 === 0) {
+            if (Cache.age === 0 || Game.time % 50 === 0) {
                 for (let roomName in room.memory.remoteSites) {
                     if (Cache.rooms[roomName] && !Cache.rooms[roomName].remoteOf) Cache.rooms[roomName].remoteOf = room.name;
                 }
@@ -55,8 +55,8 @@ export default class RemoteManager {
                     for (const key in remoteDetails) {
                         if (['assignedHarvIds', 'assignedTruckerIds', 'assignedEngIds'].indexOf(key) >= 0) continue;
                         let sourceDetails = remoteDetails[key as Id<Source>];
+                        delete sourceDetails.dist;
                         delete sourceDetails.carryReq;
-                        console.log(`Considering ${remoteRoomName}: ${key}`)
                         this.setSourceProperties(room, remoteRoomName, sourceDetails, sourceDetails.dist);
                     }
                 }
@@ -64,7 +64,7 @@ export default class RemoteManager {
             return RUNNING
         }
 
-        let process = new Process(`${room.name}_remote_monitor`, CRITICAL, remoteTask)
+        let process = new Process(`${room.name}_remote_monitor`, HIGH, remoteTask)
         global.scheduler.addProcess(process)
     }
 
@@ -133,33 +133,26 @@ export default class RemoteManager {
         let energyPerTick = 5;
         if (Game.rooms[remoteRoomName]?.controller?.reservation) energyPerTick = 10;
         if (Utils.Typeguards.isSourceKeeperRoom(remoteRoomName)) energyPerTick = 12;
-        console.log(`energyPerTick: ${energyPerTick}`)
 
-        if (!dist) {
             // Determine start point
             let start: RoomPosition | undefined;
             if (room.storage) start = room.storage.pos;
             else if (room.spawns[0]) start = room.spawns[0].pos;
             else if (room.controller) start = room.controller.pos;
-            console.log(`Start: ${JSON.stringify(start)}`)
             if (!start) return;
 
             // Determine end point
             let end: MoveTarget[] = [{ pos: Utils.Utility.unpackPostionToRoom(sourceDetails.packedPos, remoteRoomName), range: 1 }];
-            console.log(`End: ${JSON.stringify(end)}`)
             if (!end) return;
 
             // Set dist value
             dist = generatePath(start, end, MOVE_OPTS_CIVILIAN)?.length
-            console.log(`Dist: ${dist}`)
             if (!dist || dist <= 0) return;
             if (dist && dist > 3) dist = dist - 2;
             sourceDetails.dist = dist;
-        } else console.log(`Dist: ${dist}`)
 
         // Calculate and set carryReq
         let carryReq = Math.ceil(((dist * 2) * energyPerTick) / 50)
-        console.log(`CarryReq: ${carryReq}`)
         if (!carryReq || carryReq <= 0) return;
         sourceDetails.carryReq = carryReq;
     }

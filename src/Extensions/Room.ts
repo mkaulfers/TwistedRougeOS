@@ -49,7 +49,10 @@ declare global {
         walls: StructureWall[]
 
         /* Custom Getters */
+        /** Finds the first non-busy spawn available. */
         getAvailableSpawn: StructureSpawn | undefined
+        /** Finds the soonest available spawn if there isn't an available spawn to return; */
+        getNextAvailableSpawn: StructureSpawn | undefined
         ffContainers: StructureContainer[]
         nextCreepToDie: Creep | undefined
         lowestExtension: StructureExtension | undefined
@@ -369,6 +372,18 @@ export default class Room_Extended extends Room {
         return this._availableSpawn
     }
 
+    private _nextAvailableSpawn: StructureSpawn | undefined
+    get getNextAvailableSpawn() {
+        if (this.getAvailableSpawn) return this.getAvailableSpawn;
+        if (!this._nextAvailableSpawn) {
+            for (const spawn of this.spawns) {
+                if (!this._nextAvailableSpawn) this._nextAvailableSpawn = spawn
+                if (spawn.spawning?.remainingTime && this._nextAvailableSpawn?.spawning?.remainingTime && spawn.spawning.remainingTime < this._nextAvailableSpawn.spawning.remainingTime) this._nextAvailableSpawn = spawn;
+            }
+        }
+        return this._nextAvailableSpawn
+    }
+
     private _ffContainers: StructureContainer[] | undefined
     get ffContainers() {
         if (!this._ffContainers) {
@@ -617,8 +632,7 @@ export default class Room_Extended extends Room {
                     for (const sourceId in this.memory.remoteSites[roomName]) {
                         if (['assignedHarvIds', 'assignedTruckerIds', 'assignedEngIds'].indexOf(sourceId) >= 0) continue;
                         let source = Game.getObjectById(sourceId as Id<Source>);
-                        // TODO: Add trucker coverage check
-                        if (source && source.fullyHarvesting) this._energyIncome += energyPerTick;
+                        if (source && source.fullyHarvesting && source.fullyTransporting) this._energyIncome += energyPerTick;
                     }
                 }
             }

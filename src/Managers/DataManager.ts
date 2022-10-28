@@ -117,10 +117,12 @@ declare global {
     interface CreepCache {
         dump?: Id<StructureLink | StructureContainer>;
         supply?: Id<StructureLink | StructureContainer>;
+        shouldSuicide?: boolean;
     }
 
     // The global Cache object. Consider it like `Memory`, it just gets rebuilt on a global reset.
     var Cache: {
+        age: number;
         rooms: { [key: string]: RoomCache },
         creeps: { [key: string]: CreepCache },
         cmd: { [key: string]: any },
@@ -161,6 +163,7 @@ export default class DataManager {
             // Build cache if deleted
             if (!global.Cache) global.Cache = {
                 // Add required properties of Cache here
+                age: -1,
                 rooms: {},
                 creeps: {},
                 cmd: {
@@ -179,6 +182,10 @@ export default class DataManager {
                     destroyCSitesInRoom: true,
                 }
             };
+
+            // Tick over cache age
+            global.Cache.age++;
+
             for (const roomName in Game.rooms) {
                 if (!global.Cache.rooms[roomName]) {
                     global.Cache.rooms[roomName] = {

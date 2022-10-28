@@ -7,7 +7,6 @@ import { Process } from "Models/Process";
 import { Utils } from "utils/Index";
 import { Logger } from "utils/Logger";
 import { Trucker } from "./Trucker";
-import { generatePath } from "screeps-cartographer";
 
 export class NetworkTrucker extends Trucker {
     readonly baseBody = [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]
@@ -29,21 +28,34 @@ export class NetworkTrucker extends Trucker {
 
         let networkHaulers = rolesNeeded.filter(x => x == nTRUCKER).length
         let remotes = room.memory.remoteSites || {}
-        let sourceCount = 0
 
-        for (let remoteName in remotes) {
-            let remote = remotes[remoteName]
-            if (!remote) continue;
-            sourceCount += (Object.keys(remote).length - 3)
+        // Determine total work per planned body
+        if (!this.partLimits || this.partLimits.length == 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
+        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
+        let body = this[room.spawnEnergyLimit];
+        let carryCount = body.filter(p => p == CARRY).length
+        if (carryCount === 0 || !carryCount) Utils.Logger.log(`Carry Count for nTruckers was ${carryCount}! This is a failure mode!`, ERROR);
+
+        // Determine quantity needed to meet all carryRequisites per source.
+        let shouldBe = 0
+        for (const remoteRoomName in remotes) {
+            const remoteDetails = remotes[remoteRoomName]
+            for (const key in remoteDetails) {
+                if (['assignedHarvIds', 'assignedTruckerIds', 'assignedEngIds'].indexOf(key) >= 0) continue;
+                const carryReq = remoteDetails[key as Id<Source>].carryReq;
+                if (!carryReq) continue;
+                shouldBe += Math.ceil(carryReq / carryCount);
+            }
         }
-
-        return sourceCount - networkHaulers;
+        return shouldBe >= networkHaulers ? shouldBe - networkHaulers : 0;
     }
 
     preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number {
-        if (!room || !spawn || !room.controller) return 0;
-        // return avg path dist
-        return room.averageDistanceFromSourcesToStructures;
+        if (!room || !room.memory.remoteSites || !room.controller || !creep || !creep.memory.remoteTarget || !creep.memory.remoteTarget[0]) return 0;
+        // Fetch distance from remoteSites
+        const dist = room.memory.remoteSites[creep.memory.remoteTarget[0].roomName][creep.memory.remoteTarget[0].targetId].dist;
+        if (!dist) return 0;
+        return dist;
     }
 
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
@@ -90,8 +102,32 @@ export class NetworkTrucker extends Trucker {
                     (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
                     creep.memory.working = !creep.memory.working;
                     delete creep.memory.target;
+
+                    // Check if full loop is completable.
+                    if (creep.room.name === creep.memory.homeRoom && creep.room.memory.remoteSites && creep.memory.remoteTarget && creep.memory.remoteTarget[0]) {
+                        const dist = creep.room.memory.remoteSites[creep.memory.remoteTarget[0].roomName][creep.memory.remoteTarget[0].targetId].dist;
+                        if (dist && creep.ticksToLive && creep.ticksToLive < (dist * 2)) creep.cache.shouldSuicide = true;
+                    }
                 }
                 const working = creep.memory.working;
+
+                // Handle EOL suicide / recycle
+                if (creep.cache.shouldSuicide === true) {
+                    // Find available spawn
+                    if (!creep.memory.target) {
+                        let spawn = creep.room.getNextAvailableSpawn;
+                        if (spawn) creep.memory.target = spawn.id;
+                    }
+                    let spawn = creep.memory.target ? Game.getObjectById(creep.memory.target) : undefined;
+                    if (!spawn || !Utils.Typeguards.isStructureSpawn(spawn)) {
+                        creep.suicide();
+                        return RUNNING;
+                    }
+
+                    if (creep.pos.roomName !== spawn.pos.roomName || creep.pos.getRangeTo(spawn) > 1) creep.travel(spawn);
+                    else if (!spawn.spawning) spawn.recycleCreep(creep);
+                    return RUNNING;
+                }
 
                 if (working === false) {
                     // Get target within range 1 of source.
@@ -102,14 +138,21 @@ export class NetworkTrucker extends Trucker {
                         if (creep.pos.roomName !== remoteSourceTarget.roomName || creep.pos.getRangeTo(remoteSourceTarget) > 3) {
                             creep.travel(remoteSourceTarget)
                         } else {
-                            let container: StructureContainer | undefined = remoteSourceTarget.findInRange(creep.room.containers, 1)[0]
-                            let resourceEnergy = remoteSourceTarget.findInRange(FIND_DROPPED_RESOURCES, 1, { filter: (r) => r.resourceType == RESOURCE_ENERGY })[0]
-                            let selectedTarget: Resource<ResourceConstant> | Tombstone | AnyStoreStructure | undefined = undefined
+                            // Get target
+                            if (!creep.memory.target) {
+                                let container: StructureContainer | undefined = remoteSourceTarget.findInRange(creep.room.containers, 1)[0]
+                                let resourceEnergy = remoteSourceTarget.findInRange(FIND_DROPPED_RESOURCES, 1, { filter: (r) => r.resourceType == RESOURCE_ENERGY })[0]
 
-                            if (resourceEnergy) selectedTarget = resourceEnergy
-                            else if (container) selectedTarget = container
+                                if (resourceEnergy && resourceEnergy.amount > 5) creep.memory.target = resourceEnergy.id
+                                else if (container && container.store.energy > (creep.store.getCapacity() * 0.75)) creep.memory.target = container.id
+                                else Trucker.needEnergyTargeting(creep);
+                            }
+                            let target = creep.memory.target ? Game.getObjectById(creep.memory.target) : undefined;
 
-                            if (selectedTarget) creep.take(selectedTarget, RESOURCE_ENERGY)
+                            // Target Validation check
+                            if (!target || (target && ('store' in target && target.store.energy === 0) || ('amount' in target && target.amount <= 5))) delete creep.memory.target
+
+                            if (target) creep.take(target, RESOURCE_ENERGY)
                         }
                     }
                 } else {
@@ -156,17 +199,60 @@ export class NetworkTrucker extends Trucker {
         if (!baseRoom.memory.remoteSites) return
         let remotes = baseRoom.memory.remoteSites || {}
 
-        for (let remoteRoomName in remotes) {
-            let remoteSite = remotes[remoteRoomName]
+        // Prespawn targeting
+        const matchingCreep = baseRoom.stationedCreeps.nTrucker.find((c) => c.name !== creep.name && (c.name.substring(0,6) ?? '1') === (creep.name.substring(0,6) ?? '0'))
+        const matchingTarget = matchingCreep?.memory.remoteTarget ? matchingCreep.memory.remoteTarget[0] : undefined;
+        if (matchingCreep && matchingTarget) {
+            let remoteDetails = baseRoom.memory.remoteSites[matchingTarget.roomName]
+            const sourceDetails = remoteDetails ? remoteDetails[matchingTarget.targetId] : undefined;
+            // Determine creep priority level
+            const priority = parseInt(creep.name.substring(3,5));
+            if (remoteDetails && sourceDetails && sourceDetails.carryReq && typeof priority === 'number') {
+                // Calculate carryFound for creeps assigned, considering only higher priority creeps (e.g. nTr00 is higher priority than nTr07)
+                let carryFound = 0;
+                for (const id of remoteDetails.assignedTruckerIds) {
+                    const nTr = Game.getObjectById(id);
+                    if (!nTr) continue;
+                    const nTrPriority = parseInt(nTr.name.substring(3,5));
+                    if (typeof nTrPriority !== 'number') continue;
+                    if (nTr && nTr.carryParts && nTrPriority < priority && nTr.memory.remoteTarget && nTr.memory.remoteTarget[0]?.targetId === matchingTarget.targetId) carryFound += nTr.carryParts;
+                }
 
-            for (let sourceId in remoteSite) {
-                if (['assignedHarvIds', 'assignedTruckerIds', 'assignedEngIds'].indexOf(sourceId) >= 0) continue;
-
-                if (remoteSite.assignedTruckerIds.length < (Object.keys(remoteSite).length - 3)) {
+                if (carryFound < sourceDetails.carryReq) {
                     if (!creep.memory.remoteTarget) creep.memory.remoteTarget = [];
-                    creep.memory.remoteTarget.push({ roomName: remoteRoomName, targetId: sourceId as Id<Source> })
-                    baseRoom.memory.remoteSites[remoteRoomName].assignedTruckerIds.push(creep.id)
+                    creep.memory.remoteTarget.push({ roomName: matchingTarget.roomName, targetId: matchingTarget.targetId })
+                    baseRoom.memory.remoteSites[matchingTarget.roomName].assignedTruckerIds.push(creep.id)
                     return;
+                }
+            }
+        }
+
+        // Find Any Viable Target
+        if (!creep.memory.remoteTarget || creep.memory.remoteTarget.length <= 0) {
+            for (let remoteRoomName in remotes) {
+                let remoteDetails = remotes[remoteRoomName]
+
+                for (let key in remoteDetails) {
+                    if (['assignedHarvIds', 'assignedTruckerIds', 'assignedEngIds'].indexOf(key) >= 0) continue;
+
+                    // Get required carry parts for remote
+                    const carryReq = remoteDetails[key as Id<Source>].carryReq;
+                    if (!carryReq) continue;
+
+                    // Find currently assigned carry parts for remote
+                    let carryFound = 0;
+                    for (const id of remoteDetails.assignedTruckerIds) {
+                        const nTr = Game.getObjectById(id);
+                        if (!nTr) continue;
+                        if (nTr && nTr.carryParts && nTr.memory.remoteTarget && nTr.memory.remoteTarget[0]?.targetId === key) carryFound += nTr.carryParts;
+                    }
+
+                    if (carryFound < carryReq) {
+                        if (!creep.memory.remoteTarget) creep.memory.remoteTarget = [];
+                        creep.memory.remoteTarget.push({ roomName: remoteRoomName, targetId: key as Id<Source> })
+                        baseRoom.memory.remoteSites[remoteRoomName].assignedTruckerIds.push(creep.id)
+                        return;
+                    }
                 }
             }
         }

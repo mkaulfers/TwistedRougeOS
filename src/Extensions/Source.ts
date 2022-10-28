@@ -3,7 +3,10 @@ import { Utils } from 'utils/Index';
 declare global {
     interface Source {
         assignablePosition(): RoomPosition | undefined
+        /** Checks if creeps assigned to source fully harvest the source. */
         fullyHarvesting: boolean
+        /** FOR REMOTES ONLY: Checks if creeps assigned fully transport generated energy from source. */
+        fullyTransporting: boolean | void
         /** Returns count of Resources of Energy adjacent to the Source. */
         nearbyEnergy: number
         /**
@@ -30,7 +33,7 @@ export default class Source_Extended extends Source {
 
     private _fullyHarvesting: boolean | undefined;
     get fullyHarvesting(): boolean {
-        Utils.Logger.log("Source -> isHarvestingAtMaxEfficiency", TRACE);
+        Utils.Logger.log("Source -> fullyHarvesting", TRACE);
         if (this._fullyHarvesting !== undefined) {
             return this._fullyHarvesting;
         } else if (this.room.my === true) {
@@ -79,6 +82,41 @@ export default class Source_Extended extends Source {
         } else {
             return false;
         }
+    }
+
+    private _fullyTransporting: boolean | undefined;
+    get fullyTransporting(): boolean | void {
+        Utils.Logger.log("Source -> fullyTransporting", TRACE);
+
+        if (!this._fullyTransporting) {
+            // Handle failure modes
+            if (!this.room.cache.remoteOf) return;
+
+            const homeRoom = Game.rooms[this.room.cache.remoteOf];
+            const remoteSites = homeRoom.memory.remoteSites;
+            if (!remoteSites) return;
+
+            let carryReq: number | undefined;
+            let carryFound = 0;
+            for (const remoteRoomName in remoteSites) {
+                if (this.room.name !== remoteRoomName) continue;
+                else {
+                    const remoteDetails = remoteSites[remoteRoomName];
+                    if (remoteDetails[this.id]) carryReq = remoteDetails[this.id].carryReq;
+                    if (!carryReq) break;
+                    for (const id of remoteDetails.assignedTruckerIds) {
+                        let nTr = Game.getObjectById(id);
+                        if (!nTr) continue;
+                        if (nTr && nTr.carryParts && nTr.memory.remoteTarget && nTr.memory.remoteTarget[0]?.targetId === this.id) carryFound += nTr.carryParts;
+                    }
+                    break;
+                }
+            }
+            if (!carryReq) return;
+            this._fullyTransporting = carryFound >= carryReq;
+        }
+
+        return this._fullyTransporting;
     }
 
     private _nearbyEnergy: number | undefined;

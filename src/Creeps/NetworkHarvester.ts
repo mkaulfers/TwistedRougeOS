@@ -47,15 +47,30 @@ export class NetworkHarvester extends CreepRole {
             for (let sourceId in remote) {
                 if (['assignedHarvIds', 'assignedTruckerIds', 'assignedEngIds'].indexOf(sourceId) >= 0) continue;
                 let sourceDetail = remote[sourceId as Id<Source>]
-                if (shouldBe > sourceDetail.posCount) {
-                    finalCount += sourceDetail.posCount
+                if (room.storage || !sourceDetail.dist) {
+                    if (shouldBe > sourceDetail.posCount) {
+                        finalCount += sourceDetail.posCount
+                    } else {
+                        finalCount += shouldBe
+                    }
                 } else {
-                    finalCount += shouldBe
+                    const timeToFill = Math.ceil((50 / (workCount * 2)) * 2);
+                    const usedFactor = Math.ceil(((sourceDetail.dist * 2) + (timeToFill * 2)) / timeToFill);
+                    finalCount += shouldBe * usedFactor;
                 }
+
             }
         }
 
         return networkHarvesters < finalCount ? finalCount - networkHarvesters : 0;
+    }
+
+    preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number {
+        if (!room || !room.memory.remoteSites || !room.controller || !creep || !creep.memory.remoteTarget || !creep.memory.remoteTarget[0]) return 0;
+        // Fetch distance from remoteSites
+        let dist = room.memory.remoteSites[creep.memory.remoteTarget[0].roomName][creep.memory.remoteTarget[0].targetId].dist;
+        if (!dist) return 0;
+        return dist;
     }
 
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
@@ -95,19 +110,48 @@ export class NetworkHarvester extends CreepRole {
                     NetworkHarvester.setRemoteSource(creep.room, creep)
                 }
 
-                // Switching Logic
-                if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) creep.memory.working = false
-                if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) creep.memory.working = true
+                // Switches working value if full or empty.
+                if (creep.memory.working == undefined) creep.memory.working = false;
+                if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
+                    (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
+                    creep.memory.working = !creep.memory.working;
+                    delete creep.memory.target;
+
+                    // Check if full loop is completable.
+                    if (creep.room.name === creep.memory.homeRoom && creep.room.memory.remoteSites && creep.memory.remoteTarget && creep.memory.remoteTarget[0]) {
+                        const dist = creep.room.memory.remoteSites[creep.memory.remoteTarget[0].roomName][creep.memory.remoteTarget[0].targetId].dist;
+                        if (dist && creep.ticksToLive && creep.ticksToLive < ((dist * 2) + (50 / (creep.workParts)))) creep.cache.shouldSuicide = true;
+                    }
+                }
+                const working = creep.memory.working;
+
+                // Handle EOL suicide / recycle
+                if (creep.cache.shouldSuicide === true) {
+                    // Find available spawn
+                    if (!creep.memory.target) {
+                        let spawn = creep.room.getNextAvailableSpawn;
+                        if (spawn) creep.memory.target = spawn.id;
+                    }
+                    let spawn = creep.memory.target ? Game.getObjectById(creep.memory.target) : undefined;
+                    if (!spawn || !Utils.Typeguards.isStructureSpawn(spawn)) {
+                        creep.suicide();
+                        return RUNNING;
+                    }
+
+                    if (creep.pos.roomName !== spawn.pos.roomName || creep.pos.getRangeTo(spawn) > 1) creep.travel(spawn);
+                    else if (!spawn.spawning) spawn.recycleCreep(creep);
+                    return RUNNING;
+                }
 
                 // Home Logic
-                if (!creep.memory.working) {
+                if (working) {
                     let controller = Game.rooms[creep.memory.homeRoom].controller
                     if (!controller) return FATAL
                     creep.praise(controller, false)
                 }
 
                 // Remote Logic
-                if (creep.memory.working) {
+                if (!working) {
                     // TODO: Trigger cleanup if creepTarget || sourceInfo || target isn't defined.. No reason to repeatedly fail at the same location.
                     let creepTarget = creep.memory.remoteTarget ? creep.memory.remoteTarget[0] : undefined;
                     if (!creepTarget) return RUNNING;
@@ -241,44 +285,112 @@ export class NetworkHarvester extends CreepRole {
      */
     static setRemoteSource(baseRoom: Room, creep: Creep) {
         if (!baseRoom.memory.remoteSites || !baseRoom) return
-
         let remotes = baseRoom.memory.remoteSites || {}
 
-        // TODO: Rebuild to handle multiple assigned targets
-        for (let remoteRoomName in remotes) {
-            let remoteDetails = remotes[remoteRoomName]
+        // Prespawn targeting
+        const matchingCreep = baseRoom.stationedCreeps.nHarvester.find((c) => c.name !== creep.name && (c.name.substring(0,6) ?? '1') === (creep.name.substring(0,6) ?? '0'))
+        const matchingTarget = matchingCreep?.memory.remoteTarget ? matchingCreep.memory.remoteTarget[0] : undefined;
+        if (matchingCreep && matchingTarget) {
+            let remoteDetails = baseRoom.memory.remoteSites[matchingTarget.roomName]
+            const sourceDetails = remoteDetails ? remoteDetails[matchingTarget.targetId] : undefined;
+            // Determine creep priority level
+            const priority = parseInt(creep.name.substring(3,5));
+            const sourceWorkNeeded = this.getSourceWorkNeeded(baseRoom.name, matchingTarget.roomName);
 
-            for (let sourceId in remoteDetails) {
-                if (['assignedHarvIds', 'assignedTruckerIds', 'assignedEngIds'].indexOf(sourceId) >= 0) continue;
-                let sourceDetail = remoteDetails[sourceId as Id<Source>];
-
-                // Set total work per source expected
-                let sourceWorkNeeded = 3
-                let remoteRoom = Game.rooms[remoteRoomName]
-                if (remoteRoom) {
-                    if (remoteRoom.controller?.reservation && remoteRoom.controller.reservation.username === baseRoom.controller?.owner?.username) sourceWorkNeeded = 6;
-                    if (!remoteRoom.controller && remoteRoom.keeperLairs.length > 0) sourceWorkNeeded = 7;
-                }
-
+            if (remoteDetails && sourceDetails && sourceDetails.dist && typeof priority === 'number') {
                 // Get assigned Harvesters and work count;
                 let assigned: Creep[] = [];
                 for (const id of remoteDetails.assignedHarvIds) {
                     let nHa = Game.getObjectById(id);
-                    if (nHa && nHa.memory.remoteTarget && nHa.memory.remoteTarget[0]?.targetId === sourceId) {
+                    if (nHa && nHa.memory.remoteTarget && nHa.memory.remoteTarget[0]?.targetId === matchingTarget.targetId) {
                         assigned.push(nHa);
                     } else {
                         // TODO: Reference cleanup function
                     }
                 }
                 let workCount = this.getTotalWorkAssigned(assigned);
-                if (sourceDetail.posCount > assigned.length && workCount < sourceWorkNeeded) {
-                    if (!creep.memory.remoteTarget) creep.memory.remoteTarget = [];
-                    creep.memory.remoteTarget.push({ roomName: remoteRoomName, targetId: sourceId as Id<Source> })
-                    baseRoom.memory.remoteSites[remoteRoomName].assignedHarvIds.push(creep.id)
-                    return;
+
+                if (baseRoom.storage && sourceDetails.posCount > assigned.length && workCount < sourceWorkNeeded) {
+                    if (this.assignRemote(creep, baseRoom, matchingTarget.roomName, matchingTarget.targetId) === OK) return;
+                } else if (!baseRoom.storage && baseRoom.cache.spawnSchedules && sourceDetails.dist) {
+                    if (this.preStorageAssignRemote(creep, baseRoom, sourceWorkNeeded, sourceDetails, assigned, matchingTarget.roomName, matchingTarget.targetId) === OK) return;
                 }
             }
         }
+
+        // TODO: Rebuild to handle multiple assigned targets
+        if (!creep.memory.remoteTarget || creep.memory.remoteTarget.length <= 0) {
+            for (let remoteRoomName in remotes) {
+                let remoteDetails = remotes[remoteRoomName]
+
+                for (let sourceId in remoteDetails) {
+                    if (['assignedHarvIds', 'assignedTruckerIds', 'assignedEngIds'].indexOf(sourceId) >= 0) continue;
+                    let sourceDetails = remoteDetails[sourceId as Id<Source>];
+
+                    // Set total work per source expected
+                    let sourceWorkNeeded = this.getSourceWorkNeeded(baseRoom.name, remoteRoomName);
+
+                    // Get assigned Harvesters and work count;
+                    let assigned: Creep[] = [];
+                    for (const id of remoteDetails.assignedHarvIds) {
+                        let nHa = Game.getObjectById(id);
+                        if (nHa && nHa.memory.remoteTarget && nHa.memory.remoteTarget[0]?.targetId === sourceId) {
+                            assigned.push(nHa);
+                        } else {
+                            // TODO: Reference cleanup function
+                        }
+                    }
+                    let workCount = this.getTotalWorkAssigned(assigned);
+                    if (baseRoom.storage && sourceDetails.posCount > assigned.length && workCount < sourceWorkNeeded) {
+                        if (this.assignRemote(creep, baseRoom, remoteRoomName, sourceId as Id<Source>) === OK) return;
+                    } else if (!baseRoom.storage && baseRoom.cache.spawnSchedules && sourceDetails.dist) {
+                        if (this.preStorageAssignRemote(creep, baseRoom, sourceWorkNeeded, sourceDetails, assigned, remoteRoomName, sourceId as Id<Source>) === OK) return;
+                    }
+                }
+            }
+        }
+    }
+
+    private static getSourceWorkNeeded(homeRoomName: string, remoteRoomName: string): number {
+        let sourceWorkNeeded = 3
+        let remoteRoom = Game.rooms[remoteRoomName];
+        let homeRoom = Game.rooms[homeRoomName];
+        if (remoteRoom && homeRoom) {
+            if (remoteRoom.controller?.reservation && remoteRoom.controller.reservation.username === homeRoom.controller?.owner?.username) sourceWorkNeeded = 6;
+            if (!remoteRoom.controller && remoteRoom.keeperLairs.length > 0) sourceWorkNeeded = 7;
+        }
+        return sourceWorkNeeded;
+    }
+
+    private static preStorageAssignRemote(creep: Creep, homeRoom: Room, sourceWorkNeeded: number, sourceDetails: SourceDetails, assigned: Creep[], remoteRoomName: string, sourceId: Id<Source>): number {
+        // Fetch eLimit
+        if (!homeRoom.cache.spawnSchedules || !sourceDetails.dist) return ERR_INVALID_TARGET;
+        let eLimit = homeRoom.cache.spawnSchedules[0].activeELimit;
+        if (!eLimit) eLimit = homeRoom.energyIncome;
+        if (!eLimit) return ERR_INVALID_TARGET;
+
+        // Get Body
+        if (!this.prototype[eLimit]) this.prototype[eLimit] = Utils.Utility.getBodyFor(homeRoom, this.prototype.baseBody, this.prototype.segment, this.prototype.partLimits);
+        let workCount = this.prototype[eLimit].filter(p => p == WORK).length
+
+        // Calculate UsedFactor
+        const timeToFill = Math.ceil(50 / (workCount * 2)) * 2;
+        const usedFactor = Math.ceil(((sourceDetails.dist * 2) + (timeToFill * 2)) / timeToFill);
+
+        // Set as target if passes checks
+        if (workCount < (sourceWorkNeeded * usedFactor) && assigned.length < (sourceDetails.posCount * usedFactor)) {
+            if (this.assignRemote(creep, homeRoom, remoteRoomName, sourceId as Id<Source>) === OK) return OK;
+        }
+        return ERR_INVALID_TARGET;
+    }
+
+    /** Assigns given remote to given creep */
+    private static assignRemote(creep: Creep, homeRoom: Room, remoteRoomName: string, sourceId: Id<Source>): number {
+        if (!homeRoom.memory.remoteSites) return ERR_INVALID_ARGS
+        if (!creep.memory.remoteTarget) creep.memory.remoteTarget = [];
+        creep.memory.remoteTarget.push({ roomName: remoteRoomName, targetId: sourceId })
+        homeRoom.memory.remoteSites[remoteRoomName].assignedHarvIds.push(creep.id)
+        return OK;
     }
 
     /**

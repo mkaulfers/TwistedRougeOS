@@ -1,10 +1,12 @@
 import { TRACE } from "Constants/LogConstants"
+import { MOVE_OPTS_CIVILIAN } from "Constants/MoveOptsConstants"
 import { LOW } from "Constants/ProcessPriorityConstants"
 import { FATAL, RUNNING, INCOMPLETE } from "Constants/ProcessStateConstants"
 import { Role, HARVESTER, TRUCKER } from "Constants/RoleConstants"
 import { HARVESTER_SOURCE, HARVESTER_EARLY, Task } from "Constants/TaskConstants"
 import CreepRole from "Models/CreepRole"
 import { Process } from "Models/Process"
+import { generatePath } from "screeps-cartographer"
 import { Utils } from "utils/Index"
 export class Harvester extends CreepRole {
 
@@ -53,7 +55,8 @@ export class Harvester extends CreepRole {
         // return exact IFF possible, else average
         let preSpawnOffset = 0;
         if (creep && creep.memory.assignedPos) {
-            preSpawnOffset = room.findPath(spawn.pos, Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name)).length * (creep.body.length - 2);
+            let path = generatePath(spawn.pos, [{ pos: Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name), range: 1}], MOVE_OPTS_CIVILIAN)
+            if (path) preSpawnOffset = path.length * (creep.body.length - 2);
         } else {
             let x = 0;
             let y = 0;
@@ -63,7 +66,7 @@ export class Harvester extends CreepRole {
             }
             x = Math.floor(x / room.sources.length);
             y = Math.floor(y / room.sources.length);
-            let modifier = creep ? creep.getActiveBodyparts(WORK) : 1;
+            let modifier = creep ? creep.workParts : 1;
             preSpawnOffset = room.findPath(spawn.pos, new RoomPosition(x >= 0 && x <= 49 ? x : 25, y >= 0 && y <= 49 ? y : 25, room.name)).length * modifier;
         }
         return preSpawnOffset;
