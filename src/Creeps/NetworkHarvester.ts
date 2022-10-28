@@ -97,10 +97,10 @@ export class NetworkHarvester extends CreepRole {
                         let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
                         if (homeRoomMemory.remoteSites) {
                             let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName]
-                            remoteDetail.assignedHarvIds.splice(remoteDetail.assignedHarvIds.indexOf(creepId), 1)
+                            let index = remoteDetail.assignedHarvIds.indexOf(creepId);
+                            if (index >= 0) remoteDetail.assignedHarvIds.splice(index, 1);
                         }
                     }
-
                     return FATAL;
                 }
 
@@ -203,7 +203,8 @@ export class NetworkHarvester extends CreepRole {
                         let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
                         if (homeRoomMemory.remoteSites) {
                             let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName]
-                            remoteDetail.assignedHarvIds.splice(remoteDetail.assignedHarvIds.indexOf(creepId), 1)
+                            let index = remoteDetail.assignedHarvIds.indexOf(creepId);
+                            if (index >= 0) remoteDetail.assignedHarvIds.splice(index, 1);
                         }
                     }
 
@@ -302,7 +303,9 @@ export class NetworkHarvester extends CreepRole {
                 let assigned: Creep[] = [];
                 for (const id of remoteDetails.assignedHarvIds) {
                     let nHa = Game.getObjectById(id);
-                    if (nHa && nHa.memory.remoteTarget && nHa.memory.remoteTarget[0]?.targetId === matchingTarget.targetId) {
+                    if (!nHa) continue;
+                    const nHaPriority = parseInt(nHa.name.substring(3,5));
+                    if (nHa && nHaPriority < priority && nHa.memory.remoteTarget && nHa.memory.remoteTarget[0]?.targetId === matchingTarget.targetId) {
                         assigned.push(nHa);
                     } else {
                         // TODO: Reference cleanup function
@@ -364,7 +367,7 @@ export class NetworkHarvester extends CreepRole {
 
     private static preStorageAssignRemote(creep: Creep, homeRoom: Room, sourceWorkNeeded: number, sourceDetails: SourceDetails, assigned: Creep[], remoteRoomName: string, sourceId: Id<Source>): number {
         // Fetch eLimit
-        if (!homeRoom.cache.spawnSchedules || !sourceDetails.dist) return ERR_INVALID_TARGET;
+        if (!homeRoom.storage || !homeRoom.cache.spawnSchedules || !sourceDetails.dist) return ERR_INVALID_TARGET;
         let eLimit = homeRoom.cache.spawnSchedules[0].activeELimit;
         if (!eLimit) eLimit = homeRoom.spawnEnergyLimit;
         if (!eLimit) return ERR_INVALID_TARGET;
