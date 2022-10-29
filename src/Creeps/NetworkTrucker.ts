@@ -151,7 +151,7 @@ export class NetworkTrucker extends Trucker {
                         // Target Validation check
                         if (!target || (target && ('store' in target && target.store.energy === 0) || ('amount' in target && target.amount <= 5))) delete creep.memory.target
 
-                        if (!target) creep.travel({ pos: remoteSourceTarget, range: 23 })
+                        if (!target && (creep.pos.roomName !== remoteSourceTarget.roomName || creep.pos.nearEdge)) creep.travel(remoteSourceTarget, { avoidCreeps: true })
                         if (target) creep.take(target, RESOURCE_ENERGY)
                     }
                 } else {
