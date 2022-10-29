@@ -136,25 +136,23 @@ export class NetworkTrucker extends Trucker {
                     let remoteDetails = Memory.rooms[creep.memory.homeRoom].remoteSites && remoteTarget ? Memory.rooms[creep.memory.homeRoom].remoteSites![remoteTarget.roomName] : undefined
                     if (remoteTarget && remoteDetails) {
                         let remoteSourceTarget = Utils.Utility.unpackPostionToRoom(remoteDetails[remoteTarget.targetId].packedPos, remoteTarget.roomName);
-                        if (creep.pos.roomName !== remoteSourceTarget.roomName || creep.pos.onEdge) {
-                            creep.travel(remoteSourceTarget)
-                        } else {
-                            // Get target
-                            if (!creep.memory.target) {
-                                let container: StructureContainer | undefined = remoteSourceTarget.findInRange(creep.room.containers, 1)[0]
-                                let resourceEnergy = remoteSourceTarget.findInRange(FIND_DROPPED_RESOURCES, 1, { filter: (r) => r.resourceType == RESOURCE_ENERGY })[0]
 
-                                if (resourceEnergy && resourceEnergy.amount > 5) creep.memory.target = resourceEnergy.id
-                                else if (container && container.store.energy > (creep.store.getCapacity() * 0.75)) creep.memory.target = container.id
-                                else Trucker.needEnergyTargeting(creep);
-                            }
-                            let target = creep.memory.target ? Game.getObjectById(creep.memory.target) : undefined;
+                        // Get target
+                        if (!creep.memory.target && Game.rooms[remoteSourceTarget.roomName]) {
+                            let container: StructureContainer | undefined = remoteSourceTarget.findInRange(creep.room.containers, 1)[0]
+                            let resourceEnergy = remoteSourceTarget.findInRange(FIND_DROPPED_RESOURCES, 1, { filter: (r) => r.resourceType == RESOURCE_ENERGY })[0]
 
-                            // Target Validation check
-                            if (!target || (target && ('store' in target && target.store.energy === 0) || ('amount' in target && target.amount <= 5))) delete creep.memory.target
-
-                            if (target) creep.take(target, RESOURCE_ENERGY)
+                            if (resourceEnergy && resourceEnergy.amount > 5) creep.memory.target = resourceEnergy.id
+                            else if (container && container.store.energy > (creep.store.getCapacity() * 0.75)) creep.memory.target = container.id
+                            else if (creep.room.name === remoteSourceTarget.roomName) Trucker.needEnergyTargeting(creep);
                         }
+                        let target = creep.memory.target ? Game.getObjectById(creep.memory.target) : undefined;
+
+                        // Target Validation check
+                        if (!target || (target && ('store' in target && target.store.energy === 0) || ('amount' in target && target.amount <= 5))) delete creep.memory.target
+
+                        if (!target) creep.travel({ pos: remoteSourceTarget, range: 23 })
+                        if (target) creep.take(target, RESOURCE_ENERGY)
                     }
                 } else {
                     // Determines new target to dump energy into.
