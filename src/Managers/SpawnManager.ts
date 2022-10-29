@@ -79,7 +79,7 @@ export default class SpawnManager {
 
                 if (_.any(spawnSchedules, (s) => s.activeELimit !== room.spawnEnergyLimit ||
                     s.rolesNeeded?.length !== freshRolesNeeded.length ||
-                    s.rolesNeeded?.every(function(role, i) { return role === freshRolesNeeded[i] })) ||
+                    s.rolesNeeded?.every(function (role, i) { return role === freshRolesNeeded[i] })) ||
                     (spawnSchedules[0]?.rolesNeeded && sOCount < spawnSchedules[0].rolesNeeded.length - 2 && unusedSpace > (100 * spawnSchedules.length))) {
                     for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
                 } else {
@@ -183,7 +183,11 @@ export default class SpawnManager {
                     role: role,
                     working: false,
                     target: undefined,
-                    homeRoom: room.name
+                    homeRoom: room.name,
+                    scheduledConstruction: [],
+                    scheduledRepairs: [],
+                    scheduledDeliveries: {},
+                    scheduledRestocks: {}
                 }
             };
 
@@ -193,7 +197,7 @@ export default class SpawnManager {
         return spawnOrders;
     }
 
-    private static genRolesNeeded = function*(room: Room): Generator<Role[], Role[], void> {
+    private static genRolesNeeded = function* (room: Room): Generator<Role[], Role[], void> {
         // Build array of CreepRoles in priority
         let rolesNeeded: Role[] = [];
 
@@ -250,7 +254,7 @@ export default class SpawnManager {
     /** Rebuilds the schedule */
     private static buildSchedules(room: Room, spawnSchedules: SpawnSchedule[]): void {
         // Reset conditional so as to not rebuild again next tick.
-        spawnSchedules.forEach(function(s) { s.reset(); s.needsScheduled = false });
+        spawnSchedules.forEach(function (s) { s.reset(); s.needsScheduled = false });
 
         // Add rolesNeeded to schedule based on generator return values, split as many times as the generator yields.
         let genRolesNeeded = this.genRolesNeeded(room);
@@ -278,7 +282,7 @@ export default class SpawnManager {
         // Exact Prespawn only additions
         for (let spawnSchedule of spawnSchedules) {
             if (spawnSchedule.isFull() == true || !spawnOrders || spawnOrders.length == 0) continue;
-            spawnOrders = spawnSchedule.add(spawnOrders, {preSpawnOnly: true});
+            spawnOrders = spawnSchedule.add(spawnOrders, { preSpawnOnly: true });
             if (spawnSchedule.activeELimit !== room.spawnEnergyLimit) spawnSchedule.activeELimit = room.spawnEnergyLimit;
         }
 
@@ -295,7 +299,7 @@ export default class SpawnManager {
         if (spawnOrders && spawnOrders.length > 0) {
             for (let spawnSchedule of spawnSchedules) {
                 if (spawnSchedule.isFull() == true || !spawnOrders || spawnOrders.length == 0) continue;
-                spawnOrders = spawnSchedule.add(spawnOrders, {shrinkBody: true});
+                spawnOrders = spawnSchedule.add(spawnOrders, { shrinkBody: true });
                 if (spawnSchedule.activeELimit !== room.spawnEnergyLimit) spawnSchedule.activeELimit = room.spawnEnergyLimit;
             }
         }
@@ -331,7 +335,7 @@ export default class SpawnManager {
                     body.push(...segment);
                 }
 
-                let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 'RE' + role, { memory: {role: role, working: false, homeRoom: room.name }, energyStructures: (room.spawnEnergyStructures.length > 0 ? room.spawnEnergyStructures : undefined)})
+                let eResult = Game.spawns[spawnSchedule.spawnName].spawnCreep(body, 'RE' + role, { memory: { role: role, working: false, homeRoom: room.name, scheduledConstruction: [], scheduledRepairs: [], scheduledDeliveries: {}, scheduledRestocks: {} }, energyStructures: (room.spawnEnergyStructures.length > 0 ? room.spawnEnergyStructures : undefined) })
                 Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is spawning a restarter due to no truckers: ${eResult}. Body Length: ${body.length}. Body Cost: ${Utils.Utility.bodyCost(body)}. Available Energy: ${room.energyAvailable}`, DEBUG);
             }
 

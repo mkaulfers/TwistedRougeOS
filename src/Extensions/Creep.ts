@@ -19,7 +19,7 @@ declare global {
         moveToDefault(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number
         nMRController(target: string): number
         praise(target: StructureController, working: boolean): number
-        take(target: AnyStoreStructure | Resource | Tombstone, resource: ResourceConstant, quantity?: number): number
+        take(target: AnyStoreStructure | Resource | Tombstone | Ruin, resource: ResourceConstant, quantity?: number): number
         /** Civilian pathing defaults */
         travel(targets: _HasRoomPosition | RoomPosition | MoveTarget | RoomPosition[] | MoveTarget[], opts?: MoveOpts, fallbackOpts?: MoveOpts): number
         work(target: Structure | ConstructionSite): number
@@ -288,7 +288,7 @@ export default class Creep_Extended extends Creep {
         return OK;
     }
 
-    take(target: AnyStoreStructure | Resource | Tombstone, resource: ResourceConstant, quantity?: number): number {
+    take(target: AnyStoreStructure | Resource | Tombstone | Ruin, resource: ResourceConstant, quantity?: number): number {
         Utils.Logger.log("Creep -> take()", TRACE)
 
         this.travel(target.pos);

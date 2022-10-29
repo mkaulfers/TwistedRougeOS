@@ -1,4 +1,4 @@
-import { TargetManager } from 'Managers/TargetManager';
+import { LogisticsManager } from 'Managers/LogisticsManager';
 import Kernel from './Kernel';
 import Scheduler from './Scheduler';
 
@@ -9,7 +9,6 @@ declare global {
             kernel: Kernel,
             recentlyAttacked: boolean,
             scheduler: Scheduler,
-            targetManagerFor: {[roomName: string]: TargetManager}
 
             button(name: string, command: string, primary?: boolean): void
             setLogLevelALL(): void

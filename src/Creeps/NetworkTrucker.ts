@@ -2,7 +2,7 @@ import { DEBUG, TRACE, ERROR } from "Constants/LogConstants";
 import { LOW } from "Constants/ProcessPriorityConstants";
 import { FATAL, RUNNING, INCOMPLETE } from "Constants/ProcessStateConstants";
 import { Role, nTRUCKER } from "Constants/RoleConstants";
-import { TRUCKER_STORAGE, nTRUCKER_TRANSPORTING, Task } from "Constants/TaskConstants";
+import { nTRUCKER_TRANSPORTING, Task } from "Constants/TaskConstants";
 import { Process } from "Models/Process";
 import { Utils } from "utils/Index";
 import { Logger } from "utils/Logger";

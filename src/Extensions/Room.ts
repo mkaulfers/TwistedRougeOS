@@ -3,6 +3,7 @@ import { Role, Roles } from 'Constants/RoleConstants'
 import { HUB } from 'Constants/StampConstants'
 import CreepRoles from 'Creeps/Index'
 import { Managers } from 'Managers/Index'
+import { LogisticsManager } from 'Managers/LogisticsManager'
 import { Utils } from 'utils/Index'
 import { Logger } from 'utils/Logger'
 

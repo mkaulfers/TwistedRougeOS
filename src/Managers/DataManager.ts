@@ -8,48 +8,49 @@ import { ProcessState, RUNNING } from 'Constants/ProcessStateConstants';
 import { Role } from 'Constants/RoleConstants';
 import { StampType } from 'Constants/StampConstants';
 import { Task } from 'Constants/TaskConstants';
+import { LogisticsManager } from './LogisticsManager';
 
 declare global {
-  interface Stats {
-    gcl: {
-      level: number;
-      progress: number;
-      progressTotal: number;
-    };
-    gpl: {
-      level: number;
-      progress: number;
-      progressTotal: number;
-    };
-    cpu: {
-      bucket: number;
-      usage: number;
-      limit: number;
-    };
-    resources: {
-      pixels: number;
-      cpuUnlock: number;
-      accessKey: number;
-    };
-    roomCount: number;
-    creepCount: number;
-    spawnCount: number;
-    constructionSiteCount: number;
-    flagCount: number;
-    rooms: {
-      [roomName: string]: {
-        controller: {
-          level: number,
-          progress: number,
-          progressTotal: number
-        },
-        energyAvailable: number,
-        energyCapacityAvailable: number,
-        energyInStorage: number,
-        energyInTerminal: number
-      }
+    interface Stats {
+        gcl: {
+            level: number;
+            progress: number;
+            progressTotal: number;
+        };
+        gpl: {
+            level: number;
+            progress: number;
+            progressTotal: number;
+        };
+        cpu: {
+            bucket: number;
+            usage: number;
+            limit: number;
+        };
+        resources: {
+            pixels: number;
+            cpuUnlock: number;
+            accessKey: number;
+        };
+        roomCount: number;
+        creepCount: number;
+        spawnCount: number;
+        constructionSiteCount: number;
+        flagCount: number;
+        rooms: {
+            [roomName: string]: {
+                controller: {
+                    level: number,
+                    progress: number,
+                    progressTotal: number
+                },
+                energyAvailable: number,
+                energyCapacityAvailable: number,
+                energyInStorage: number,
+                energyInTerminal: number
+            }
+        }
     }
-  }
     interface CreepMemory {
         assignedPos?: number
         homeRoom: string
@@ -58,6 +59,11 @@ declare global {
         target?: Id<any>
         task?: Task
         working: boolean
+
+        scheduledConstruction: Id<ConstructionSite>[]
+        scheduledRepairs: Id<AnyStructure>[]
+        scheduledDeliveries: { [id: (Id<AnyStoreStructure | Creep>)]: number }
+        scheduledRestocks: { [id: (Id<Resource | Tombstone | Ruin | AnyStoreStructure>)]: number }
     }
 
     interface RoomMemory {
@@ -116,6 +122,7 @@ declare global {
         pathfindingCM?: string;
         openSpaceCM?: string;
         links?: { [key: Id<StructureLink>]: string };
+        logisticsManager?: LogisticsManager
         pauseSpawning?: boolean;
         remotesCount?: number;
         remoteOf?: string;
@@ -243,6 +250,14 @@ export default class DataManager {
                     global.Cache.cmd.destroyCSites = true;
                     global.Cache.cmd.destroyCSitesInRoom = true;
                     delete global.Cache.cmd.destroyResetTick;
+                }
+            }
+
+            // Setup Logistics Manager for Owned Rooms
+            for (const roomName in Game.rooms) {
+                let room = Game.rooms[roomName];
+                if (room.controller && room.controller.my && !room.cache.logisticsManager) {
+                    room.cache.logisticsManager = new LogisticsManager(room);
                 }
             }
 
