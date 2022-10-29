@@ -250,8 +250,9 @@ export class NetworkHarvester extends CreepRole {
                                         }
                                     }
 
+                                    // TODO: Check for existing construction site
                                     if (!doesContainerExist && creep.pos.inRangeTo(target, 1)) {
-                                        let containerConstructionSite = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3)[0]
+                                        let containerConstructionSite = target.pos.findInRange(FIND_CONSTRUCTION_SITES, 1)[0]
                                         if (!containerConstructionSite) creep.pos.createConstructionSite(STRUCTURE_CONTAINER)
                                         creep.work(containerConstructionSite)
                                     }
