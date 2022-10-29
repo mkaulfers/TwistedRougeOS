@@ -27,7 +27,6 @@ declare global {
             function setLogLevel(level: string): string;
             function schedule(name: string, full?: boolean): string;
             function reschedule(name: string): string;
-
 }
 
 global.help = function(cmd: string) {

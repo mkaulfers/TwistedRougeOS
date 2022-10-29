@@ -11,6 +11,8 @@ declare global {
             scheduler: Scheduler,
             targetManagerFor: {[roomName: string]: TargetManager}
 
+            showDevControls: boolean,
+            enableCPULogging: boolean,
             button(name: string, command: string, primary?: boolean): void
             setLogLevelALL(): void
             setLogLevelOFF(): void
@@ -19,6 +21,8 @@ declare global {
             setLogLevelINFO(): void
             setLogLevelWARN(): void
             setLogLevelERROR(): void
+            toggleCPULogging(): void
+            toggleDevControlVisibility(): void
         }
     }
 }
