@@ -108,6 +108,8 @@ declare global {
         spawnSchedules?: SpawnSchedule[];
         spawnEnergyStructIds?: Id<StructureSpawn | StructureExtension>[];
         towerTarget?: Id<AnyCreep>;
+        /** Used by the Spawn Manager to detect when the storage is built, to reschedule the spawn schedule. */
+        storageBuilt?: boolean;
 
         recentlyAttacked?: boolean,
         attackedTime?: number,
