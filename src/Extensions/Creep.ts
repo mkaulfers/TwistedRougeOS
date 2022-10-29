@@ -1,5 +1,5 @@
 import { TRACE, ERROR } from 'Constants/LogConstants';
-import { MOVE_OPTS_CIVILIAN, MOVE_OPTS_CIVILIAN_FALLBACK, MOVE_OPTS_DEFAULT, MOVE_OPTS_DEFAULT_FALLBACK } from 'Constants/MoveOptsConstants';
+import { MOVE_OPTS_AGENT, MOVE_OPTS_AGENT_FALLBACK, MOVE_OPTS_CIVILIAN, MOVE_OPTS_CIVILIAN_FALLBACK, MOVE_OPTS_DEFAULT, MOVE_OPTS_DEFAULT_FALLBACK } from 'Constants/MoveOptsConstants';
 import { moveTo, MoveOpts, MoveTarget } from 'screeps-cartographer';
 import { Utils } from 'utils/Index';
 
@@ -189,12 +189,12 @@ export default class Creep_Extended extends Creep {
 
         // Apply provided opts over default opts
         opts = {
-            ...MOVE_OPTS_DEFAULT,
+            ...MOVE_OPTS_AGENT,
             ...opts,
         }
 
         fallbackOpts = {
-            ...MOVE_OPTS_DEFAULT_FALLBACK,
+            ...MOVE_OPTS_AGENT_FALLBACK,
             ...opts,
         }
 
@@ -319,7 +319,7 @@ export default class Creep_Extended extends Creep {
             ...opts,
         }
 
-        return this.moveToDefault(targets, opts, fallbackOpts);
+        return moveTo(this, targets, opts, fallbackOpts);
     }
 
     work(target: Structure | ConstructionSite): number {

@@ -138,7 +138,7 @@ export class NetworkTrucker extends Trucker {
                         let remoteSourceTarget = Utils.Utility.unpackPostionToRoom(remoteDetails[remoteTarget.targetId].packedPos, remoteTarget.roomName);
 
                         // Get target
-                        if (!creep.memory.target && Game.rooms[remoteSourceTarget.roomName]) {
+                        if (!creep.memory.target && creep.room.name === remoteSourceTarget.roomName) {
                             let container: StructureContainer | undefined = remoteSourceTarget.findInRange(creep.room.containers, 1)[0]
                             let resourceEnergy = remoteSourceTarget.findInRange(FIND_DROPPED_RESOURCES, 1, { filter: (r) => r.resourceType == RESOURCE_ENERGY })[0]
 

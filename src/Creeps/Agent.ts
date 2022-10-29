@@ -79,7 +79,7 @@ export class Agent extends CreepRole {
                             plainCost: 2,
                             swampCost: 2,
                         };
-                        creep.travel({ pos: new RoomPosition(25, 25, targetFrontier), range: 23 }, opts, opts)
+                        creep.moveToDefault({ pos: new RoomPosition(25, 25, targetFrontier), range: 23 }, opts, opts)
                     }
 
                 }

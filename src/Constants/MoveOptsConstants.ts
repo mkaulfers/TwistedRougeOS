@@ -38,6 +38,24 @@ export const MOVE_OPTS_CIVILIAN_FALLBACK: MoveOpts = {
     ...MOVE_OPTS_DEFAULT_FALLBACK,
 };
 
+export const MOVE_OPTS_AGENT: MoveOpts = {
+    ...MOVE_OPTS_CIVILIAN,
+    routeCallback: (roomName: string, fromRoomName: string) => {
+        let result = Utils.Utility.checkRoomSafety(roomName);
+        if (result === Infinity) return 254;
+        return result;
+    },
+}
+
+export const MOVE_OPTS_AGENT_FALLBACK: MoveOpts = {
+    ...MOVE_OPTS_CIVILIAN_FALLBACK,
+    routeCallback: (roomName: string, fromRoomName: string) => {
+        let result = Utils.Utility.checkRoomSafety(roomName);
+        if (result === Infinity) return 254;
+        return result;
+    },
+}
+
 export const Pathing = [
     MOVE_OPTS_DEFAULT,
     MOVE_OPTS_DEFAULT_FALLBACK,
