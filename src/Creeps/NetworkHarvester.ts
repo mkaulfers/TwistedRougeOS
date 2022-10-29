@@ -260,15 +260,9 @@ export class NetworkHarvester extends CreepRole {
                                 }
                             }
 
-                            // False means the creep is now empty.
-                            if ((creep.memory.working == undefined || creep.memory.working == true) && usedCapacity == 0) {
-                                creep.memory.working = false
-                            }
-
-                            // True means the creep is now full.
-                            if (creep.memory.working == false && usedCapacity == creepEnergyMax) {
-                                creep.memory.working = true
-                            }
+                            // Handle not being on container;
+                            let container = NetworkHarvester.getContainer(target.pos)
+                            if (container && creep.store.energy > (creep.store.getCapacity() * 0.8) && creep.pos.getRangeTo(container) > 0) creep.give(container, RESOURCE_ENERGY);
 
                             creep.mine(target)
                         }
@@ -430,9 +424,9 @@ export class NetworkHarvester extends CreepRole {
      * @param sourcePos The position of the source to get the container for.
      * @returns a container object if one exists, otherwise undefined.
      */
-    private static getContainer(sourcePos: RoomPosition): Structure<STRUCTURE_CONTAINER> | undefined {
-        let container = sourcePos.findInRange(FIND_STRUCTURES, 1, { filter: x => x.structureType == STRUCTURE_CONTAINER })[0]
-        return container as Structure<STRUCTURE_CONTAINER> | undefined
+    private static getContainer(sourcePos: RoomPosition): StructureContainer | undefined {
+        let container = sourcePos.findInRange(FIND_STRUCTURES, 1, { filter: Utils.Typeguards.isStructureContainer })[0]
+        return container
     }
 
     /**
