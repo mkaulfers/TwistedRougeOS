@@ -12,7 +12,7 @@ export class Logger {
 global.button = function (name: string, command: string, primary = true) {
     let btnClass = primary ? 'md-primary ' : '';
     let action = `angular.element(document.body).injector().get('Console').sendCommand('${command}', 0)`;
-    return `<button class="md-button md-raised ${btnClass}md-ink-ripple" onclick="${action}">${name}</button>`;
+    return `<button class="md-button md-raised ${btnClass} md-ink-ripple" onclick="${action}">${name}</button>`;
 };
 
 global.setLogLevelALL = function () { Logger.devLogLevel = ALL }
@@ -22,3 +22,5 @@ global.setLogLevelDEBUG = function () { Logger.devLogLevel = DEBUG }
 global.setLogLevelINFO = function () { Logger.devLogLevel = INFO }
 global.setLogLevelWARN = function () { Logger.devLogLevel = WARN }
 global.setLogLevelERROR = function () { Logger.devLogLevel = ERROR }
+global.toggleCPULogging = function() { global.enableCPULogging = !global.enableCPULogging }
+global.toggleDevControlVisibility = function() { global.showDevControls = !global.showDevControls }
