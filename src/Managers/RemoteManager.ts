@@ -6,15 +6,25 @@ import { RoomStatistics } from "Models/RoomStatistics"
 import { generatePath, MoveTarget } from "screeps-cartographer"
 import { Utils } from "utils/Index"
 export default class RemoteManager {
+
+    private static _goal: number | undefined;
     /**
      * Computes the maximum number of remotes to run.
      */
-    private static get allowedNumberOfRemotes(): number {
-        return 4
+    private static get goal(): number {
+        if (!this._goal) this._goal = 2;
+
+        // Spawn Availability
+
+        // CPU Availability
+
+        // Handle adjustment and maxing
+
     }
 
     static scheduleRemoteMonitor(room: Room): void | ProcessState {
         const roomId = room.name
+
         const remoteTask = () => {
             let room = Game.rooms[roomId]
             if (!room || !room.my) return FATAL;
@@ -22,8 +32,7 @@ export default class RemoteManager {
             //TODO: Modify so that remotes are added if the number of allowed remotes changes.
             if ((!room.memory ||
                 !room.memory.remoteSites ||
-                Object.keys(room.memory.remoteSites).length < this.allowedNumberOfRemotes) &&
-                Game.time % 750 === 0 &&
+                Game.time % 750 === 0) &&
                 Game.cpu.bucket > 150) {
                 this.setRemotes(room)
             }
