@@ -100,7 +100,12 @@ export default class SpawnManager {
             // Construction Manager Ran and Placed cSites
             if ((Game.time - 1) % 1500 === 0 && room.constructionSites().length > 5) for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
 
-            //
+            // IFF Storage just built, reschedule
+            if (!room.storage) room.cache.storageBuilt = false;
+            else if (room.cache.storageBuilt === false && room.storage) {
+                for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
+                room.cache.storageBuilt = true;
+            }
 
             // History Check: Respawn prematurely dead creeps if room.
             if (Game.time % 25 === 0) {

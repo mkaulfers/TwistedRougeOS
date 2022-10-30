@@ -22,7 +22,7 @@ declare global {
          * @Returns Constructions sites in the room.
          * */
         constructionSites(ofType?: BuildableStructureConstant): ConstructionSite[]
-        structures(ofType?: StructureConstant): Structure[]
+        structures(ofType?: StructureConstant): AnyStructure[]
 
         containers: StructureContainer[]
         exits: RoomPosition[] | undefined
@@ -49,7 +49,10 @@ declare global {
         walls: StructureWall[]
 
         /* Custom Getters */
+        /** Finds the first non-busy spawn available. */
         getAvailableSpawn: StructureSpawn | undefined
+        /** Finds the soonest available spawn if there isn't an available spawn to return; */
+        getNextAvailableSpawn: StructureSpawn | undefined
         ffContainers: StructureContainer[]
         nextCreepToDie: Creep | undefined
         lowestExtension: StructureExtension | undefined
@@ -65,10 +68,9 @@ declare global {
 
         /* Other Calculations and Checks */
         areFastFillerExtensionsBuilt: boolean
-        remoteMultiplier: number
         /** Gets the distance from sources to each storage capable structure in the room. */
         averageDistanceFromSourcesToStructures: number
-        /** Returns energy generation per tick in the room, considering only fully utilized sources within the room. */
+        /** Returns energy generation per tick for the room, considering only fully utilized sources within the room or remote rooms. */
         energyIncome: number
         isAnchorFunctional: boolean
         isSpawning(role: Role): boolean
@@ -370,6 +372,18 @@ export default class Room_Extended extends Room {
         return this._availableSpawn
     }
 
+    private _nextAvailableSpawn: StructureSpawn | undefined
+    get getNextAvailableSpawn() {
+        if (this.getAvailableSpawn) return this.getAvailableSpawn;
+        if (!this._nextAvailableSpawn) {
+            for (const spawn of this.spawns) {
+                if (!this._nextAvailableSpawn) this._nextAvailableSpawn = spawn
+                if (spawn.spawning?.remainingTime && this._nextAvailableSpawn?.spawning?.remainingTime && spawn.spawning.remainingTime < this._nextAvailableSpawn.spawning.remainingTime) this._nextAvailableSpawn = spawn;
+            }
+        }
+        return this._nextAvailableSpawn
+    }
+
     private _ffContainers: StructureContainer[] | undefined
     get ffContainers() {
         if (!this._ffContainers) {
@@ -599,39 +613,29 @@ export default class Room_Extended extends Room {
         return this._areFastFillerExtensionsBuilt
     }
 
-    // TODO: Modify 3 to be a calculated value based on path distances and expenditure times.
-    private _remoteMultiplier: number | undefined
-    get remoteMultiplier() {
-        if (!this._remoteMultiplier) {
-            this._remoteMultiplier = !this.storage ? 3 : 1
-        }
-        return this._remoteMultiplier
-    }
-
     // TODO: Modify to consider Power Creep Effects
     private _energyIncome: number | undefined
     get energyIncome() {
         if (!this._energyIncome) {
             this._energyIncome = 0
             // Local Sources
-            for (const source of this.sources) if (source.isHarvestingAtMaxEfficiency) this._energyIncome += 10
+            for (const source of this.sources) if (source.fullyHarvesting) this._energyIncome += 10
 
             // Remote Sources
-//             if (this.controller && this.controller.level > 4) {
-//                 if (this.memory.remoteSites) {
-//                     for (const roomName in this.memory.remoteSites) {
-//                         // Determine potential source energy generation
-//                         let energyPerTick = 5;
-//                         if (Game.rooms[roomName]?.controller?.reservation) energyPerTick = 10;
-//                         if (Utils.Typeguards.isSourceKeeperRoom(roomName)) energyPerTick = 12;
+            if (this.memory.remoteSites) {
+                for (const roomName in this.memory.remoteSites) {
+                    // Determine potential source energy generation
+                    let energyPerTick = 5;
+                    if (Game.rooms[roomName]?.controller?.reservation) energyPerTick = 10;
+                    if (Utils.Typeguards.isSourceKeeperRoom(roomName)) energyPerTick = 12;
 
-//                         for (const sourceId in this.memory.remoteSites[roomName].sourceDetail) {
-//                             let source = Game.getObjectById(sourceId as Id<Source>);
-//                             if (source && source.isHarvestingAtMaxEfficiency) this._energyIncome += energyPerTick;
-//                         }
-//                     }
-//                 }
-//             }
+                    for (const sourceId in this.memory.remoteSites[roomName]) {
+                        if (['assignedHarvIds', 'assignedTruckerIds', 'assignedEngIds'].indexOf(sourceId) >= 0) continue;
+                        let source = Game.getObjectById(sourceId as Id<Source>);
+                        if (source && source.canHarvest && source.fullyHarvesting && source.fullyTransporting) this._energyIncome += energyPerTick;
+                    }
+                }
+            }
         }
         return this._energyIncome
     }

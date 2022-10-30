@@ -6,7 +6,7 @@ import { Role, AGENT, HARVESTER, TRUCKER, SCIENTIST } from "Constants/RoleConsta
 import { Task, AGENT_SCOUTING } from "Constants/TaskConstants"
 import CreepRole from "Models/CreepRole"
 import { InvaderDetail } from "Models/InvaderDetail"
-import { MineralDetail } from "Models/MineralDetail"
+import { MineralDetail, SourceDetail } from "Models/MineralDetail"
 import { DefenseStructuresDetail, HostileStructuresDetail, PlayerDetail, StorageDetail } from "Models/PlayerDetail"
 import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
@@ -79,7 +79,7 @@ export class Agent extends CreepRole {
                             plainCost: 2,
                             swampCost: 2,
                         };
-                        creep.travel({ pos: new RoomPosition(25, 25, targetFrontier), range: 23 }, opts, opts)
+                        creep.moveToDefault({ pos: new RoomPosition(25, 25, targetFrontier), range: 23 }, opts, opts)
                     }
 
                 }
@@ -117,20 +117,11 @@ export class Agent extends CreepRole {
         let threatLevel = this.getThreatLevel(room)
 
         let sources = room.sources
-        let sourceDetail: {
-            [id: string]: {
-                posCount: number,
-                x: number,
-                y: number,
-                assignedHarvIds: Id<Creep>[],
-                assignedTruckerIds: Id<Creep>[],
-                assignedEngIds: Id<Creep>[]
-            }
-        } = {}
+        let sourceDetail: { [id: Id<Source>]: SourceDetail } = {}
 
         for (let source of sources) {
             let count = source.validPositions.length
-            sourceDetail[source.id] = { posCount: count, x: source.pos.x, y: source.pos.y, assignedHarvIds: [], assignedTruckerIds: [], assignedEngIds: [] }
+            sourceDetail[source.id] = new SourceDetail(Utils.Utility.packPosition(source.pos), count)
         }
 
         let powerBankId = room.find(FIND_STRUCTURES, { filter: structure => structure.structureType == STRUCTURE_POWER_BANK })[0]?.id
