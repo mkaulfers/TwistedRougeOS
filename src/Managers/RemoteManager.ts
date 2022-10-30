@@ -11,15 +11,36 @@ export default class RemoteManager {
     /**
      * Computes the maximum number of remotes to run.
      */
-    private static get goal(): number {
+    private static goal(room: Room): number {
         if (!this._goal) this._goal = 2;
 
         // Spawn Availability
+        let availableSpawntime = 0;
+        if (room.cache.spawnSchedules) {
+            for (const spawnSchedule of room.cache.spawnSchedules) availableSpawntime += (1500 * spawnSchedule.limiter) - spawnSchedule.usedSpace;
+        }
 
         // CPU Availability
+        const expenditureCPU = global.kernel.estimatedQueueCpuCost();
+        let availableCPU = ((Game.cpu.limit * 0.9) - expenditureCPU) / Object.values(Game_Extended.myRooms).length;
 
-        // Handle adjustment and maxing
+        // Determine Average Spawn Expense Per Remote
+        const spawnCost = 400;
 
+        // Determine CPU Expense Per Remote
+        const cpuCost = 10;
+
+        // Handle adjustment
+        if (availableCPU < 0) this._goal += Math.ceil(availableCPU / cpuCost);
+        else if (availableCPU > cpuCost) {
+            this._goal += Math.floor(availableCPU / cpuCost);
+        }
+
+        // Ensure within bounds
+        if (this._goal > 8) this._goal = 8;
+        if (this._goal < 0) this._goal = 0;
+
+        return this._goal;
     }
 
     static scheduleRemoteMonitor(room: Room): void | ProcessState {
@@ -103,7 +124,7 @@ export default class RemoteManager {
             let existsInFrontiers = roomFrontiers.includes(intel.name)
 
             if (existsInFrontiers) {
-                if (selectedRemotes.length >= this.allowedNumberOfRemotes) break
+                if (selectedRemotes.length >= this.goal(room)) break
                 let sourceIds = intel.sourceDetail
                 let threatLevel = intel.threatLevel
 
