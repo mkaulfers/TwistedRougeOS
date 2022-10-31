@@ -10,7 +10,7 @@ export default class RemoteManager {
      * Computes the maximum number of remotes to run.
      */
     private static get allowedNumberOfRemotes(): number {
-        return 6
+        return 4
     }
 
     static scheduleRemoteMonitor(room: Room): void | ProcessState {

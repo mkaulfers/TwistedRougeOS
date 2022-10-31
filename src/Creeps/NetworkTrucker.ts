@@ -82,6 +82,7 @@ export class NetworkTrucker extends Trucker {
                         let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
                         if (homeRoomMemory.remoteSites) {
                             let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName]
+                            if (!remoteDetail) return FATAL;
                             let index = remoteDetail.assignedTruckerIds.indexOf(creepId);
                             if (index >= 0) remoteDetail.assignedTruckerIds.splice(index, 1);
                         }
@@ -106,7 +107,8 @@ export class NetworkTrucker extends Trucker {
 
                     // Check if full loop is completable.
                     if (creep.room.name === creep.memory.homeRoom && creep.room.memory.remoteSites && creep.memory.remoteTarget && creep.memory.remoteTarget[0]) {
-                        const dist = creep.room.memory.remoteSites[creep.memory.remoteTarget[0].roomName][creep.memory.remoteTarget[0].targetId].dist;
+                        const dist = creep.room.memory.remoteSites[creep.memory.remoteTarget[0].roomName] ?
+                            creep.room.memory.remoteSites[creep.memory.remoteTarget[0].roomName][creep.memory.remoteTarget[0].targetId].dist : undefined;
                         if (dist && creep.ticksToLive && creep.ticksToLive < (dist * 2)) creep.cache.shouldSuicide = true;
                     }
                 }
@@ -120,7 +122,7 @@ export class NetworkTrucker extends Trucker {
                         if (spawn) creep.memory.target = spawn.id;
                     }
                     let spawn = creep.memory.target ? Game.getObjectById(creep.memory.target) : undefined;
-                    if (!spawn || !Utils.Typeguards.isStructureSpawn(spawn)) {
+                    if (!spawn || !Utils.Typeguards.isStructureSpawn(spawn) || !spawn.pos.multipleAdjacentOpen) {
                         creep.suicide();
                         return RUNNING;
                     }
@@ -151,7 +153,9 @@ export class NetworkTrucker extends Trucker {
                         // Target Validation check
                         if (!target || (target && ('store' in target && target.store.energy === 0) || ('amount' in target && target.amount <= 5))) delete creep.memory.target
 
-                        if (!target && (creep.pos.roomName !== remoteSourceTarget.roomName || creep.pos.nearEdge)) creep.travel(remoteSourceTarget, { avoidCreeps: true })
+                        if (!target && (creep.pos.roomName !== remoteSourceTarget.roomName || creep.pos.nearEdge)) creep.travel(remoteSourceTarget)
+                        else if (!target) creep.travel({pos: remoteSourceTarget, range: 10 }, { avoidCreeps: true })
+
                         if (target) creep.take(target, RESOURCE_ENERGY)
                     }
                 } else {

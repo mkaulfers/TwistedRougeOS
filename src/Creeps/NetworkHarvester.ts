@@ -206,7 +206,8 @@ export class NetworkHarvester extends CreepRole {
                         // Use memory to precisely clean up remoteSites
                         let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
                         if (homeRoomMemory.remoteSites) {
-                            let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName]
+                            let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName];
+                            if (!remoteDetail) return FATAL;
                             let index = remoteDetail.assignedHarvIds.indexOf(creepId);
                             if (index >= 0) remoteDetail.assignedHarvIds.splice(index, 1);
                         }
@@ -222,7 +223,10 @@ export class NetworkHarvester extends CreepRole {
                 }
 
                 let creepTarget = creep.memory.remoteTarget ? creep.memory.remoteTarget[0] : undefined
-                let sourceInfo = creepTarget && Memory.rooms[creep.memory.homeRoom].remoteSites ? Memory.rooms[creep.memory.homeRoom].remoteSites![creepTarget.roomName][creepTarget.targetId] : undefined;
+                let sourceInfo = creepTarget && Memory.rooms[creep.memory.homeRoom].remoteSites &&
+                    Memory.rooms[creep.memory.homeRoom].remoteSites![creepTarget.roomName] ?
+                    Memory.rooms[creep.memory.homeRoom].remoteSites![creepTarget.roomName][creepTarget.targetId] :
+                    undefined;
                 if (creepTarget && sourceInfo) {
                     let targetRoom = Utils.Utility.unpackPostionToRoom(sourceInfo.packedPos, creepTarget.roomName)
 
