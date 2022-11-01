@@ -39,7 +39,7 @@ export default class Kernel {
 
     estimatedQueueCpuCost() {
         let cost = 0
-        for (let [, value] of global.scheduler.processQueue) {
+        for (const [, value] of global.scheduler.processQueue) {
             cost += value.getAvgCpuUsed()
         }
         return cost
