@@ -91,7 +91,7 @@ export default class SpawnManager {
             // Conditional Reschedule Checks
 
             // Reschedule if remote count changes.
-            if (room.memory.remoteSites && !room.cache.remotesCount) room.cache.remotesCount = Object.keys(room.memory.remoteSites).length
+            if (room.memory.remoteSites && (!room.cache.remotesCount || (Game.time - 1) % 750 === 0)) room.cache.remotesCount = Object.keys(room.memory.remoteSites).length;
             if (Game.time % 100 === 0 && room.memory.remoteSites && room.cache.remotesCount !== Object.keys(room.memory.remoteSites).length) {
                 for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
                 room.cache.remotesCount = Object.keys(room.memory.remoteSites).length;

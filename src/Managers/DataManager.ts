@@ -99,14 +99,27 @@ declare global {
     // Add properties you wish to have stored in a room's cache in the interface below.
     // Refer to `const cacheTask` below if you make it a required property.
     interface RoomCache {
+        /** A generic pathfinding CM for a claimed room. */
         pathfindingCM?: string;
+        /** A CM that measures open space within a room. */
         openSpaceCM?: string;
-        links?: { [key: Id<StructureLink>]: string };
+        /** The states of each link. Used by LinkManager. */
+        linkStates?: { [key: Id<StructureLink>]: string };
+        /** A manual boolean that can be used by the player to pause spawning in a room. Used by Spawn Manager. */
         pauseSpawning?: boolean;
+        /** A count of the remotes targeted. Used by the Spawn Manager. */
         remotesCount?: number;
+        /** A remote room's property used to identify it's home room. */
         remoteOf?: string;
+        /** A remote room's potential profitability when unreserved. */
+        remoteProfUnres?: number;
+        /** A remote room's potential profitability when reserved. */
+        remoteProfRes?: number;
+        /** A claimed room's spawn schedules. */
         spawnSchedules?: SpawnSchedule[];
+        /** A claimed room's spawns and extensions, in a specific order. Used by anywhere that spawns creeps. */
         spawnEnergyStructIds?: Id<StructureSpawn | StructureExtension>[];
+        /** Active target of towers. Used by Threat Manager. */
         towerTarget?: Id<AnyCreep>;
         /** Used by the Spawn Manager to detect when the storage is built, to reschedule the spawn schedule. */
         storageBuilt?: boolean;
