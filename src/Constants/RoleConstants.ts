@@ -8,6 +8,7 @@ export const TRUCKER = "trucker"
 export const nENGINEER = "nEngineer"
 export const nHARVESTER = "nHarvester"
 export const nTRUCKER = "nTrucker"
+export const RESERVER = 'reserver'
 
 export type Role =
     typeof AGENT |
@@ -19,7 +20,8 @@ export type Role =
     typeof TRUCKER |
     typeof nENGINEER |
     typeof nHARVESTER |
-    typeof nTRUCKER
+    typeof nTRUCKER |
+    typeof RESERVER
 
 export const Roles: Role[] = [
     HARVESTER,
@@ -32,4 +34,5 @@ export const Roles: Role[] = [
     nHARVESTER,
     nTRUCKER,
     nENGINEER,
+    RESERVER
 ]
