@@ -32,8 +32,7 @@ export class NetworkHarvester extends CreepRole {
         let networkHarvesters = rolesNeeded.filter(x => x == nHARVESTER).length
         let remotes = room.memory.remoteSites || {}
 
-        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
-        let workCount = this[room.spawnEnergyLimit].filter(p => p == WORK).length
+        let workCount = this.getBody(room).filter(p => p == WORK).length
 
         let finalCount = 0
         for (let remoteName in remotes) {
