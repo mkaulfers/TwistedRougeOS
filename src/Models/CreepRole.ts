@@ -1,5 +1,6 @@
 import { Role } from "Constants/RoleConstants";
 import { Task } from "Constants/TaskConstants";
+import { Utils } from "utils/Index";
 
 export default abstract class CreepRole {
 
@@ -16,6 +17,20 @@ export default abstract class CreepRole {
      * Example: [CARRY, CARRY, MOVE, CARRY, MOVE, WORK] would be reduced to [CARRY, MOVE, WORK] and could have a partLimits of [10, 3, 17].
      */
     partLimits?: number[];
+    /** Returns currently sized body for the role, given spawn's energy limit. */
+    getBody(room: Room, eLimit?: number): BodyPartConstant[] {
+        // Handle eLimit not existing
+        if (!eLimit) eLimit = room.spawnEnergyLimit;
+
+        if (!this[eLimit]) {
+            // Ensure part limits exist
+            if (!this.partLimits || this.partLimits.length === 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
+            // Generate and Store Body
+            this[eLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
+        }
+
+        return this[eLimit];
+    }
     /** Allow body shrinking for spawn scheduling? */
     shrinkAllowed: boolean = true;
     /** Bodies generated given an eLimit, where the eLimit is the key. */
