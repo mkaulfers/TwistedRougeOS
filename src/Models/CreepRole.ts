@@ -1,6 +1,7 @@
 import { Role } from "Constants/RoleConstants";
 import { Task } from "Constants/TaskConstants";
 import { Utils } from "utils/Index";
+import { getBodyForOpts } from '../utils/Utilities';
 
 export default abstract class CreepRole {
 
@@ -10,29 +11,35 @@ export default abstract class CreepRole {
 
     /** Starting body for the  Must not exceed 300 energy cost. */
     abstract baseBody: BodyPartConstant[];
+
     /** The segment added as the spawning energy limit rises. */
     abstract segment: BodyPartConstant[];
+
     /**
      * Optional limiter for specific bodyparts. Represents the max number of each part in the segment when only the first of each unique bodypart used is kept.
      * Example: [CARRY, CARRY, MOVE, CARRY, MOVE, WORK] would be reduced to [CARRY, MOVE, WORK] and could have a partLimits of [10, 3, 17].
      */
     partLimits?: number[];
-    /** Returns currently sized body for the role, given spawn's energy limit. */
-    getBody(room: Room, eLimit?: number): BodyPartConstant[] {
-        // Handle eLimit not existing
-        if (!eLimit) eLimit = room.spawnEnergyLimit;
 
-        if (!this[eLimit]) {
+    /** Returns currently sized body for the role, given spawn's energy limit. */
+    getBody(room: Room, opts?: getBodyForOpts): BodyPartConstant[] {
+        if (!opts) opts = {};
+        // Handle eLimit not existing
+        if (!opts?.eLimit) opts.eLimit = room.spawnEnergyLimit;
+
+        if (!this[opts.eLimit]) {
             // Ensure part limits exist
             if (!this.partLimits || this.partLimits.length === 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
             // Generate and Store Body
-            this[eLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
+            this[opts.eLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits, opts);
         }
 
-        return this[eLimit];
+        return this[opts.eLimit];
     }
+
     /** Allow body shrinking for spawn scheduling? */
     shrinkAllowed: boolean = true;
+
     /** Bodies generated given an eLimit, where the eLimit is the key. */
     [key: number]: BodyPartConstant[];
 
@@ -42,12 +49,20 @@ export default abstract class CreepRole {
 
     /** Switches tasks for creeps of this role as required. */
     abstract dispatch(room: Room): void;
+
     /** Tells the SpawnManager how many of this role is wanted, in what priority order. Must eventually return 0. Must handle `min` being true. */
     abstract quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number;
+
     /** Prespawn consideration ticks to add on top of spawntime required. Not a required function for each creep  */
     preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number { return 0; }
+
     /** The tasks for the  */
     abstract tasks: { [key in Task]?: (creep: Creep) => void };
+
+    /** Potential Creep Spawn Cost for a given remote */
+    costForRemoteSource(room: Room, sourceDetails: SourceDetails, energyPerTick: number): number {
+        return 0;
+    }
 
     // Supporting funtions for internal use:
 

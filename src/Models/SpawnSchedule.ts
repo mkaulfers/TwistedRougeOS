@@ -125,7 +125,7 @@ export default class SpawnSchedule {
                 // Handle undersized freespaces.. DESPERATION Scheduling
 
                 // Shrink Spawn Order to freespace
-                let body = Utils.Utility.getBodyFor(room, theRole.baseBody, theRole.segment, theRole.partLimits, {sizeLimit: Math.floor(foundFreeSpace[1] / 3)});
+                let body = theRole.getBody(room, {sizeLimit: Math.floor(foundFreeSpace[1] / 3)});
                 if (body.length > 0) {
                     // Modify spawn order values
                     spawnOrder.body = body;
