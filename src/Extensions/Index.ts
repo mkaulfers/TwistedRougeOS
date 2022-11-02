@@ -9,7 +9,7 @@ import Terminal_Extended from './Terminal';
 import RoomPosition_Extended from './RoomPosition';
 import Game_Extended from './Game';
 
-import { Utility } from 'utils/Utilities';
+import Utility from 'utils/Utilities';
 
 declare global {
     var Game_Extended: Game_Extended;
