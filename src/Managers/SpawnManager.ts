@@ -170,10 +170,7 @@ export default class SpawnManager {
             let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
             const theRole = CreepClasses[role];
             if (!theRole) continue;
-            if (!theRole.partLimits || theRole.partLimits.length == 0) theRole.partLimits = Utils.Utility.buildPartLimits(theRole.baseBody, theRole.segment);
-            let partLimits: number[] = theRole.partLimits;
-            if (!theRole[room.spawnEnergyLimit]) theRole[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, theRole.baseBody, theRole.segment, partLimits);
-            let body = theRole[room.spawnEnergyLimit];
+            let body = theRole.getBody(room);
 
             if (body.length === 0) {
                 Utils.Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, ERROR);

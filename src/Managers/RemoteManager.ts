@@ -2,6 +2,7 @@ import { MOVE_OPTS_CIVILIAN } from "Constants/MoveOptsConstants"
 import { HIGH } from "Constants/ProcessPriorityConstants"
 import { ProcessState, FATAL, RUNNING } from "Constants/ProcessStateConstants"
 import { nHARVESTER, nTRUCKER, RESERVER, Role } from "Constants/RoleConstants"
+import CreepClasses from "Creeps/Index"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
 import { generatePath, MoveTarget } from "screeps-cartographer"
@@ -144,22 +145,31 @@ export default class RemoteManager {
                 const potentialProfit = this.considerRemote(room, roomName);
                 if (potentialProfit < this.profitMin) continue;
 
-                // Add room intel to roomsInMemory
+                // Add room memory to roomsInMemory
                 roomsInMemory.push(roomMemory);
             }
 
-
             roomsInMemory.sort((a, b) => {
-                if (!a.intel || !b.intel) { return 0 }
-                let aPath = PathFinder.search(new RoomPosition(25, 25, room.name), { pos: new RoomPosition(25, 25, a.intel.name), range: 20 }).path
-                let bPath = PathFinder.search(new RoomPosition(25, 25, room.name), { pos: new RoomPosition(25, 25, b.intel.name), range: 20 }).path
-                return aPath.length - bPath.length
+                // Fetch Names
+                let aName = a.intel?.name;
+                let bName = b.intel?.name;
+                if (!aName || !bName || !Cache.rooms[aName] || Cache.rooms[bName]) return 0;
+
+                // Consider profitability
+                let aProf = Cache.rooms[aName].remoteProfitability ?? 0;
+                let bProf = Cache.rooms[bName].remoteProfitability ?? 0;
+                return aProf - bProf;
             })
 
-            let selectedRemotes: RoomStatistics[] = []
+            // TODO: Delete this before release
+            let logcheck = `roomsInMemory: `;
+            for (const it of roomsInMemory) logcheck += `\n ${it.intel?.name}: ${it.intel?.name ? Cache.rooms[it.intel.name].remoteProfitability : undefined}`
+            console.log(logcheck)
 
-            for (let roomIntel of roomsInMemory) {
-                let intel = roomIntel.intel
+            let selectedRemotes: RoomMemory[] = []
+
+            for (let roomMemory of roomsInMemory) {
+                let intel = roomMemory.intel
                 if (!intel) continue;
 
                 if (selectedRemotes.length >= this.goal(room)) break
@@ -167,22 +177,24 @@ export default class RemoteManager {
                 let threatLevel = intel.threatLevel
 
                 if (sourceIds && Object.keys(sourceIds).length > 0 && threatLevel < 1) {
-                    if (selectedRemotes.includes(intel)) continue
-                    selectedRemotes.push(intel)
+                    if (selectedRemotes.includes(roomMemory)) continue
+                    selectedRemotes.push(roomMemory)
                 }
             }
 
             for (const remote of selectedRemotes) {
-                if (!Cache.rooms[remote.name].remoteOf) Cache.rooms[remote.name].remoteOf = room.name;
+                const intel = remote.intel;
+                if (!intel) continue;
+                if (!Cache.rooms[intel.name].remoteOf) Cache.rooms[intel.name].remoteOf = room.name;
 
                 // Add dist and carryReq calculations.
-                let sourcesDetails = {...remote.sourceDetail};
+                let sourcesDetails = {...intel.sourceDetail};
                 for (const sourceDetails of Object.values(sourcesDetails)) {
-                    this.setSourceProperties(room, remote.name, sourceDetails);
+                    this.setSourceProperties(room, intel.name, sourceDetails);
                 }
 
-                if (!room.memory.remoteSites[remote.name]) {
-                    room.memory.remoteSites[remote.name] = {
+                if (!room.memory.remoteSites[intel.name]) {
+                    room.memory.remoteSites[intel.name] = {
                         ...sourcesDetails,
                         assignedHarvIds: [],
                         assignedTruckerIds: [],
@@ -195,11 +207,97 @@ export default class RemoteManager {
 
     /** Reviews existing remotes, checks profitability, and removes any excess remotes given goal or any that fall under profitability level minimums. */
     private static reviewRemotes(room: Room): number {
-        return 0;
+        let goal = this.goal(room);
+        if (!room.memory.remoteSites) return goal;
+
+        // Consider each remote
+        let externalRemoteSites = { ...room.memory.remoteSites };
+        for (const remoteRoomName in externalRemoteSites) {
+            const remoteDetails = externalRemoteSites[remoteRoomName];
+
+            // Calculate and Record Profitability
+
+            // Generate max energy
+            let gennedEnergy = 0;
+            for (const id of remoteDetails.assignedHarvIds) {
+                const nHa = Game.getObjectById(id);
+                if (!nHa) continue;
+                if (room.storage) gennedEnergy += nHa.workParts * 2;
+                else {
+                    // Adust gennedEnergy if still in pre-storage mode.
+                    if (!nHa.memory.remoteTarget || !nHa.memory.remoteTarget[0]) continue;
+                    const sourceDetails = remoteDetails[nHa.memory.remoteTarget[0].targetId];
+                    if (!sourceDetails || !sourceDetails.dist) continue;
+                    const timeToFill = Math.ceil((50 / (nHa.workParts * 2)) * 2);
+                    const usedFactor = Math.ceil(((sourceDetails.dist * 2) + (timeToFill * 2)) / timeToFill);
+
+                    gennedEnergy += ((nHa.workParts * 2) / usedFactor);
+                }
+            }
+
+            // Determine energyPerTick
+            let energyPerTick = 5;
+            if (Game.rooms[remoteRoomName]?.controller?.reservation) energyPerTick = 10;
+            if (Utils.Typeguards.isSourceKeeperRoom(remoteRoomName)) energyPerTick = 12;
+            let maxEnergyPerTick = energyPerTick * (Object.keys(remoteDetails).length - 3);
+
+            // Adjust gennedEnergy if greater than the sources can provide
+            if (gennedEnergy > maxEnergyPerTick) gennedEnergy = maxEnergyPerTick;
+
+            // Convert to Max Energy
+            gennedEnergy *= 1500;
+
+            // Limit Max Energy by logistical capabilities if in use.
+            if (room.storage) {
+                let logiMoves = 0;
+                for (const id of remoteDetails.assignedTruckerIds) {
+                    const nTr = Game.getObjectById(id);
+                    if (!nTr) continue;
+                    if (!nTr.memory.remoteTarget || !nTr.memory.remoteTarget[0]) continue;
+                    const sourceDetails = remoteDetails[nTr.memory.remoteTarget[0].targetId];
+                    if (!sourceDetails || !sourceDetails.dist) continue;
+                    logiMoves += ((nTr.carryParts * 50) * Math.floor(1500 / (sourceDetails.dist * 2)));
+                }
+
+                if (gennedEnergy > logiMoves) gennedEnergy = logiMoves;
+            }
+
+            // Consider Container Maintenance Cost
+            gennedEnergy -= ((Object.keys(remoteDetails).length - 3) * 0.5 * 1500)
+
+            // Consider Creep Cost
+            for (const id of [...remoteDetails.assignedHarvIds, ...remoteDetails.assignedTruckerIds]) {
+                const creep = Game.getObjectById(id);
+                if (!creep) continue;
+                gennedEnergy -= Utils.Utility.bodyCost(creep.bodyArray);
+            }
+
+            // Consider Energy On Floor
+            const remoteRoom = Game.rooms[remoteRoomName];
+            if (room.storage && remoteRoom) {
+                const droppedEnergyCount = remoteRoom.find(FIND_DROPPED_RESOURCES, { filter: (r) => r.resourceType === RESOURCE_ENERGY}).length;
+                gennedEnergy -= droppedEnergyCount * 1500;
+            }
+
+            // TODO: Gotta remember when we abandon a room for this...
+            // Consider Minimum and Remove Failing Rooms when twice failing.
+            if (gennedEnergy < this.profitMin &&
+                (Cache.rooms[remoteRoomName] &&
+                Cache.rooms[remoteRoomName].remoteProfitability &&
+                Cache.rooms[remoteRoomName].remoteProfitability! < this.profitMin)) delete room.memory.remoteSites[remoteRoomName]
+
+        }
+
+        // Sort remoteSites based on found profitability.
+
+        // Remove worst remoteSites IFF necessary to lower count to goal.
+
+        return goal;
     }
 
     /** Sets path distance and carry parts required for each remote source. */
     private static setSourceProperties(room: Room, remoteRoomName: string, sourceDetails: SourceDetails, dist?: number) {
+        if (sourceDetails.dist && sourceDetails.carryReq) return;
         // Determine source energy per tick
         let energyPerTick = 5;
         if (Game.rooms[remoteRoomName]?.controller?.reservation) energyPerTick = 10;
@@ -230,6 +328,7 @@ export default class RemoteManager {
 
     /** Considers the profitability, pathability, etc. of a potential remote. */
     private static considerRemote(room: Room, remoteRoomName: string): number {
+        if (Utils.Typeguards.isSourceKeeperRoom(remoteRoomName) && !Utils.Typeguards.isCenterRoom(remoteRoomName)) return 0;
 
         // Retrieve intel
         let intel = Memory.rooms[remoteRoomName]?.intel;
@@ -281,18 +380,32 @@ export default class RemoteManager {
 
         // Set calculated values
         if (!Cache.rooms[remoteRoomName]) Cache.rooms[remoteRoomName] = {};
-        Cache.rooms[remoteRoomName].remoteProfUnres = maxEnergy - (containerCost + creepCost);
-        if (!Utils.Typeguards.isSourceKeeperRoom(remoteRoomName)) Cache.rooms[remoteRoomName].remoteProfRes = maxEnergy - (containerCost + creepCostReserved);
+        const unreserved = maxEnergy - (containerCost + creepCost);
+        let reserved = 0;
+        if (!Utils.Typeguards.isSourceKeeperRoom(remoteRoomName)) reserved = maxEnergy - (containerCost + creepCostReserved);
 
-        return room.spawnEnergyLimit >= 650 && Cache.rooms[remoteRoomName].remoteProfRes ? (Cache.rooms[remoteRoomName].remoteProfRes ?? 0) : (Cache.rooms[remoteRoomName].remoteProfUnres ?? 0);
+        maxEnergy - (containerCost + creepCost);
+
+        if (room.spawnEnergyLimit >= 650 && room.storage && reserved > (unreserved + (this.profitMin / 2))) {
+            Cache.rooms[remoteRoomName].remoteProfitability = reserved;
+            Cache.rooms[remoteRoomName].remoteState = 'reserved';
+        } else {
+            Cache.rooms[remoteRoomName].remoteProfitability = unreserved;
+            Cache.rooms[remoteRoomName].remoteState = 'unreserved';
+        }
+        return Cache.rooms[remoteRoomName].remoteProfitability ?? 0;
     }
 
-    // TODO: Make automatically expandable. Idea: Function on CreepRole identifying if a remote creep? Not sure
     /** Returns Potential Creep Spawn Costs for a particular source in a remote room over a 1500 tick time. */
     private static getPotSourceCreepCosts(room: Room, sourceDetails: SourceDetails, energyPerTick: number): number {
-        // Determine roles to consider
-        let roles: Role[] = [nHARVESTER];
 
-        return 0;
+        let cost = 0;
+            for (const role in CreepClasses) {
+                const theRole = CreepClasses[role as Role];
+                if (!theRole) continue;
+                cost += theRole.costForRemoteSource(room, sourceDetails, energyPerTick);
+            }
+
+        return cost;
     }
 }

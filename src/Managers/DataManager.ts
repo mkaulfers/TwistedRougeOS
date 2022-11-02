@@ -111,10 +111,10 @@ declare global {
         remotesCount?: number;
         /** A remote room's property used to identify it's home room. */
         remoteOf?: string;
-        /** A remote room's potential profitability when unreserved. */
-        remoteProfUnres?: number;
-        /** A remote room's potential profitability when reserved. */
-        remoteProfRes?: number;
+        /** A remote room's potential profit. */
+        remoteProfitability?: number;
+        /** A remote's suggested state for maximized profit. */
+        remoteState?: string;
         /** A claimed room's spawn schedules. */
         spawnSchedules?: SpawnSchedule[];
         /** A claimed room's spawns and extensions, in a specific order. Used by anywhere that spawns creeps. */
