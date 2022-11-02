@@ -1,4 +1,4 @@
-import { Utility } from './Utilities';
+import Utility from './Utilities';
 import { Logger } from './Logger';
 import { ALL, OFF, TRACE, DEBUG, INFO, WARN, ERROR, LogLevels } from 'Constants/LogConstants';
 

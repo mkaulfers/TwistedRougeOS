@@ -1,11 +1,23 @@
 import { TRACE } from 'Constants/LogConstants';
 import { HUB } from 'Constants/StampConstants';
 import { Logger } from './Logger';
+
 interface IPrototype {
     prototype?: any
 }
 
-export class Utility {
+export interface getBodyForOpts {
+    /** Used to directly set the energy limit for the body generation. */
+    eLimit?: number,
+    /** Used to directly set the maximum body size for the body generation. */
+    sizeLimit?: number,
+    /** Use energy capacity max instead of room.spawnEnergyLimit to determine energy limit for body generation. */
+    overrideELimit?: boolean,
+    /** Override the sort order for body generation. */
+    sortOrder?: { [key in BodyPartConstant]?: number }
+}
+
+export default class Utility {
     static packPosition(pos: RoomPosition): number
     static packPosition(pos: { wx: number, wy: number }): number
     static packPosition(pos: any): number {
@@ -169,7 +181,7 @@ export class Utility {
      * @param opts.sizeLimit Set max body size. Defaults to 50.
      * Defaults to TOUGH, WORK, ATTACK, RANGED_ATTACK, CARRY, MOVE, HEAL, and CLAIM with values ranging from 0-7 respectively.
      */
-    static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], opts?: { sizeLimit?: number, overrideELimit?: boolean, sortOrder?: { [key in BodyPartConstant]?: number } }): BodyPartConstant[] {
+    static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], opts?: getBodyForOpts): BodyPartConstant[] {
         Logger.log("SpawnManager -> getBodyFor()", TRACE)
 
         let tempBody = [...baseBody];
@@ -190,7 +202,7 @@ export class Utility {
 
         // Determine energy limit for body generation
         // Current limit: No single creep consumes more than a 20th of our income.
-        let eLimit: number = room.spawnEnergyLimit;
+        let eLimit: number = opts?.eLimit ?? room.spawnEnergyLimit;
         if (opts && opts.overrideELimit === true) eLimit = room.energyCapacityAvailable;
 
         // Expand tempBody to correct size given limits
