@@ -76,6 +76,30 @@ export class NetworkHarvester extends CreepRole {
         return dist;
     }
 
+    costForRemoteSource(room: Room, sourceDetails: SourceDetails, energyPerTick: number): number {
+        if (!sourceDetails.dist) return 0;
+
+        // Get WORK on Body
+        const body = this.getBody(room)
+        if (!body || body.length === 0) return 0;
+        const bodyCost = Utils.Utility.bodyCost(body);
+        const workPerCreep = body.filter((p) => p === WORK).length;
+        if (!workPerCreep) return 0;
+
+        // Get creep count and Convert to cost
+        let creepCount = Math.ceil((energyPerTick / 2) / workPerCreep);
+        if (room.storage) {
+            if (creepCount > sourceDetails.posCount) {
+                creepCount = sourceDetails.posCount
+            }
+        } else {
+            const timeToFill = Math.ceil((50 / (workPerCreep * 2)) * 2);
+            const usedFactor = Math.ceil(((sourceDetails.dist * 2) + (timeToFill * 2)) / timeToFill);
+            creepCount *= usedFactor;
+        }
+        return (bodyCost * creepCount) ?? 0;
+    }
+
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
         nHarvesting_early: function (creep: Creep) {
             let creepId = creep.id
@@ -375,8 +399,7 @@ export class NetworkHarvester extends CreepRole {
         if (!eLimit) return ERR_INVALID_TARGET;
 
         // Get Body
-        if (!this.prototype[eLimit]) this.prototype[eLimit] = Utils.Utility.getBodyFor(homeRoom, this.baseBody, this.segment, this.partLimits);
-        let workCount = this.prototype[eLimit].filter(p => p == WORK).length
+        let workCount = this.prototype.getBody(homeRoom).filter(p => p == WORK).length
 
         // Calculate UsedFactor
         const timeToFill = Math.ceil(50 / (workCount * 2)) * 2;

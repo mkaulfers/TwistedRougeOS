@@ -56,6 +56,22 @@ export class NetworkTrucker extends Trucker {
         return dist;
     }
 
+    costForRemoteSource(room: Room, sourceDetails: SourceDetails, energyPerTick: number): number {
+        if (!room.storage || typeof sourceDetails.carryReq !== 'number' || typeof sourceDetails.dist !== "number") return 0;
+
+        // Get Carry on Body
+        const body = this.getBody(room)
+        if (!body || body.length === 0) return 0;
+        const bodyCost = Utils.Utility.bodyCost(body);
+        const carryPerCreep = body.filter((p) => p === CARRY).length;
+        if (!carryPerCreep) return 0;
+
+        // Get creep count and Convert to cost
+        const result = bodyCost * Math.ceil(sourceDetails.carryReq / carryPerCreep);
+
+        return result ?? 0;
+    }
+
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
         nTrucker_transporting: function (creep: Creep) {
             let creepId = creep.id
