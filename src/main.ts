@@ -131,6 +131,10 @@ function displayDevControlsToggle() {
   console.log(`${global.button(`Dev Controls ${global.showDevControls == true ? "On" : "Off"}`, `toggleDevControlVisibility()`, global.showDevControls == true)}`)
 }
 
+function displayDevControlsToggle() {
+  console.log(`${global.button(`Dev Controls ${global.showDevControls == true ? "On" : "Off"}`, `toggleDevControlVisibility()`, global.showDevControls == true)}`)
+}
+
 function clearConsole() {
   for (let i = 0; i < 100; i++) {
     console.log()
