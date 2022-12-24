@@ -112,7 +112,7 @@ function loggingProcess() {
 }
 
 function displayCpuStats() {
-  if (!global.enableCPULogging) return 
+  if (!global.enableCPULogging) return
   let cpuStats =
     `<div style='width: 50vw; text-align: left; align-items: left; justify-content: center; display: inline-block; background: ${colors.lightGrey};'><div style='background: ${colors.lightGrey}; padding: 2px; font-size: 18px; font-weight: 600; color: ${colors.darkBlue};'>============== CPU STATS ==============</div>` +
     `<div style='height:20px;width:${global.kernel.estimatedQueueCpuCost() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>Average: ${global.kernel.estimatedQueueCpuCost().toString().substring(0, 4)}</div>` +
@@ -125,53 +125,55 @@ function displayCpuDetailedStats() {
     for (let [, value] of global.scheduler.processQueue) {
       console.log(value.toString())
     }
-}
-
-function displayDevControlsToggle() {
-  console.log(`${global.button(`Dev Controls ${global.showDevControls == true ? "On" : "Off"}`, `toggleDevControlVisibility()`, global.showDevControls == true)}`)
-}
-
-function clearConsole() {
-  for (let i = 0; i < 100; i++) {
-    console.log()
   }
 }
 
-function setupStats() {
-  Memory.stats = {
-    gcl: Game.gcl,
-    gpl: Game.gpl,
-    cpu: {
-      bucket: Game.cpu.bucket,
-      usage: Game.cpu.getUsed(),
-      limit: Game.cpu.limit,
-    },
-    resources: {
-      pixels: Game.resources[PIXEL],
-      cpuUnlock: Game.resources[CPU_UNLOCK],
-      accessKey: Game.resources[ACCESS_KEY],
-    },
-    roomCount: Object.keys(Game.rooms).length,
-    creepCount: Object.keys(Game.creeps).length,
-    spawnCount: Object.keys(Game.spawns).length,
-    constructionSiteCount: Object.keys(Game.constructionSites).length,
-    flagCount: Object.keys(Game.flags).length,
-    rooms: {},
-  };
+  function displayDevControlsToggle() {
+    console.log(`${global.button(`Dev Controls ${global.showDevControls == true ? "On" : "Off"}`, `toggleDevControlVisibility()`, global.showDevControls == true)}`)
+  }
 
-  Object.entries(Game.rooms).forEach(([name, room]) => {
-    if (room.controller && room.controller.my) {
-      Memory.stats.rooms[name] = {
-        controller: {
-          level: room.controller.level,
-          progress: room.controller.progress,
-          progressTotal: room.controller.progressTotal,
-        },
-        energyAvailable: room.energyAvailable,
-        energyCapacityAvailable: room.energyCapacityAvailable,
-        energyInStorage: room.storage ? room.storage.store.energy : 0,
-        energyInTerminal: room.terminal ? room.terminal.store.energy : 0,
-      };
+  function clearConsole() {
+    for (let i = 0; i < 100; i++) {
+      console.log()
     }
-  });
-}
+  }
+
+  function setupStats() {
+    Memory.stats = {
+      gcl: Game.gcl,
+      gpl: Game.gpl,
+      cpu: {
+        bucket: Game.cpu.bucket,
+        usage: Game.cpu.getUsed(),
+        limit: Game.cpu.limit,
+      },
+      resources: {
+        pixels: Game.resources[PIXEL],
+        cpuUnlock: Game.resources[CPU_UNLOCK],
+        accessKey: Game.resources[ACCESS_KEY],
+      },
+      roomCount: Object.keys(Game.rooms).length,
+      creepCount: Object.keys(Game.creeps).length,
+      spawnCount: Object.keys(Game.spawns).length,
+      constructionSiteCount: Object.keys(Game.constructionSites).length,
+      flagCount: Object.keys(Game.flags).length,
+      rooms: {},
+    };
+
+
+    Object.entries(Game.rooms).forEach(([name, room]) => {
+      if (room.controller && room.controller.my) {
+        Memory.stats.rooms[name] = {
+          controller: {
+            level: room.controller.level,
+            progress: room.controller.progress,
+            progressTotal: room.controller.progressTotal,
+          },
+          energyAvailable: room.energyAvailable,
+          energyCapacityAvailable: room.energyCapacityAvailable,
+          energyInStorage: room.storage ? room.storage.store.energy : 0,
+          energyInTerminal: room.terminal ? room.terminal.store.energy : 0,
+        };
+      }
+    });
+  }
