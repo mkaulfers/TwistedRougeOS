@@ -6,7 +6,6 @@ import CreepClasses from "Creeps/Index"
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
 import { Role } from "Constants/RoleConstants"
-import { Task } from "Constants/TaskConstants"
 export default class CreepManager {
     static scheduleCreepTask(room: Room) {
         Utils.Logger.log("Room -> scheduleCreepTask()", TRACE)
@@ -17,7 +16,7 @@ export default class CreepManager {
 
             let activeRole = CreepClasses[creep.memory.role as Role];
             if (!activeRole || !creep.memory.task) continue;
-            let task: ((creep: Creep) => void) | undefined = activeRole.tasks[creep.memory.task as Task];
+            let task: ((creep: Creep) => void) | undefined = activeRole.tasks[creep.memory.task];
             if (!task) continue;
             task(creep);
         }

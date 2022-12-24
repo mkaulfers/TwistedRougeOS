@@ -39,16 +39,16 @@ declare global {
     rooms: {
       [roomName: string]: {
         controller: {
-          level: number,
-          progress: number,
-          progressTotal: number
-        },
-        energyAvailable: number,
-        energyCapacityAvailable: number,
-        energyInStorage: number,
-        energyInTerminal: number
-      }
-    }
+          level: number;
+          progress: number;
+          progressTotal: number;
+        };
+        energyAvailable: number;
+        energyCapacityAvailable: number;
+        energyInStorage: number;
+        energyInTerminal: number;
+      };
+    };
   }
     interface CreepMemory {
         assignedPos?: number

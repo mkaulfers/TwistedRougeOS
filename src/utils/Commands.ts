@@ -27,9 +27,10 @@ declare global {
             function setLogLevel(level: string): string;
             function schedule(name: string, full?: boolean): string;
             function reschedule(name: string): string;
+
 }
 
-global.help = function(cmd: string) {
+global.help = function(cmd) {
     let response = '';
     switch (cmd) {
 
@@ -139,7 +140,7 @@ Object.defineProperty(global, 'destroyCreeps', {
     }
 });
 
-global.destroyCreepsInRoom = function(name: string) {
+global.destroyCreepsInRoom = function(name) {
     let room = Game.rooms[name];
     if (!room) return `The chosen room is not in vision.`
     global.Cache.cmd.destroyCreepsInRoom = !global.Cache.cmd.destroyCreepsInRoom;
@@ -165,7 +166,7 @@ Object.defineProperty(global, 'destroyStructures', {
     }
 });
 
-global.destroyStructuresInRoom = function(name: string) {
+global.destroyStructuresInRoom = function(name) {
     global.Cache.cmd.destroyStructuresInRoom = !global.Cache.cmd.destroyStructuresInRoom;
     if (global.Cache.cmd.destroyStructuresInRoom == true) {
         let room = Game.rooms[name];
@@ -187,7 +188,7 @@ Object.defineProperty(global, 'destroyCSites', {
     }
 });
 
-global.destroyCSitesInRoom = function(name: string) {
+global.destroyCSitesInRoom = function(name) {
     global.Cache.cmd.destroyStructuresInRoom = !global.Cache.cmd.destroyStructuresInRoom;
     if (global.Cache.cmd.destroyStructuresInRoom == true) {
         for (const cSite of Object.values(Game.constructionSites)) {
@@ -198,7 +199,7 @@ global.destroyCSitesInRoom = function(name: string) {
     } else return `To confirm your choice to kill all cSites for ${name}, please resend the command.`
 }
 
-global.setLogLevel = function(level: string) {
+global.setLogLevel = function(level) {
     level = level.toUpperCase();
     for (const logLevel of LogLevels) {
         if (logLevel.includes(level)) {
@@ -230,7 +231,7 @@ global.schedule = function(name, full) {
     }
 }
 
-global.reschedule = function(name: string) {
+global.reschedule = function(name) {
     let room = Game.rooms[name];
     if (!room) return `The chosen room is not one of ours.`
     if (!room.cache.spawnSchedules) return `Schedule for ${name} not found.`
