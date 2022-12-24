@@ -205,7 +205,7 @@ export class NetworkHarvester extends CreepRole {
                     } else {
                         // Use memory to precisely clean up remoteSites
                         let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
-                        if (homeRoomMemory.remoteSites) {
+                        if (creepMemory.remoteTarget[0].roomName && homeRoomMemory.remoteSites) {
                             let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName];
                             if (!remoteDetail) return FATAL;
                             let index = remoteDetail.assignedHarvIds.indexOf(creepId);
