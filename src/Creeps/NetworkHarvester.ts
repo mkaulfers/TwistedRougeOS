@@ -374,7 +374,7 @@ export class NetworkHarvester extends CreepRole {
         if (!sourceDetails.dist) return ERR_INVALID_TARGET;
 
         // Get Body
-        let workCount = this.prototype.getBody(homeRoom).filter(p => p == WORK).length
+        let workCount = creep.workParts;
 
         // Calculate UsedFactor
         const timeToFill = Math.ceil(50 / (workCount * 2)) * 2;

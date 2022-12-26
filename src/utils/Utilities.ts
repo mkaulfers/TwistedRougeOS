@@ -1,4 +1,4 @@
-import { TRACE } from 'Constants/LogConstants';
+import { DEBUG, ERROR, TRACE } from 'Constants/LogConstants';
 import { HUB } from 'Constants/StampConstants';
 import { Logger } from './Logger';
 
@@ -183,6 +183,10 @@ export default class Utility {
      */
     static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], opts?: getBodyForOpts): BodyPartConstant[] {
         Logger.log("SpawnManager -> getBodyFor()", TRACE)
+        if (!baseBody) {
+            Logger.log(`getBodyFor' tempBody was undefined! baseBody: ${baseBody} \n tempSegment: ${segment}`, DEBUG);
+            return [];
+        }
 
         let tempBody = [...baseBody];
         let tempSegment = [...segment];
@@ -262,7 +266,11 @@ export default class Utility {
      */
     static buildPartLimits(tempBody: BodyPartConstant[], tempSegment: BodyPartConstant[]): number[] {
         Logger.log("SpawnManager -> buildPartLimits()", TRACE)
-        // Separate delivered from used
+        if (!tempBody) {
+            Logger.log(`buildPartLimits' tempBody was undefined! tempBody: ${tempBody} \n tempSegment: ${tempSegment}`, DEBUG);
+            return [];
+        }
+        // Separate delivered bodies from used
         let usedBody = [...tempBody];
         let usedSegment = [...tempSegment];
 
