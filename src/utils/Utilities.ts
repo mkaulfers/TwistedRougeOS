@@ -359,26 +359,28 @@ export default class Utility {
     }
 
     static getRoomNamesInRange(roomName: string, range: number): string[] {
-        let parsed = roomName.match(/^[WE]([0-9]+)[NS]([0-9]+)$/);
+        let parsed = roomName.match(/^([WE])([0-9]+)([NS])([0-9]+)$/);
         if (!parsed) throw new Error('Invalid room name');
 
         let roomNames: string[] = [];
         for (let x = -1 * range; x <= range; x++) {
             for (let y = -1 * range; y <= range; y++) {
                 // Handle x
-                let longitude = Number(parsed[1]) - x;
-                let longDir = parsed[0];
+                let longitude = Number(parsed[2]) - x;
+                let longDir = parsed[1];
                 if (longitude < 0) {
                     if (longDir.includes('W')) longDir = 'E';
                     else longDir = 'W'
+                    longitude = (longitude * -1) - 1;
                 }
 
                 // Handle y
-                let latitude = Number(parsed[3]) - y;
-                let latDir = parsed[0];
+                let latitude = Number(parsed[4]) - y;
+                let latDir = parsed[3];
                 if (latitude < 0) {
                     if (latDir.includes('N')) latDir = 'S';
                     else latDir = 'N'
+                    latitude = (latitude * -1) - 1;
                 }
 
                 // Build roomName and push.
