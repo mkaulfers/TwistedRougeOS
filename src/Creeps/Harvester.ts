@@ -40,8 +40,7 @@ export class Harvester extends CreepRole {
         if (min && min == true) return harCount < sourceCount ? 1 : 0;
 
         // Determine max needed harvesters based on harvest efficiency and valid spaces around source
-        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
-        let body = this[room.spawnEnergyLimit];
+        let body = this.getBody(room);
         let shouldBe = Math.ceil((sourceCount * 5) / (body.filter(p => p == WORK).length));
         let maxPositions = 0;
         room.sources.forEach(s => maxPositions += s.validPositions?.length ?? 0);

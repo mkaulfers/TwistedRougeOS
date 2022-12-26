@@ -19,10 +19,10 @@ export default class LinkManager {
             if (!room || !room.my) return FATAL;
 
             // Identify links
-            if (!room.cache.links ||
+            if (!room.cache.linkStates ||
                 (Game.time % 250 == 0 &&
-                room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_LINK } }).length !== Object.keys(room.cache.links).length)) {
-                room.cache.links = {};
+                room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_LINK } }).length !== Object.keys(room.cache.linkStates).length)) {
+                room.cache.linkStates = {};
                 let links = room.links;
 
                 // Define Link States
@@ -30,20 +30,20 @@ export default class LinkManager {
                     link = link;
 
                     if (link.pos.findInRange(FIND_SOURCES, 2).length > 0 || link.pos.findInRange(FIND_EXIT, 2).length > 0) {
-                        room.cache.links[link.id] = INPUT;
+                        room.cache.linkStates[link.id] = INPUT;
                     }
                     if (room.controller && link.pos.getRangeTo(room.controller.pos.x, room.controller.pos.y) <= 3) {
-                        if (room.cache.links[link.id] == INPUT) {
-                            room.cache.links[link.id] = BOTH;
+                        if (room.cache.linkStates[link.id] == INPUT) {
+                            room.cache.linkStates[link.id] = BOTH;
                         } else {
-                            room.cache.links[link.id] = OUTPUT;
+                            room.cache.linkStates[link.id] = OUTPUT;
                         }
                     }
                     if (room.storage && link.pos.getRangeTo(room.storage.pos.x, room.storage.pos.y) <= 2) {
-                        room.cache.links[link.id] = BOTH;
+                        room.cache.linkStates[link.id] = BOTH;
                     }
-                    if (!room.cache.links[link.id]) {
-                        room.cache.links[link.id] = OUTPUT;
+                    if (!room.cache.linkStates[link.id]) {
+                        room.cache.linkStates[link.id] = OUTPUT;
                     }
                 }
             }
@@ -52,7 +52,7 @@ export default class LinkManager {
             let links = room.links;
             if (!links) return RUNNING;
 
-            let linkStates = room.cache.links;
+            let linkStates = room.cache.linkStates;
             if (!linkStates) return;
 
             let targetLinks = links.filter((l) => { return ([OUTPUT, BOTH].indexOf(linkStates[l.id]) >= 0 &&
