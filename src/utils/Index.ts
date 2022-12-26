@@ -1,5 +1,5 @@
 import { Logger } from './Logger';
-import { Utility } from './Utilities';
+import Utility from './Utilities';
 import { ErrorMapper } from './ErrorMapper';
 import Typeguards from './Typeguards';
 

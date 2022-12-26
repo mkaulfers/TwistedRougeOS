@@ -30,10 +30,7 @@ export class NetworkTrucker extends Trucker {
         let remotes = room.memory.remoteSites || {}
 
         // Determine total work per planned body
-        if (!this.partLimits || this.partLimits.length == 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
-        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
-        let body = this[room.spawnEnergyLimit];
-        let carryCount = body.filter(p => p == CARRY).length
+        let carryCount = this.getBody(room).filter(p => p == CARRY).length
         if (carryCount === 0 || !carryCount) Utils.Logger.log(`Carry Count for nTruckers was ${carryCount}! This is a failure mode!`, ERROR);
 
         // Determine quantity needed to meet all carryRequisites per source.

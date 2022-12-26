@@ -1,11 +1,23 @@
-import { TRACE } from 'Constants/LogConstants';
+import { DEBUG, ERROR, TRACE } from 'Constants/LogConstants';
 import { HUB } from 'Constants/StampConstants';
 import { Logger } from './Logger';
+
 interface IPrototype {
     prototype?: any
 }
 
-export class Utility {
+export interface getBodyForOpts {
+    /** Used to directly set the energy limit for the body generation. */
+    eLimit?: number,
+    /** Used to directly set the maximum body size for the body generation. */
+    sizeLimit?: number,
+    /** Use energy capacity max instead of room.spawnEnergyLimit to determine energy limit for body generation. */
+    overrideELimit?: boolean,
+    /** Override the sort order for body generation. */
+    sortOrder?: { [key in BodyPartConstant]?: number }
+}
+
+export default class Utility {
     static packPosition(pos: RoomPosition): number
     static packPosition(pos: { wx: number, wy: number }): number
     static packPosition(pos: any): number {
@@ -169,8 +181,12 @@ export class Utility {
      * @param opts.sizeLimit Set max body size. Defaults to 50.
      * Defaults to TOUGH, WORK, ATTACK, RANGED_ATTACK, CARRY, MOVE, HEAL, and CLAIM with values ranging from 0-7 respectively.
      */
-    static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], opts?: { sizeLimit?: number, overrideELimit?: boolean, sortOrder?: { [key in BodyPartConstant]?: number } }): BodyPartConstant[] {
+    static getBodyFor(room: Room, baseBody: BodyPartConstant[], segment: BodyPartConstant[], partLimits?: number[], opts?: getBodyForOpts): BodyPartConstant[] {
         Logger.log("SpawnManager -> getBodyFor()", TRACE)
+        if (!baseBody) {
+            Logger.log(`getBodyFor' tempBody was undefined! baseBody: ${baseBody} \n tempSegment: ${segment}`, DEBUG);
+            return [];
+        }
 
         let tempBody = [...baseBody];
         let tempSegment = [...segment];
@@ -190,7 +206,7 @@ export class Utility {
 
         // Determine energy limit for body generation
         // Current limit: No single creep consumes more than a 20th of our income.
-        let eLimit: number = room.spawnEnergyLimit;
+        let eLimit: number = opts?.eLimit ?? room.spawnEnergyLimit;
         if (opts && opts.overrideELimit === true) eLimit = room.energyCapacityAvailable;
 
         // Expand tempBody to correct size given limits
@@ -250,7 +266,11 @@ export class Utility {
      */
     static buildPartLimits(tempBody: BodyPartConstant[], tempSegment: BodyPartConstant[]): number[] {
         Logger.log("SpawnManager -> buildPartLimits()", TRACE)
-        // Separate delivered from used
+        if (!tempBody) {
+            Logger.log(`buildPartLimits' tempBody was undefined! tempBody: ${tempBody} \n tempSegment: ${tempSegment}`, DEBUG);
+            return [];
+        }
+        // Separate delivered bodies from used
         let usedBody = [...tempBody];
         let usedSegment = [...tempSegment];
 
@@ -336,5 +356,38 @@ export class Utility {
         }
 
         return PathFinder.CostMatrix.deserialize(JSON.parse(room.cache.pathfindingCM));
+    }
+
+    static getRoomNamesInRange(roomName: string, range: number): string[] {
+        let parsed = roomName.match(/^([WE])([0-9]+)([NS])([0-9]+)$/);
+        if (!parsed) throw new Error('Invalid room name');
+
+        let roomNames: string[] = [];
+        for (let x = -1 * range; x <= range; x++) {
+            for (let y = -1 * range; y <= range; y++) {
+                // Handle x
+                let longitude = Number(parsed[2]) - x;
+                let longDir = parsed[1];
+                if (longitude < 0) {
+                    if (longDir.includes('W')) longDir = 'E';
+                    else longDir = 'W'
+                    longitude = (longitude * -1) - 1;
+                }
+
+                // Handle y
+                let latitude = Number(parsed[4]) - y;
+                let latDir = parsed[3];
+                if (latitude < 0) {
+                    if (latDir.includes('N')) latDir = 'S';
+                    else latDir = 'N'
+                    latitude = (latitude * -1) - 1;
+                }
+
+                // Build roomName and push.
+                roomNames.push(`${longDir}${longitude}${latDir}${latitude}`);
+            }
+        }
+
+        return roomNames;
     }
 }

@@ -26,6 +26,8 @@ declare global {
         work(target: Structure | ConstructionSite): number
 
         // Body Getters
+        /** Returns the creep's body in an array format. */
+        bodyArray: BodyPartConstant[]
         /** Counts active body parts of a creep. No provided part type will return full active size. */
         getBodyCount(part?: BodyPartConstant): number
         /** Active ATTACK body part count. */
@@ -342,6 +344,15 @@ export default class Creep_Extended extends Creep {
                 return result;
         }
         return OK;
+    }
+
+    private _bodyArray: BodyPartConstant[] | undefined;
+    get bodyArray() {
+        if (!this._bodyArray) {
+            this._bodyArray = [];
+            for (const partInfo of this.body) this._bodyArray.push(partInfo.type);
+        }
+        return this._bodyArray;
     }
 
     private _bodyCount: {[key in BodyPartConstant | 'all']: number} | undefined;
