@@ -205,7 +205,7 @@ export class NetworkHarvester extends CreepRole {
                     } else {
                         // Use memory to precisely clean up remoteSites
                         let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
-                        if (homeRoomMemory.remoteSites) {
+                        if (creepMemory.remoteTarget[0].roomName && homeRoomMemory.remoteSites) {
                             let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName];
                             if (!remoteDetail) return FATAL;
                             let index = remoteDetail.assignedHarvIds.indexOf(creepId);
@@ -338,8 +338,9 @@ export class NetworkHarvester extends CreepRole {
 
                     // Get assigned Harvesters and work count;
                     let assigned: Creep[] = [];
-                    for (const id of remoteDetails.assignedHarvIds) {
-                        let nHa = Game.getObjectById(id);
+                    for (const id in remoteDetails.assignedHarvIds) {
+                        let harvID = remoteDetails.assignedHarvIds[id];
+                        let nHa = Game.getObjectById(harvID);
                         if (nHa && nHa.memory.remoteTarget && nHa.memory.remoteTarget[0]?.targetId === sourceId) {
                             assigned.push(nHa);
                         } else {
