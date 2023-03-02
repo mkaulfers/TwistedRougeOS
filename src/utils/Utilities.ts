@@ -46,29 +46,29 @@ export default class Utility {
     }
 
     static distanceTransform(roomName: string): CostMatrix {
-        let vis = new RoomVisual(roomName)
+        const terrain = Game.map.getRoomTerrain(roomName);
+        const topDownPass = new PathFinder.CostMatrix();
 
-        let topDownPass = new PathFinder.CostMatrix();
+        // Perform top-down pass
         for (let y = 0; y < 50; ++y) {
             for (let x = 0; x < 50; ++x) {
-                if (Game.map.getRoomTerrain(roomName).get(x, y) == TERRAIN_MASK_WALL) {
-                    topDownPass.set(x, y, 0)
-                }
-                else {
+                if (terrain.get(x, y) === TERRAIN_MASK_WALL) {
+                    topDownPass.set(x, y, 0);
+                } else {
                     topDownPass.set(x, y,
-                        Math.min(topDownPass.get(x - 1, y - 1), topDownPass.get(x, y - 1),
-                            topDownPass.get(x + 1, y - 1), topDownPass.get(x - 1, y)) + 1)
+                        Math.min(topDownPass.get(x - 1, y - 1) ?? Infinity, topDownPass.get(x, y - 1) ?? Infinity,
+                            topDownPass.get(x + 1, y - 1) ?? Infinity, topDownPass.get(x - 1, y) ?? Infinity) + 1);
                 }
             }
         }
 
+        // Perform bottom-up pass
         for (let y = 49; y >= 0; --y) {
             for (let x = 49; x >= 0; --x) {
-                let value = Math.min(topDownPass.get(x, y),
+                const value = Math.min(topDownPass.get(x, y),
                     topDownPass.get(x + 1, y + 1) + 1, topDownPass.get(x, y + 1) + 1,
-                    topDownPass.get(x - 1, y + 1) + 1, topDownPass.get(x + 1, y) + 1)
-                topDownPass.set(x, y, value)
-                // vis.circle(x, y, { radius: value / 15 });
+                    topDownPass.get(x - 1, y + 1) + 1, topDownPass.get(x + 1, y) + 1);
+                topDownPass.set(x, y, value);
             }
         }
 
