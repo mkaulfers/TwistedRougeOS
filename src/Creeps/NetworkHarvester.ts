@@ -32,8 +32,7 @@ export class NetworkHarvester extends CreepRole {
         let networkHarvesters = rolesNeeded.filter(x => x == nHARVESTER).length
         let remotes = room.memory.remoteSites || {}
 
-        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
-        let workCount = this[room.spawnEnergyLimit].filter(p => p == WORK).length
+        let workCount = this.getBody(room).filter(p => p == WORK).length
 
         let finalCount = 0
         for (let remoteName in remotes) {
@@ -76,6 +75,8 @@ export class NetworkHarvester extends CreepRole {
         if (!dist) return 0;
         return dist;
     }
+
+
 
     readonly tasks: { [key in Task]?: (creep: Creep) => void } = {
         nHarvesting_early: function (creep: Creep) {
@@ -370,15 +371,10 @@ export class NetworkHarvester extends CreepRole {
     }
 
     private static preStorageAssignRemote(creep: Creep, homeRoom: Room, sourceWorkNeeded: number, sourceDetails: SourceDetails, assigned: Creep[], remoteRoomName: string, sourceId: Id<Source>): number {
-        // Fetch eLimit
         if (!sourceDetails.dist) return ERR_INVALID_TARGET;
-        let eLimit = homeRoom.cache.spawnSchedules && homeRoom.cache.spawnSchedules[0] ? homeRoom.cache.spawnSchedules[0].activeELimit : undefined;
-        if (!eLimit) eLimit = homeRoom.spawnEnergyLimit;
-        if (!eLimit) return ERR_INVALID_TARGET;
 
         // Get Body
-        if (!this.prototype[eLimit]) this.prototype[eLimit] = Utils.Utility.getBodyFor(homeRoom, this.baseBody, this.segment, this.partLimits);
-        let workCount = this.prototype[eLimit].filter(p => p == WORK).length
+        let workCount = creep.workParts;
 
         // Calculate UsedFactor
         const timeToFill = Math.ceil(50 / (workCount * 2)) * 2;
