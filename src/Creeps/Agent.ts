@@ -11,7 +11,7 @@ import { DefenseStructuresDetail, HostileStructuresDetail, PlayerDetail, Storage
 import { PortalDetail } from "Models/PortalDetail"
 import { Process } from "Models/Process"
 import { RoomStatistics } from "Models/RoomStatistics"
-import { Utils } from "utils"
+import { Utils } from "utils/Index";
 export class Agent extends CreepRole {
 
     readonly baseBody = [MOVE]
