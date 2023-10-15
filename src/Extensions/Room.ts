@@ -429,7 +429,7 @@ export default class Room_Extended extends Room {
     private _lowestSpawn: StructureSpawn | undefined
     get lowestSpawn() {
         if (!this._lowestSpawn) {
-            for (const spawn of this.spawns) if (spawn.store.energy < (this._lowestSpawn ? this._lowestSpawn.store : spawn.store.getCapacity(RESOURCE_ENERGY))) this._lowestSpawn = spawn
+            for (const spawn of this.spawns) if (spawn.store.energy < (this._lowestSpawn ? this._lowestSpawn.store.energy : spawn.store.getCapacity(RESOURCE_ENERGY))) this._lowestSpawn = spawn
         }
         return this._lowestSpawn
     }
@@ -437,7 +437,7 @@ export default class Room_Extended extends Room {
     private _lowestTower: StructureTower | undefined
     get lowestTower() {
         if (!this._lowestTower) {
-            for (const tower of this.towers) if (tower.store.energy < (this._lowestTower ? this._lowestTower.store : tower.store.getCapacity(RESOURCE_ENERGY))) this._lowestTower = tower
+            for (const tower of this.towers) if (tower.store.energy < (this._lowestTower ? this._lowestTower.store.energy : tower.store.getCapacity(RESOURCE_ENERGY))) this._lowestTower = tower
         }
         return this._lowestTower
     }
