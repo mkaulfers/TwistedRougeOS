@@ -1,5 +1,5 @@
-export const ALL = "All"
-export const OFF = "Off"
+export const ALL = "ALL"
+export const OFF = "OFF"
 export const TRACE = "[TRACE]"
 export const DEBUG = "[DEBUG]"
 export const INFO = "[INFO]"

@@ -3,7 +3,7 @@ import SpawnSchedule from 'Models/SpawnSchedule';
 import { RoomStatistics } from 'Models/RoomStatistics';
 import { Utils } from '../utils/Index';
 import { INFO } from 'Constants/LogConstants';
-import { CRITICAL } from 'Constants/ProcessPriorityConstants';
+import { CRITICAL, INDIFFERENT} from 'Constants/ProcessPriorityConstants';
 import { ProcessState, RUNNING } from 'Constants/ProcessStateConstants';
 import { Role } from 'Constants/RoleConstants';
 import { StampType } from 'Constants/StampConstants';
@@ -54,7 +54,7 @@ declare global {
     interface CreepMemory {
         assignedPos?: number
         homeRoom: string
-        remoteTarget?: { [roomName: string]: { targetId: Id<any>, x: number, y: number } }
+        remoteTarget?: { roomName: string, targetId: Id<Source> }[]
         role: Role
         target?: Id<any>
         task?: Task
@@ -92,21 +92,7 @@ declare global {
         rclSeven?: number
         rclEight?: number
 
-        // remotes?: RoomStatistics[]
-        remoteSites?: {
-            [roomName: string]: {
-                sourceDetail: {
-                    [sourceId: Id<Source>]: {
-                        posCount: number,
-                        x: number,
-                        y: number,
-                        assignedHarvIds: Id<Creep>[],
-                        assignedTruckerIds: Id<Creep>[],
-                        assignedEngIds: Id<Creep>[]
-                    }
-                }
-            }
-        }
+        remoteSites?: { [roomName: string]: RemoteDetails }
     }
 
     interface Memory {
@@ -119,16 +105,26 @@ declare global {
     // Add properties you wish to have stored in a room's cache in the interface below.
     // Refer to `const cacheTask` below if you make it a required property.
     interface RoomCache {
+        /** A generic pathfinding CM for a claimed room. */
         pathfindingCM?: string;
+        /** A CM that measures open space within a room. */
         openSpaceCM?: string;
-        links?: { [key: Id<StructureLink>]: string };
-        logisticsManager?: LogisticsManager
+        /** The states of each link. Used by LinkManager. */
+        linkStates?: { [key: Id<StructureLink>]: string };
+        /** A manual boolean that can be used by the player to pause spawning in a room. Used by Spawn Manager. */
         pauseSpawning?: boolean;
+        /** A count of the remotes targeted. Used by the Spawn Manager. */
         remotesCount?: number;
+        /** A remote room's property used to identify it's home room. */
         remoteOf?: string;
+        /** A claimed room's spawn schedules. */
         spawnSchedules?: SpawnSchedule[];
+        /** A claimed room's spawns and extensions, in a specific order. Used by anywhere that spawns creeps. */
         spawnEnergyStructIds?: Id<StructureSpawn | StructureExtension>[];
+        /** Active target of towers. Used by Threat Manager. */
         towerTarget?: Id<AnyCreep>;
+        /** Used by the Spawn Manager to detect when the storage is built, to reschedule the spawn schedule. */
+        storageBuilt?: boolean;
 
         recentlyAttacked?: boolean,
         attackedTime?: number,
@@ -138,10 +134,12 @@ declare global {
     interface CreepCache {
         dump?: Id<StructureLink | StructureContainer>;
         supply?: Id<StructureLink | StructureContainer>;
+        shouldSuicide?: boolean;
     }
 
     // The global Cache object. Consider it like `Memory`, it just gets rebuilt on a global reset.
     var Cache: {
+        age: number;
         rooms: { [key: string]: RoomCache },
         creeps: { [key: string]: CreepCache },
         cmd: { [key: string]: any },
@@ -171,7 +169,7 @@ export default class DataManager {
             }
         }
 
-        let process = new Process('memory_monitor', CRITICAL, memoryTask)
+        let process = new Process('memory_monitor', INDIFFERENT, memoryTask)
         global.scheduler.addProcess(process)
     }
 
@@ -182,6 +180,7 @@ export default class DataManager {
             // Build cache if deleted
             if (!global.Cache) global.Cache = {
                 // Add required properties of Cache here
+                age: -1,
                 rooms: {},
                 creeps: {},
                 cmd: {
@@ -200,6 +199,10 @@ export default class DataManager {
                     destroyCSitesInRoom: true,
                 }
             };
+
+            // Tick over cache age
+            global.Cache.age++;
+
             for (const roomName in Game.rooms) {
                 if (!global.Cache.rooms[roomName]) {
                     global.Cache.rooms[roomName] = {

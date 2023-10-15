@@ -18,9 +18,9 @@ export type ProcessPriority =
 export const ProcessPriorities: ProcessPriority[] = [
     CRITICAL,
     HIGH,
-    INDIFFERENT,
-    LOW,
-    MEDIUM,
     MEDIUM_HIGH,
-    MEDIUM_LOW
+    MEDIUM,
+    MEDIUM_LOW,
+    LOW,
+    INDIFFERENT,
 ]

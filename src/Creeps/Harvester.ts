@@ -1,10 +1,12 @@
 import { TRACE } from "Constants/LogConstants"
+import { MOVE_OPTS_CIVILIAN } from "Constants/MoveOptsConstants"
 import { LOW } from "Constants/ProcessPriorityConstants"
 import { FATAL, RUNNING, INCOMPLETE } from "Constants/ProcessStateConstants"
 import { Role, HARVESTER, TRUCKER } from "Constants/RoleConstants"
 import { HARVESTER_SOURCE, HARVESTER_EARLY, Task } from "Constants/TaskConstants"
 import CreepRole from "Models/CreepRole"
 import { Process } from "Models/Process"
+import { generatePath } from "screeps-cartographer"
 import { Utils } from "utils/Index"
 export class Harvester extends CreepRole {
 
@@ -32,15 +34,14 @@ export class Harvester extends CreepRole {
 
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
         Utils.Logger.log("quantityWanted -> harvester.quantityWanted()", TRACE)
-        let sources = room.sources.length;
+        let sourceCount = room.sources.length;
         let harCount = rolesNeeded.filter(x => x == HARVESTER).length
         let truckerCount = rolesNeeded.filter(x => x == TRUCKER).length
-        if (min && min == true) return harCount < sources ? 1 : 0;
+        if (min && min == true) return harCount < sourceCount ? 1 : 0;
 
         // Determine max needed harvesters based on harvest efficiency and valid spaces around source
-        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
-        let body = this[room.spawnEnergyLimit];
-        let shouldBe = Math.ceil((sources * 5) / (body.filter(p => p == WORK).length));
+        let body = this.getBody(room);
+        let shouldBe = Math.ceil((sourceCount * 5) / (body.filter(p => p == WORK).length));
         let maxPositions = 0;
         room.sources.forEach(s => maxPositions += s.validPositions?.length ?? 0);
 
@@ -53,7 +54,8 @@ export class Harvester extends CreepRole {
         // return exact IFF possible, else average
         let preSpawnOffset = 0;
         if (creep && creep.memory.assignedPos) {
-            preSpawnOffset = room.findPath(spawn.pos, Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name)).length * (creep.body.length - 2);
+            let path = generatePath(spawn.pos, [{ pos: Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name), range: 1}], MOVE_OPTS_CIVILIAN)
+            if (path) preSpawnOffset = path.length * (creep.body.length - 2);
         } else {
             let x = 0;
             let y = 0;
@@ -63,7 +65,7 @@ export class Harvester extends CreepRole {
             }
             x = Math.floor(x / room.sources.length);
             y = Math.floor(y / room.sources.length);
-            let modifier = creep ? creep.getActiveBodyparts(WORK) : 1;
+            let modifier = creep ? creep.workParts : 1;
             preSpawnOffset = room.findPath(spawn.pos, new RoomPosition(x >= 0 && x <= 49 ? x : 25, y >= 0 && y <= 49 ? y : 25, room.name)).length * modifier;
         }
         return preSpawnOffset;
@@ -172,7 +174,7 @@ export class Harvester extends CreepRole {
 
         // Prespawn targeting
         let matchingCreep = creep.room.stationedCreeps.harvester.find((c) => c.name !== creep.name && (c.name.substring(0,6) ?? '1') == (creep.name.substring(0,6) ?? '0'))
-        if (matchingCreep && matchingCreep.memory.assignedPos && _.all(creep.room.sources, (s) => s.isHarvestingAtMaxEfficiency)) {
+        if (matchingCreep && matchingCreep.memory.assignedPos && _.all(sources, (s) => s.fullyHarvesting)) {
             creep.memory.assignedPos = matchingCreep.memory.assignedPos;
             targetSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
         }
@@ -181,7 +183,7 @@ export class Harvester extends CreepRole {
         if (!creep.memory.assignedPos) {
             for (let source of sources) {
                 // Non-maxed targeting
-                if (!source.isHarvestingAtMaxEfficiency) {
+                if (!source.fullyHarvesting) {
                     targetSource = source;
                     let assignablePos = source.assignablePosition();
                     creep.memory.assignedPos = assignablePos ? Utils.Utility.packPosition(assignablePos) : undefined;

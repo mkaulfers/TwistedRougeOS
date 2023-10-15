@@ -1,7 +1,7 @@
 import { Utils } from "utils/Index";
 import { Stamps } from "Models/Stamps";
 import { getCutTiles, Rectangle, Coord } from './RampartPlanner';
-import { Utility } from './Utilities';
+import Utility from './Utilities';
 import { StampType, FAST_FILLER, HUB, LABS, EXTENSIONS, OBSERVER, TOWER, EXTENSION } from "Constants/StampConstants";
 
 const buildOrder: (StampType)[] = [

@@ -6,9 +6,17 @@ import RoomVisuals_Extended from './RoomVisuals';
 import Source_Extended from './Source';
 import Tower_Extended from './Tower';
 import Terminal_Extended from './Terminal';
-import { Utility } from 'utils/Utilities';
+import RoomPosition_Extended from './RoomPosition';
+import Game_Extended from './Game';
+
+import Utility from 'utils/Utilities';
+
+declare global {
+    var Game_Extended: Game_Extended;
+}
 
 export default function prototypeExtender(): void {
+    global.Game_Extended = new Game_Extended();
     Utility.extendClass(StructureController, Controller_Extended);
     Utility.extendClass(Creep, Creep_Extended);
     Utility.extendClass(Room, Room_Extended);
@@ -16,4 +24,5 @@ export default function prototypeExtender(): void {
     Utility.extendClass(Source, Source_Extended);
     Utility.extendClass(StructureTower, Tower_Extended);
     Utility.extendClass(StructureTerminal, Terminal_Extended);
+    Utility.extendClass(RoomPosition, RoomPosition_Extended);
 }

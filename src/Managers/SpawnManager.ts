@@ -91,7 +91,7 @@ export default class SpawnManager {
             // Conditional Reschedule Checks
 
             // Reschedule if remote count changes.
-            if (room.memory.remoteSites && !room.cache.remotesCount) room.cache.remotesCount = Object.keys(room.memory.remoteSites).length
+            if (room.memory.remoteSites && (!room.cache.remotesCount || (Game.time - 1) % 750 === 0)) room.cache.remotesCount = Object.keys(room.memory.remoteSites).length;
             if (Game.time % 100 === 0 && room.memory.remoteSites && room.cache.remotesCount !== Object.keys(room.memory.remoteSites).length) {
                 for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
                 room.cache.remotesCount = Object.keys(room.memory.remoteSites).length;
@@ -100,7 +100,12 @@ export default class SpawnManager {
             // Construction Manager Ran and Placed cSites
             if ((Game.time - 1) % 1500 === 0 && room.constructionSites().length > 5) for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
 
-            //
+            // IFF Storage just built, reschedule
+            if (!room.storage) room.cache.storageBuilt = false;
+            else if (room.cache.storageBuilt === false && room.storage) {
+                for (const spawnSchedule of spawnSchedules) spawnSchedule.reset();
+                room.cache.storageBuilt = true;
+            }
 
             // History Check: Respawn prematurely dead creeps if room.
             if (Game.time % 25 === 0) {
@@ -165,10 +170,7 @@ export default class SpawnManager {
             let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
             const theRole = CreepClasses[role];
             if (!theRole) continue;
-            if (!theRole.partLimits || theRole.partLimits.length == 0) theRole.partLimits = Utils.Utility.buildPartLimits(theRole.baseBody, theRole.segment);
-            let partLimits: number[] = theRole.partLimits;
-            if (!theRole[room.spawnEnergyLimit]) theRole[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, theRole.baseBody, theRole.segment, partLimits);
-            let body = theRole[room.spawnEnergyLimit];
+            let body = theRole.getBody(room);
 
             if (body.length === 0) {
                 Utils.Logger.log(`SpawnManager.getBodyFor(${room.name}, ${role}) returned an empty body. WHY?!`, ERROR);

@@ -63,7 +63,6 @@ function execute() {
 
 function end() {
   //TODO: Serialize scheduler and kernel.
-  RESOURCES_ALL
 }
 
 function displaySimpleStats() {
@@ -108,14 +107,15 @@ function displaySimpleStats() {
 }
 
 function loggingProcess() {
-  displaySimpleStats()
-  if (Utils.Logger.devLogLevel == DEBUG ||
-    Utils.Logger.devLogLevel == ALL ||
-    Utils.Logger.devLogLevel == INFO) {
-    for (let [, value] of global.scheduler.processQueue) {
-      console.log(value.toString())
+    console.log(`Game Tick: ${Game.time}, or Ticks til next 1500: ${1500 - (Game.time % 1500)}`)
+    displaySimpleStats()
+    if (Utils.Logger.devLogLevel == DEBUG ||
+        Utils.Logger.devLogLevel == ALL ||
+        Utils.Logger.devLogLevel == INFO) {
+        for (let [, value] of global.scheduler.processQueue) {
+        console.log(value.toString())
+        }
     }
-  }
 }
 
 function clearConsole() {

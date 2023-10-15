@@ -25,15 +25,13 @@ export class Scientist extends CreepRole {
         let controller = room.controller
         if (!controller) return 0
         let sciCount = rolesNeeded.filter(x => x == SCIENTIST).length
-        let sources = room.sources.length;
-        if (min && min == true) return rolesNeeded.filter(x => x == HARVESTER).length < sources ? 0 : 1 - sciCount;
+        let sourceCount = room.sources.length;
+        if (min && min == true) return rolesNeeded.filter(x => x == HARVESTER).length < sourceCount ? 0 : 1 - sciCount;
 
         if (!room.storage) return 0;
 
-        let energyIncome = room.energyIncome == 0 ? room.sources.length * 10 : room.energyIncome;
-        if (!this.partLimits || this.partLimits.length == 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
-        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
-        let bodyWorkCount = this[room.spawnEnergyLimit].filter(p => p == WORK).length;
+        let energyIncome = room.energyIncome == 0 ? sourceCount * 10 : room.energyIncome;
+        let bodyWorkCount = this.getBody(room).filter(p => p == WORK).length;
 
         let shouldBe = Math.ceil((controller.level == 8 ? 15 : energyIncome / 4) / bodyWorkCount);
         if (room.storage && room.storage.store.energy > 500000 && controller.level !== 8) shouldBe = Math.ceil(energyIncome * 2) / bodyWorkCount;
@@ -44,9 +42,8 @@ export class Scientist extends CreepRole {
         if (!room || !spawn || !room.controller) return 0;
 
         // Calculate Move Speed
-        if (!this.partLimits || this.partLimits.length == 0) this.partLimits = Utils.Utility.buildPartLimits(this.baseBody, this.segment);
-        if (!this[room.spawnEnergyLimit]) this[room.spawnEnergyLimit] = Utils.Utility.getBodyFor(room, this.baseBody, this.segment, this.partLimits);
-        let body = this[room.spawnEnergyLimit];
+        let body = this.getBody(room);
+
         let moveCount = body.filter(p => p == MOVE).length;
         let moveRate = (body.length - moveCount) / (moveCount * 2)
 

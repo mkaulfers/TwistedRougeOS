@@ -92,8 +92,7 @@ export class Engineer extends CreepRole {
         let harCount = rolesNeeded.filter(x => x == HARVESTER).length;
         if (harCount == 0 &&
             rolesNeeded.filter(x => x == TRUCKER).length == 0) return 0;
-        let sources = room.sources.length;
-        if (min && min == true) return harCount < sources ? 0 : 1 - engineerCount;
+        if (min && min == true) return harCount < room.sources.length ? 0 : 1 - engineerCount;
         if (room.constructionSites().length == 0 && room.find(FIND_STRUCTURES).length == 0 ) return 0;
         if (room.storage && room.storage.store.energy < 50000) return engineerCount < 1 ? 1 : 0;
         if (room.constructionSites().length > 5) return engineerCount < 2 ? 2 - engineerCount : 0;
@@ -122,7 +121,7 @@ export class Engineer extends CreepRole {
                 if (working) {
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         let potentialTargets: ConstructionSite[] = creep.room.find(FIND_CONSTRUCTION_SITES);
-                        potentialTargets = Utils.Utility.organizeTargets('hits', potentialTargets, { needs: true })
+                        potentialTargets = Utils.Utility.organizeTargets('hits', potentialTargets, { needs: true, order: 'asc' })
 
                         if (potentialTargets.length > 0) {
                             creep.memory.target = potentialTargets[0].id;
