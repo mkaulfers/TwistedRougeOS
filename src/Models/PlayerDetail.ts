@@ -1,4 +1,4 @@
-import { Coord } from "screeps-cartographer/dist/utils/packrat"
+import { Coord } from "screeps-cartographer"
 
 export class PlayerDetail {
     username?: string

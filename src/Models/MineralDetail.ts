@@ -1,4 +1,4 @@
-import { Coord } from "screeps-cartographer/dist/utils/packrat"
+import { Coord } from "screeps-cartographer"
 export class MineralDetail {
     id: Id<Mineral>
     mineralType: MineralConstant
@@ -26,3 +26,4 @@ export class SourceDetail implements SourceDetails {
         this.posCount = posCount;
     }
 }
+
