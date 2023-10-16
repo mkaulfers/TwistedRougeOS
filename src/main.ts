@@ -9,6 +9,7 @@ import { memHack } from "Models/MemHack";
 import { colors } from "Models/Process";
 import { preTick, reconcileTraffic } from 'screeps-cartographer';
 import { ALL, DEBUG, INFO } from "Constants/LogConstants";
+import { cpuUsage } from "process";
 declare global {
   interface RawMemory {
     [key: string]: any
@@ -64,30 +65,52 @@ function end() {
   //TODO: Serialize scheduler and kernel.
 }
 
-function displaySimpleStats() {
-  // let cpuStats = `<div style='width: 50vw; text-align: left; align-items: left; justify-content: left; display: inline-block; background: ${colors.lightGrey};'><div style='padding: 2px; font-size: 18px; font-weight: 600; color: ${colors.black};'>============== CPU STATS ==============` +
-  // `<div style='height:20px;width:${global.kernel.estimatedQueueCpuCost() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>Avg: ${global.kernel.estimatedQueueCpuCost().toString().substring(0, 4)}</div>` +
-  // `<div style='height:20px;width:${Game.cpu.getUsed() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'> Current: ${Game.cpu.getUsed().toString().substring(0, 4)}</div>`
-
+function displaySimpleStats(): string {
   let cpuStats =
-    `<div style='width: 50vw; text-align: left; align-items: left; justify-content: center; display: inline-block; background: ${colors.lightGrey};'><div style='background: ${colors.lightGrey}; padding: 2px; font-size: 18px; font-weight: 600; color: ${colors.darkBlue};'>============== CPU STATS ==============</div>` +
-    `<div style='height:20px;width:${global.kernel.estimatedQueueCpuCost() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>Average: ${global.kernel.estimatedQueueCpuCost().toString().substring(0, 4)}</div>` +
-    `<div style='height:20px;width:${Game.cpu.getUsed() * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>Current: ${Game.cpu.getUsed().toString().substring(0, 4)}</div>`
+  `<div style="justify-content: space-around; display: flex; background-color: #1E1E1E; font-size: 12px; border-radius: 10px; margin: 10px; padding: 10px; box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.75);">` +
+      `<div style="display: flex; flex-direction: row; align-items: center; margin: 10px 0; justify-content: space-around;">` +
+          `<div style="display: flex; flex-direction: row; align-items: center; margin: 10px 0;">` +
+              `<div style="display: flex; flex-direction: column; background-color: gray; width: 20px; height: 100px; border-radius: 10px; margin-right: 10px;">` +
+                  `<div style="background-color: ${colors.green}; width: 20px; height: ` + ((global.kernel.estimatedQueueCpuCost() / Game.cpu.limit) * 100) + `px; border-radius: 10px; margin-top: auto;"></div>` +
+              `</div>` +
+              `<div>` +
+                  `<h1 style="color: gray; font-size: 8px; margin-top: 0; margin-bottom: 4px;">Average</h1>` +
+                  `<p style="color: white; font-size: 16px; margin-top: 0;">` + global.kernel.estimatedQueueCpuCost().toString().substring(0, 4) + `</p>` +
+              `</div>` +
+          `</div>` +
+          `<div style="display: flex; flex-direction: row; align-items: center; margin: 10px 0;">` +
+              `<div style="display: flex; flex-direction: column; background-color: gray; width: 20px; height: 100px; border-radius: 10px; margin-right: 10px;">` +
+                  `<div style="background-color: ${colors.green}; width: 20px; height: ` + (Game.cpu.getUsed() / Game.cpu.limit * 100) + `px; border-radius: 10px; margin-top: auto;"></div>` +
+              `</div>` +
+              `<div>` +
+                  `<h1 style="color: gray; font-size: 8px; margin-top: 0; margin-bottom: 4px;">Current</h1>` +
+                  `<p style="color: white; font-size: 16px; margin-top: 0;">` + Game.cpu.getUsed().toString().substring(0, 4) + `</p>` +
+              `</div>` +
+          `</div>` +
+      `</div>` +
+  `</div>`;
 
-  console.log()
-  console.log(cpuStats)
+  return cpuStats
 }
 
 function loggingProcess() {
-    console.log(`Game Tick: ${Game.time}, or Ticks til next 1500: ${1500 - (Game.time % 1500)}`)
-    displaySimpleStats()
-    if (Utils.Logger.devLogLevel == DEBUG ||
-        Utils.Logger.devLogLevel == ALL ||
-        Utils.Logger.devLogLevel == INFO) {
-        for (let [, value] of global.scheduler.processQueue) {
-        console.log(value.toString())
-        }
-    }
+  console.log(`Game Tick: ${Game.time}, or Ticks til next 1500: ${1500 - (Game.time % 1500)}`);
+
+  if (Utils.Logger.devLogLevel == DEBUG ||
+      Utils.Logger.devLogLevel == ALL ||
+      Utils.Logger.devLogLevel == INFO) {
+
+      let containerString = '<div style="display: flex; flex-direction: row; flex-wrap: wrap; justify-content: start; width: 100%">';
+      containerString += displaySimpleStats();
+
+      for (let [, value] of global.scheduler.processQueue) {
+          containerString += value.toString();
+      }
+
+      containerString += '</div>';
+
+      console.log(containerString);
+  }
 }
 
 function clearConsole() {

@@ -55,9 +55,54 @@ export class Process {
     }
 
     toString() {
-        return `<body><div style='width: 50vw; text-align: left; align-items: left; justify-content: left; display: inline-block; background: ${colors.lightGrey};'><div style='padding: 2px; font-size: 18px; font-weight: 600; color: ${colors.black};'>${this.id}<br>` +
-               `<div style='width: 50vw; text-align: left; align-items: left; justify-content: left; display: inline-block; background: ${colors.white};'><div style='padding: 2px; font-size: 14px; font-weight: 500; color: ${colors.brown};'>${this.currentPriority}<br>` +
-               `<div style='height:20px;width:${this.cpuUsedHistory[this.cpuUsedHistory.length - 1] * 100 / Game.cpu.limit}%; background: ${colors.green}; justify-content: center; color: ${colors.black};'>${this.cpuUsedHistory[this.cpuUsedHistory.length - 1].toString().substring(0, 4)}</div></div></body>`
+        return `<div>` +
+                `<div style="` +
+                    `background-color: #1E1E1E;` +
+                    `color: white;` +
+                    `font-size: 12px;` +
+                    `justify-content: center;` +
+                    `align-items: left;` +
+                    `display: flex;` +
+                    `flex-direction: row;` +
+                    `border-radius: 10px;` +
+                    `margin: 10px;` +
+                    `padding: 10px;` +
+                    `box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.75);` +
+                `">` +
+                    `<div style="` +
+                        `background-color: gray;` +
+                        `color: white;` +
+                        `width: 20px;` +
+                        `height: 100px;` +
+                        `justify-content: space-between;` +
+                        `align-items: bottom;` +
+                        `display: flex;` +
+                        `flex-direction: column;` +
+                        `border-radius: 10px;` +
+                        `margin: 10px;` +
+                    `">` +
+                        `<div style="` +
+                            `background-color: #39FF14;` +
+                            `color: white;` +
+                            `font-size: 20px;` +
+                            `width: 20px;` +
+                            `height: ${ (this.cpuUsedHistory[this.cpuUsedHistory.length - 1] / Game.cpu.getUsed()) * 100 }px;` +
+                            `display: flex;` +
+                            `border-radius: 10px;` +
+                            `margin-top: auto;` +
+                            `box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.75);` +
+                        `"></div>` +
+                    `</div>` +
+                    `<div>` +
+                        `<h1 style="color: gray; font-size: 8px; margin-top: 0; margin-bottom: 4px;">Name</h1>` +
+                        `<p style="color: white; font-size: 16px; margin-top: 0;">${this.id}</p>` +
+                        `<h1 style="color: gray; font-size: 8px; margin-top: 4px; margin-bottom: 4px;">Priority</h1>` +
+                        `<p style="color: white; font-size: 16px; margin-top: 0;">${this.currentPriority}</p>` +
+                        `<h1 style="color: gray; font-size: 8px; margin-top: 4px; margin-bottom: 4px;">CPU Usage</h1>` +
+                        `<p style="color: white; font-size: 16px; margin-top: 0;">${ ((this.cpuUsedHistory[this.cpuUsedHistory.length - 1] / Game.cpu.getUsed()) * 100).toFixed(2) }%</p>` +
+                    `</div>` +
+                `</div>` +
+            `</div>`;
     }
 }
 
@@ -71,4 +116,4 @@ export const colors = {
     red: '#d10000',
     green: '#00d137',
     brown: '#aa7253',
-  }
+}
