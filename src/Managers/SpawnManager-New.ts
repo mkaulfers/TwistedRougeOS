@@ -1,6 +1,22 @@
 
 import { AGENT, ANCHOR, ENGINEER, FILLER, HARVESTER, Role, SCIENTIST, TRUCKER, nENGINEER, nHARVESTER, nRESERVER, nTRUCKER } from "Constants/RoleConstants";
 
+class SpawnRule {
+    constructor(
+        public minHarvesters: number,
+        public minTruckers: number,
+        public minAgents: number,
+        public minAnchors: number,
+        public minFillers: number,
+        public minEngineers: number,
+        public minScientists: number,
+        public minNHarvester: number,
+        public minNTrucker: number,
+        public minNEngineer: number,
+        public minNReserver: number
+    ) {}
+}
+
 export default class SpawnManagerNew {
     partCosts: { [part: string]: number } = {
         MOVE: 50,
@@ -97,6 +113,19 @@ export default class SpawnManagerNew {
         nRESERVER: { maxClaim: 1, maxMove: 1 }
     }
 
+    creepSpawnRules: { [role: string]: SpawnRule } = {
+        HARVESTER:  new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        TRUCKER:    new SpawnRule(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        AGENT:      new SpawnRule(1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        ANCHOR:     new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        FILLER:     new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        ENGINEER:   new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        SCIENTIST:  new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        nHARVESTER: new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        nTRUCKER:   new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        nENGINEER:  new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
+        nRESERVER:  new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    }
 
     getCreepBodyFor(role: Role, room: Room): BodyPartConstant[] {
         const availableEnergy = room.energyAvailable;
