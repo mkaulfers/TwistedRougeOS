@@ -17,10 +17,10 @@ export default class SpawnManagerNew {
         HARVESTER,
         TRUCKER,
         SCIENTIST,
+        AGENT,
         ENGINEER,
         ANCHOR,
         FILLER,
-        AGENT,
         nHARVESTER,
         nTRUCKER,
         nENGINEER,
@@ -31,10 +31,10 @@ export default class SpawnManagerNew {
         HARVESTER: (room: Room) => { return 2 },
         TRUCKER: (room: Room) => { return 2 },
         SCIENTIST: (room: Room) => { return 1 },
+        AGENT: (room: Room) => { return 0 },
         ENGINEER: (room: Room) => { return 1 },
         ANCHOR: (room: Room) => { return 0 },
         FILLER: (room: Room) => { return 0 },
-        AGENT: (room: Room) => { return 0 },
         nHARVESTER: (room: Room) => { return 0 },
         nTRUCKER: (room: Room) => { return 0 },
         nENGINEER: (room: Room) => { return 0 },
@@ -45,10 +45,10 @@ export default class SpawnManagerNew {
         HARVESTER: 1,
         TRUCKER: 1,
         SCIENTIST: 1,
+        AGENT: 1,
         ENGINEER: 1,
         ANCHOR: 0,
         FILLER: 0,
-        AGENT: 0,
         nHARVESTER: 0,
         nTRUCKER: 0,
         nENGINEER: 0,
@@ -58,11 +58,11 @@ export default class SpawnManagerNew {
     idealCreepBody: { [role: string]: BodyPartConstant[] } = {
         HARVESTER: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
         TRUCKER: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
+        SCIENTIST: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
         AGENT: [MOVE],
+        ENGINEER: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
         ANCHOR: [CLAIM, MOVE],
         FILLER: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-        ENGINEER: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-        SCIENTIST: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
         nHARVESTER: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
         nTRUCKER: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
         nENGINEER: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
@@ -72,11 +72,11 @@ export default class SpawnManagerNew {
     minimumCreepBody: { [role: string]: BodyPartConstant[] } = {
         HARVESTER: [WORK, CARRY, MOVE],
         TRUCKER: [CARRY, MOVE],
+        SCIENTIST: [WORK, CARRY, MOVE],
         AGENT: [MOVE],
+        ENGINEER: [WORK, CARRY, MOVE],
         ANCHOR: [CLAIM, MOVE],
         FILLER: [CARRY, MOVE],
-        ENGINEER: [WORK, CARRY, MOVE],
-        SCIENTIST: [WORK, CARRY, MOVE],
         nHARVESTER: [WORK, CARRY, MOVE],
         nTRUCKER: [CARRY, MOVE],
         nENGINEER: [WORK, CARRY, MOVE],
@@ -86,11 +86,11 @@ export default class SpawnManagerNew {
     creepBodyRules: { [role: string]: { [rule: string]: number } } = {
         HARVESTER: { maxWork: 5, maxCarry: 1, maxMove: 6 },
         TRUCKER: { maxCarry: 6, maxMove: 6 },
+        SCIENTIST: { maxWork: 5, maxCarry: 1, maxMove: 6 },
         AGENT: { maxMove: 1 },
+        ENGINEER: { maxWork: 5, maxCarry: 1, maxMove: 6 },
         ANCHOR: { maxClaim: 1, maxMove: 1 },
         FILLER: { maxCarry: 6, maxMove: 6 },
-        ENGINEER: { maxWork: 5, maxCarry: 1, maxMove: 6 },
-        SCIENTIST: { maxWork: 5, maxCarry: 1, maxMove: 6 },
         nHARVESTER: { maxWork: 5, maxCarry: 1, maxMove: 6 },
         nTRUCKER: { maxCarry: 6, maxMove: 6 },
         nENGINEER: { maxWork: 5, maxCarry: 1, maxMove: 6 },
@@ -139,7 +139,6 @@ export default class SpawnManagerNew {
     getBodyCost(body: BodyPartConstant[]): number {
         return body.reduce((cost, part) => cost + this.partCosts[part], 0);
     }
-
 
     static runFor(room: Room) {
 
