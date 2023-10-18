@@ -129,6 +129,10 @@ declare global {
         dump?: Id<StructureLink | StructureContainer>;
         supply?: Id<StructureLink | StructureContainer>;
         shouldSuicide?: boolean;
+
+        // Anchor Creep variables
+        storeId?: Id<AnyStoreStructure>
+        resource?: ResourceConstant
     }
 
     // The global Cache object. Consider it like `Memory`, it just gets rebuilt on a global reset.
