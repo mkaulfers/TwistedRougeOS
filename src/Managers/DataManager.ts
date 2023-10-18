@@ -119,8 +119,10 @@ declare global {
         towerTarget?: Id<AnyCreep>;
         /** Used by the Spawn Manager to detect when the storage is built, to reschedule the spawn schedule. */
         storageBuilt?: boolean;
-
+        /** Used by anchor creeps to house active inventory transfer requests and by requesters to send their request to the anchor creep. */
         anchorRequests?: AnchorRequest[]
+        /** Represents if ramparts are open for allies or not */
+        isOpen?: boolean
 
         recentlyAttacked?: boolean,
         attackedTime?: number,
