@@ -1,4 +1,4 @@
-import { TRACE, INFO } from "Constants/LogConstants";
+import { TRACE, INFO, LogLevels, DEBUG } from "Constants/LogConstants";
 import { LOW } from "Constants/ProcessPriorityConstants";
 import { FATAL, RUNNING, FAILED } from "Constants/ProcessStateConstants";
 import { Role, ANCHOR, HARVESTER } from "Constants/RoleConstants";
@@ -64,36 +64,40 @@ export class Anchor extends CreepRole {
                 const storage = creep.room.storage;
 
                 let result: number | undefined;
-                let target: AnyStoreStructure | undefined
-                let resource: ResourceConstant | undefined
 
-                // Grab target if in existence
-                if (creep.cache.storeId) {
-                    let storeStruct = Game.getObjectById(creep.cache.storeId)
-                    if (storeStruct && Utils.Typeguards.isAnyStoreStructure(storeStruct)) {
-                        target = storeStruct
-                    }
-                }
-
-                // Grab resource if in existence
-                if (creep.cache.resource && Utils.Typeguards.isResourceConstant(creep.cache.resource)) {
-                    resource = creep.cache.resource
-                }
+                // Grab anchorRequests
+                let anchorRequests = creep.room.cache.anchorRequests ? creep.room.cache.anchorRequests : []
+                let anchorRequest: AnchorRequest | undefined = anchorRequests[0]
 
                 if (creep.store.getUsedCapacity() > 0) {
+                    let target: AnyStoreStructure | undefined
+
                     // Define target or resource if missing
-                    if (!target || !resource && storage) {
+                    let defaulted = false
+                    if (!anchorRequest && storage) {
+                        defaulted = true
+                        anchorRequest = {
+                            targetId: storage.id,
+                            resource: Object.keys(creep.store)[0] as ResourceConstant
+                        }
                         target = storage
-                        resource = Object.keys(creep.store)[0] as ResourceConstant
+                    } else if (anchorRequest) {
+                        let temp = Game.getObjectById(anchorRequest.targetId)
+                        if (temp) target = temp
                     }
 
                     // Fail out if target or resource are missing, then give resource to target.
-                    if (!target || !resource) return FAILED
-                    result = creep.give(target, resource)
+                    if (!anchorRequest || !target) return FAILED
+                    result = creep.give(target, anchorRequest.resource)
 
-                    // Clear cached values
-                    delete creep.cache.storeId
-                    delete creep.cache.resource
+                    // Clear request if request fulfilled.
+                    if (!defaulted && creep.room.cache.anchorRequests) {
+                        if (creep.room.cache.anchorRequests[0]?.qty && creep.room.cache.anchorRequests[0].qty >= creep.store.getCapacity()) {
+                            creep.room.cache.anchorRequests[0].qty = creep.room.cache.anchorRequests[0].qty - creep.store.getUsedCapacity(anchorRequest.resource)
+                        } else {
+                            delete creep.room.cache.anchorRequests[0]
+                        }
+                    }
                 } else {
                     // Targeting
                     const link = creep.pos.findInRange(creep.room.links, 1)[0] ?? undefined
@@ -105,69 +109,107 @@ export class Anchor extends CreepRole {
 
                     // Determine supply, target, resource, and quantity
                     let supply: AnyStoreStructure | undefined
-                    let qty: number | undefined
                     switch (true) {
+                        // Existing request
+                        case anchorRequest !== undefined && anchorRequest.supplyId !== undefined:
+                            let temp = Game.getObjectById(anchorRequest.supplyId!)
+                            // Guard against supply not existing or not having any of the resource
+                            if (!temp || temp.store[anchorRequest.resource] !> 0) {
+                                anchorRequests.splice(0, 1)
+                                anchorRequest = undefined
+                                break
+                            }
+                            supply = temp
+                            break
                         // Link: Remove excess energy from link
-                        case link && link.store.energy > (link.store.getCapacity(RESOURCE_ENERGY) / 2):
-                            resource = RESOURCE_ENERGY
+                        case link && storage && link.store.energy > (link.store.getCapacity(RESOURCE_ENERGY) / 2):
+                            anchorRequest = {
+                                supplyId: link.id,
+                                targetId: storage!.id,
+                                resource: RESOURCE_ENERGY,
+                                qty: link.store.energy - (link.store.getCapacity(RESOURCE_ENERGY) / 2)
+                            }
                             supply = link
-                            qty = link.store.energy - (link.store.getCapacity(RESOURCE_ENERGY) / 2)
                             break;
                         // Link: Take energy from storage to fill link to half
-                        case link && storage && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2) && storage.store.energy > 10401:
-                            resource = RESOURCE_ENERGY
+                        case link && storage && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2) && storage.store.energy > 0:
+                            anchorRequest = {
+                                supplyId: storage!.id,
+                                targetId: link.id,
+                                resource: RESOURCE_ENERGY,
+                                qty: (link.store.getCapacity(RESOURCE_ENERGY) / 2) - link.store.energy
+                            }
                             supply = storage
-                            target = link
-                            qty = (link.store.getCapacity(RESOURCE_ENERGY) / 2) - link.store.energy
                             break;
                         // Spawn: Take energy from storage to fill spawn
                         case spawn && storage && spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && storage.store.energy > 0:
-                            resource = RESOURCE_ENERGY
+                            anchorRequest = {
+                                supplyId: storage!.id,
+                                targetId: spawn.id,
+                                resource: RESOURCE_ENERGY,
+                                qty: spawn.store.getFreeCapacity(RESOURCE_ENERGY)
+                            }
                             supply = storage
-                            target = spawn
-                            qty = spawn.store.getFreeCapacity(RESOURCE_ENERGY)
                             break;
                         // Power Spawn: Take energy from storage to fill power spawn
                         case powerSpawn && storage && powerSpawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && storage.store.energy > 0:
-                            resource = RESOURCE_ENERGY
+                            anchorRequest = {
+                                supplyId: storage!.id,
+                                targetId: powerSpawn!.id,
+                                resource: RESOURCE_ENERGY,
+                                qty: powerSpawn?.store.getFreeCapacity(RESOURCE_ENERGY)
+                            }
                             supply = storage
-                            target = powerSpawn
-                            qty = powerSpawn ? powerSpawn.store.getFreeCapacity(RESOURCE_ENERGY) : undefined;
                             break;
-                        // Terminal: Take energy from storage to fill terminal
-                        case terminal && storage && terminal.store.energy < 20000 && terminal.store.getFreeCapacity() > creep.store.getCapacity() && storage.store.energy > 0:
-                            resource = RESOURCE_ENERGY
+                        // Terminal: Take energy from storage to fill terminal when energy stores exist at a decent level
+                        case terminal && storage && terminal.store.energy < 20000 && terminal.store.getFreeCapacity() > creep.store.getCapacity() && storage.store.energy > 100000:
+                            anchorRequest = {
+                                supplyId: storage!.id,
+                                targetId: terminal!.id,
+                                resource: RESOURCE_ENERGY,
+                                qty: 20000 - (terminal!.store.energy ?? 0)
+                            }
                             supply = storage
-                            target = terminal
-                            qty = terminal ? 20000 - (terminal.store.energy ?? 0) : undefined;
                             break;
                         // Factory: Take energy from storage to fill factory when storage is high on energy
                         case factory && storage && factory.store.energy < 20000 && storage.store.energy > 250000:
-                            resource = RESOURCE_ENERGY
+                            anchorRequest = {
+                                supplyId: storage!.id,
+                                targetId: factory!.id,
+                                resource: RESOURCE_ENERGY,
+                                qty: 20000 - (factory!.store.energy ?? 0)
+                            }
                             supply = storage
-                            target = factory
-                            qty = factory ? 20000 - (factory.store.energy ?? 0) : undefined;
                             break;
                         // Nuker: Take energy from storage to fill nuker when storage is high on energy
                         case nuker && storage && nuker.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && storage.store.energy > 250000:
-                            resource = RESOURCE_ENERGY
+                            anchorRequest = {
+                                supplyId: storage!.id,
+                                targetId: nuker!.id,
+                                resource: RESOURCE_ENERGY,
+                                qty: nuker!.store.getFreeCapacity(RESOURCE_ENERGY)
+                            }
                             supply = storage
-                            target = nuker
-                            qty = nuker ? nuker.store.getFreeCapacity(RESOURCE_ENERGY) : undefined;
                             break;
                         // Nuker: Take ghodium from storage to fill nuker
                         case nuker && storage && nuker.store.getFreeCapacity(RESOURCE_GHODIUM) > 0 && storage.store.G > 0:
-                            resource = RESOURCE_GHODIUM
+                            anchorRequest = {
+                                supplyId: storage!.id,
+                                targetId: nuker!.id,
+                                resource: RESOURCE_GHODIUM,
+                                qty: nuker!.store.getFreeCapacity(RESOURCE_GHODIUM)
+                            }
                             supply = storage
-                            target = nuker
-                            qty = nuker ? nuker.store.getFreeCapacity(RESOURCE_GHODIUM) : undefined;
                             break;
                         // PowerSpawn: Take ghodium from storage to fill nuker
                         case powerSpawn && storage && powerSpawn.store.getFreeCapacity(RESOURCE_POWER) > 50 && storage.store.power > 0:
-                            resource = RESOURCE_POWER
+                            anchorRequest = {
+                                supplyId: storage!.id,
+                                targetId: powerSpawn!.id,
+                                resource: RESOURCE_POWER,
+                                qty: powerSpawn!.store.getFreeCapacity(RESOURCE_POWER)
+                            }
                             supply = storage
-                            target = powerSpawn
-                            qty = powerSpawn ? powerSpawn.store.getFreeCapacity(RESOURCE_POWER) : undefined;
                             break;
                         // Terminal: Take energy from storage to fill terminal when storage is high on energy
                         case terminal
@@ -175,20 +217,36 @@ export class Anchor extends CreepRole {
                           && storage.store.energy > 250000
                           && terminal.store.energy < 150000
                           && terminal.store.getFreeCapacity() > creep.store.getCapacity():
-                            resource = RESOURCE_ENERGY
+                            anchorRequest = {
+                                supplyId: storage!.id,
+                                targetId: terminal!.id,
+                                resource: RESOURCE_ENERGY,
+                            }
                             supply = storage
-                            target = terminal
                             break;
                     }
 
                     // Nothing to take from? Nothing to deliver to, move on with the code already!
-                    if (!supply) return RUNNING
+                    if (!supply || !anchorRequest) {
+                        creep.room.cache.anchorRequests = anchorRequests
+                        return RUNNING
+                    }
 
-                    // Fail out if target or resource are missing, then take resource from target.
-                    if (!target || !resource) return FAILED
-                    result = creep.take(supply, resource, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined)
+                    // Fail out if data is missing from anchorRequest
+                    if (anchorRequest && !anchorRequest.targetId || !anchorRequest.resource) return FAILED
+
+                    // Record anchorRequest for next tick
+                    anchorRequests.unshift(anchorRequest)
+                    creep.room.cache.anchorRequests = anchorRequests
+
+                    let qty: number | undefined
+                    if (anchorRequest.qty
+                        && anchorRequest.qty > 0
+                        && anchorRequest.qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY)
+                        && supply.store[anchorRequest.resource] >= anchorRequest.qty) qty = anchorRequest.qty
+                    result = creep.take(supply, anchorRequest.resource, qty)
                 }
-
+                Utils.Logger.log(`Anchor Requests: ${creep.room.cache.anchorRequests?.length}, ${JSON.stringify(creep.room.cache.anchorRequests)}`, DEBUG)
                 Utils.Logger.log(`${creep.name}: ${result}`, INFO)
                 return RUNNING;
             }

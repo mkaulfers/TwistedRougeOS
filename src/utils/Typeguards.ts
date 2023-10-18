@@ -114,5 +114,4 @@ export default class Typeguards {
 
     static isDangerLevel(number: number): number is DangerLevel { return DangerLevels.includes(number as DangerLevel) }
 
-
 }
