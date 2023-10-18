@@ -124,7 +124,7 @@ export default class SpawnManagerNew {
         nHARVESTER: new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
         nTRUCKER:   new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
         nENGINEER:  new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        nRESERVER:  new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+        nRESERVER:  new SpawnRule(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0)
     }
 
     getCreepBodyFor(role: Role, room: Room): BodyPartConstant[] {
