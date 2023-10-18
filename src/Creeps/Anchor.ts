@@ -113,7 +113,6 @@ export class Anchor extends CreepRole {
                         // Existing request
                         case anchorRequest !== undefined && anchorRequest.supplyId !== undefined:
                             let temp = Game.getObjectById(anchorRequest.supplyId!)
-                            console.log(temp)
                             // Guard against supply not existing or not having any of the resource
                             if (!temp || temp.store[anchorRequest.resource] <= 0) {
                                 anchorRequests.splice(0, 1)
