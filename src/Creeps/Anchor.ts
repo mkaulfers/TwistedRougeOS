@@ -68,6 +68,7 @@ export class Anchor extends CreepRole {
                 // Grab anchorRequests
                 let anchorRequests = creep.room.cache.anchorRequests ? creep.room.cache.anchorRequests : []
                 let anchorRequest: AnchorRequest | undefined = anchorRequests[0]
+                Utils.Logger.log(`Anchor Requests: ${creep.room.cache.anchorRequests?.length}, ${JSON.stringify(creep.room.cache.anchorRequests)}`, DEBUG)
 
                 if (creep.store.getUsedCapacity() > 0) {
                     let target: AnyStoreStructure | undefined
@@ -113,8 +114,10 @@ export class Anchor extends CreepRole {
                         // Existing request
                         case anchorRequest !== undefined && anchorRequest.supplyId !== undefined:
                             let temp = Game.getObjectById(anchorRequest.supplyId!)
+                            console.log(temp)
                             // Guard against supply not existing or not having any of the resource
-                            if (!temp || temp.store[anchorRequest.resource] !> 0) {
+                            if (!temp || temp.store[anchorRequest.resource] <= 0) {
+                                console.log("got here")
                                 anchorRequests.splice(0, 1)
                                 anchorRequest = undefined
                                 break
@@ -231,7 +234,7 @@ export class Anchor extends CreepRole {
                         if (anchorRequest && !anchorRequest.targetId || !anchorRequest.resource) return FAILED
 
                         // Record anchorRequest for next tick
-                        anchorRequests.unshift(anchorRequest)
+                        if (anchorRequests.indexOf(anchorRequest) !== 0) anchorRequests.unshift(anchorRequest)
 
                         // Determine useability of qty and take from supply
                         let qty: number | undefined
@@ -246,7 +249,7 @@ export class Anchor extends CreepRole {
                 // Save requests to cache again
                 creep.room.cache.anchorRequests = anchorRequests
 
-                Utils.Logger.log(`Anchor Requests: ${creep.room.cache.anchorRequests?.length}, ${JSON.stringify(creep.room.cache.anchorRequests)}`, INFO)
+                Utils.Logger.log(`Anchor Requests: ${creep.room.cache.anchorRequests?.length}, ${JSON.stringify(creep.room.cache.anchorRequests)}`, DEBUG)
                 Utils.Logger.log(`${creep.name}: ${result}`, INFO)
                 return RUNNING;
             }
