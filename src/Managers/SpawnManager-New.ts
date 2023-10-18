@@ -3,18 +3,12 @@ import { AGENT, ANCHOR, ENGINEER, FILLER, HARVESTER, Role, SCIENTIST, TRUCKER, n
 
 class SpawnRule {
     constructor(
-        public minHarvesters: number,
-        public minTruckers: number,
-        public minAgents: number,
-        public minAnchors: number,
-        public minFillers: number,
-        public minEngineers: number,
-        public minScientists: number,
-        public minNHarvester: number,
-        public minNTrucker: number,
-        public minNEngineer: number,
-        public minNReserver: number
-    ) {}
+        public rule: { [role in Role]?: number }
+    ) { }
+
+    getRequirement(role: Role): number {
+        return this.rule[role] || 0;
+    }
 }
 
 export default class SpawnManagerNew {
@@ -44,17 +38,94 @@ export default class SpawnManagerNew {
     ]
 
     idealRoleCount: { [role: string]: (room: Room) => number } = {
-        HARVESTER: (room: Room) => { return 2 },
-        TRUCKER: (room: Room) => { return 2 },
-        SCIENTIST: (room: Room) => { return 1 },
-        AGENT: (room: Room) => { return 0 },
-        ENGINEER: (room: Room) => { return 1 },
-        ANCHOR: (room: Room) => { return 0 },
-        FILLER: (room: Room) => { return 0 },
-        nHARVESTER: (room: Room) => { return 0 },
-        nTRUCKER: (room: Room) => { return 0 },
-        nENGINEER: (room: Room) => { return 0 },
-        nRESERVER: (room: Room) => { return 0 },
+        HARVESTER: (room: Room): number => { return this.getIdealHarvesterCount(room) },
+        TRUCKER: (room: Room): number => { return this.getIdealTruckerCount(room) },
+        SCIENTIST: (room: Room) => { return this.getIdealScientistCount(room) },
+        ENGINEER: (room: Room) => { return this.getIdealEngineerCount(room) },
+        ANCHOR: (room: Room) => { return this.getIdealAnchorCount(room) },
+        FILLER: (room: Room) => { return this.getIdealFillerCount(room) },
+        AGENT: (room: Room) => { return this.getIdealAgentCount(room) },
+        nHARVESTER: (room: Room) => { return this.getIdealnHarvesterCount(room) },
+        nTRUCKER: (room: Room) => { return this.getIdealnTruckerCount(room) },
+        nENGINEER: (room: Room) => { return this.getIdealnEngineerCount(room) },
+        nRESERVER: (room: Room) => { return this.getIdealnReserverCount(room) },
+    }
+
+    // The ideal count for harvesters is either the number of sources in the room
+    // Or the number of bodyPartConstant [WORK] such that there are 5 WORK parts per source
+    // We should calculate the feasibility of spawning a harvester that can support 5 work parts.
+    // Early game, we are limited to 300 energy in one spawn, and with each extension we gain an additional
+    // 50 energy. So we can calculate the number of extensions we need to support a harvester with 5 work parts.
+    // If we are unable to support a single harvester with 5 work parts, we should spawn as many harvesters as we can
+    // with as many work parts as we can, until we reach 10 per source, provided that source has enough space for those harvesters.
+    private getIdealHarvesterCount(room: Room): number {
+        const idealWorkParts = room.sources.length * 5;
+        const potentialSpawnEnergy = room.energyCapacityAvailable
+
+        // Can fulfil ideal work parts on one harvester per spawn
+        if (potentialSpawnEnergy >= this.getBodyCost(this.idealCreepBody[HARVESTER])) {
+            return room.sources.length
+        }
+
+        // Cannot fulfil ideal work parts on one harvester per spawn
+        // We can only spawn minimum body parts, aka 1 work part per harvester
+        // Return the number of valid positions in the room
+        // If there are more than 10 * sourceCount, return 10 * sourceCount
+        // Otherwise return the number of valid positions in the room
+        if (potentialSpawnEnergy <= 300) {
+            const sourcePositionsAvailable = room.sources
+                .map(source => source.validPositions.length)
+                .reduce((total, count) => total + count, 0)
+
+            return Math.min(sourcePositionsAvailable, room.sources.length * 10)
+        }
+
+        // Can fulfil some of the work parts requirements
+        const sourcePositionsAvailable = room.sources
+            .map(source => source.validPositions.length)
+            .reduce((total, count) => total + count, 0)
+
+        return 0
+    }
+
+    private getIdealTruckerCount(room: Room): number {
+        return 0
+    }
+
+    private getIdealScientistCount(room: Room): number {
+        return 0
+    }
+
+    private getIdealEngineerCount(room: Room): number {
+        return 0
+    }
+
+    private getIdealAnchorCount(room: Room): number {
+        return 0
+    }
+
+    private getIdealFillerCount(room: Room): number {
+        return 0
+    }
+
+    private getIdealAgentCount(room: Room): number {
+        return 0
+    }
+
+    private getIdealnHarvesterCount(room: Room): number {
+        return 0
+    }
+
+    private getIdealnTruckerCount(room: Room): number {
+        return 0
+    }
+
+    private getIdealnEngineerCount(room: Room): number {
+        return 0
+    }
+
+    private getIdealnReserverCount(room: Room): number {
+        return 0
     }
 
     minimumRoleCount: { [role: string]: number } = {
@@ -86,7 +157,7 @@ export default class SpawnManagerNew {
     }
 
     minimumCreepBody: { [role: string]: BodyPartConstant[] } = {
-        HARVESTER: [WORK, CARRY, MOVE],
+        HARVESTER: [WORK, CARRY, CARRY, MOVE, MOVE],
         TRUCKER: [CARRY, MOVE],
         SCIENTIST: [WORK, CARRY, MOVE],
         AGENT: [MOVE],
@@ -114,17 +185,17 @@ export default class SpawnManagerNew {
     }
 
     creepSpawnRules: { [role: string]: SpawnRule } = {
-        HARVESTER:  new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        TRUCKER:    new SpawnRule(1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        AGENT:      new SpawnRule(1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        ANCHOR:     new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        FILLER:     new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        ENGINEER:   new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        SCIENTIST:  new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        nHARVESTER: new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        nTRUCKER:   new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        nENGINEER:  new SpawnRule(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
-        nRESERVER:  new SpawnRule(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0)
+        HARVESTER: new SpawnRule({}),
+        TRUCKER: new SpawnRule({ [HARVESTER]: 1 }),
+        AGENT: new SpawnRule({ [HARVESTER]: 1, [TRUCKER]: 1 }),
+        ANCHOR: new SpawnRule({ [HARVESTER]: 1, [TRUCKER]: 1, [AGENT]: 1, [FILLER]: 1, [ENGINEER]: 1, [SCIENTIST]: 1 }),
+        FILLER: new SpawnRule({ [HARVESTER]: 1, [TRUCKER]: 1, [AGENT]: 1, [ENGINEER]: 1, [SCIENTIST]: 1 }),
+        ENGINEER: new SpawnRule({ [HARVESTER]: 1, [TRUCKER]: 1, [AGENT]: 1, [FILLER]: 1, [SCIENTIST]: 1 }),
+        SCIENTIST: new SpawnRule({ [HARVESTER]: 1, [TRUCKER]: 1 }),
+        nHARVESTER: new SpawnRule({}),
+        nTRUCKER: new SpawnRule({}),
+        nENGINEER: new SpawnRule({}),
+        nRESERVER: new SpawnRule({})
     }
 
     getCreepBodyFor(role: Role, room: Room): BodyPartConstant[] {
