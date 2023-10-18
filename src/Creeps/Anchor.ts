@@ -246,7 +246,7 @@ export class Anchor extends CreepRole {
                 // Save requests to cache again
                 creep.room.cache.anchorRequests = anchorRequests
 
-                Utils.Logger.log(`Anchor Requests: ${creep.room.cache.anchorRequests?.length}, ${JSON.stringify(creep.room.cache.anchorRequests)}`, DEBUG)
+                Utils.Logger.log(`Anchor Requests: ${creep.room.cache.anchorRequests?.length}, ${JSON.stringify(creep.room.cache.anchorRequests)}`, INFO)
                 Utils.Logger.log(`${creep.name}: ${result}`, INFO)
                 return RUNNING;
             }
