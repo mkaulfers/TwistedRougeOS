@@ -95,7 +95,7 @@ export class Anchor extends CreepRole {
                         if (creep.room.cache.anchorRequests[0]?.qty && creep.room.cache.anchorRequests[0].qty >= creep.store.getCapacity()) {
                             creep.room.cache.anchorRequests[0].qty = creep.room.cache.anchorRequests[0].qty - creep.store.getUsedCapacity(anchorRequest.resource)
                         } else {
-                            delete creep.room.cache.anchorRequests[0]
+                            anchorRequests.splice(0, 1)
                         }
                     }
                 } else {
@@ -226,26 +226,26 @@ export class Anchor extends CreepRole {
                             break;
                     }
 
-                    // Nothing to take from? Nothing to deliver to, move on with the code already!
-                    if (!supply || !anchorRequest) {
-                        creep.room.cache.anchorRequests = anchorRequests
-                        return RUNNING
+                    if (supply && anchorRequest) {
+                        // Fail out if data is missing from anchorRequest
+                        if (anchorRequest && !anchorRequest.targetId || !anchorRequest.resource) return FAILED
+
+                        // Record anchorRequest for next tick
+                        anchorRequests.unshift(anchorRequest)
+
+                        // Determine useability of qty and take from supply
+                        let qty: number | undefined
+                        if (anchorRequest.qty
+                            && anchorRequest.qty > 0
+                            && anchorRequest.qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY)
+                            && supply.store[anchorRequest.resource] >= anchorRequest.qty) qty = anchorRequest.qty
+                        result = creep.take(supply, anchorRequest.resource, qty)
                     }
-
-                    // Fail out if data is missing from anchorRequest
-                    if (anchorRequest && !anchorRequest.targetId || !anchorRequest.resource) return FAILED
-
-                    // Record anchorRequest for next tick
-                    anchorRequests.unshift(anchorRequest)
-                    creep.room.cache.anchorRequests = anchorRequests
-
-                    let qty: number | undefined
-                    if (anchorRequest.qty
-                        && anchorRequest.qty > 0
-                        && anchorRequest.qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY)
-                        && supply.store[anchorRequest.resource] >= anchorRequest.qty) qty = anchorRequest.qty
-                    result = creep.take(supply, anchorRequest.resource, qty)
                 }
+
+                // Save requests to cache again
+                creep.room.cache.anchorRequests = anchorRequests
+
                 Utils.Logger.log(`Anchor Requests: ${creep.room.cache.anchorRequests?.length}, ${JSON.stringify(creep.room.cache.anchorRequests)}`, DEBUG)
                 Utils.Logger.log(`${creep.name}: ${result}`, INFO)
                 return RUNNING;
