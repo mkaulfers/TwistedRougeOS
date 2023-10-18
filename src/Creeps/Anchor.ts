@@ -116,7 +116,6 @@ export class Anchor extends CreepRole {
                             console.log(temp)
                             // Guard against supply not existing or not having any of the resource
                             if (!temp || temp.store[anchorRequest.resource] <= 0) {
-                                console.log("got here")
                                 anchorRequests.splice(0, 1)
                                 anchorRequest = undefined
                                 break
