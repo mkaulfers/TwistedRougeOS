@@ -29,16 +29,13 @@ export default class ThreatManager {
             const enemyAttackers = room.find(FIND_HOSTILE_CREEPS)
             const playerAttackers = enemyAttackers.filter(enemyAttacker => enemyAttacker.owner.username !== 'Invader');
             const invaderAttackers = enemyAttackers.filter(enemyAttacker => enemyAttacker.owner.username === 'Invader');
-            console.log("got here 1")
 
             switch (true) {
                 case (playerAttackers.length == 0 && invaderAttackers.length == 0):
                     // Open Ramparts
                     if (!room.cache.isOpen) {
                         room.cache.isOpen = true
-                        console.log("got here 2")
                         for (let rampart of room.ramparts) {
-                            console.log("got here 3")
                             rampart.setPublic(room.cache.isOpen)
                         }
                     }
