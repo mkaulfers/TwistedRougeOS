@@ -61,111 +61,11 @@ export class Anchor extends CreepRole {
                 }
 
                 // Targeting
-                const link = creep.pos.findInRange(creep.room.links, 1)[0] ?? undefined;
-                const spawn = creep.pos.findInRange(creep.room.spawns, 1)[0] ?? undefined;
-                const powerSpawn = creep.room.powerSpawn;
-                const terminal = creep.room.terminal;
-                const factory = creep.room.factory;
                 const storage = creep.room.storage;
-                const nuker = creep.room.nuker;
 
                 let result: number | undefined;
-
-
-                if (creep.store.energy === 0) {
-                    let qty: number | undefined;
-                    switch (true) {
-                        // Link: Remove excess energy from link
-                        case link && link.store.energy > (link.store.getCapacity(RESOURCE_ENERGY) / 2):
-                            qty = link ? link.store.energy - (link.store.getCapacity(RESOURCE_ENERGY) / 2) : undefined;
-                            result = creep.take(link, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined)
-                            break;
-                        // Link: Take energy from storage to fill link to half
-                        case link && storage && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2) && storage.store.energy > 10401:
-                            // `storage!` used because TS required it.. It is obviously checked above.
-                            qty = link ? (link.store.getCapacity(RESOURCE_ENERGY) / 2) - link.store.energy : undefined;
-                            result = creep.take(storage!, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined);
-                            break;
-                        // Spawn: Take energy from storage to fill spawn
-                        case spawn && storage && spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && storage.store.energy > 0:
-                            // `storage!` used because TS required it.. It is obviously checked above.
-                            qty = spawn ? spawn.store.getFreeCapacity(RESOURCE_ENERGY): undefined;
-                            result = creep.take(storage!, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined);
-                            break;
-                        // Power Spawn: Take energy from storage to fill power spawn
-                        case powerSpawn && storage && powerSpawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && storage.store.energy > 0:
-                            // `storage!` and `powerSpawn!` used because TS required it.. It is obviously checked above.
-                            qty = powerSpawn ? powerSpawn.store.getFreeCapacity(RESOURCE_ENERGY) : undefined;
-                            result = creep.take(storage!, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined);
-                            break;
-                        // Terminal: Take energy from storage to fill terminal
-                        case terminal && storage && terminal.store.energy < 20000 && storage.store.energy > 0:
-                            // `storage!` and `terminal!` used because TS required it.. It is obviously checked above.
-                            qty = terminal ? 20000 - (terminal.store.energy ?? 0) : undefined;
-                            result = creep.take(storage!, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined);
-                            break;
-                        // Factory: Take energy from storage to fill factory when storage is high on energy
-                        case factory && storage && factory.store.energy < 20000 && storage.store.energy > 250000:
-                            // `storage!` and `factory!` used because TS required it.. It is obviously checked above.
-                            qty = factory ? 20000 - (factory.store.energy ?? 0) : undefined;
-                            result = creep.take(storage!, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined);
-                            break;
-                        // Nuker: Take energy from storage to fill nuker when storage is high on energy
-                        case nuker && storage && nuker.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && storage.store.energy > 250000:
-                            // `storage!` and `nuker!` used because TS required it.. It is obviously checked above.
-                            qty = nuker ? 20000 - (nuker.store.energy ?? 0) : undefined;
-                            result = creep.take(storage!, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined);
-                            break;
-                        // Terminal: Take energy from storage to fill terminal when storage is high on energy
-                        case terminal && storage && storage.store.energy > 250000 && terminal.store.energy < 150000 && terminal.store.getFreeCapacity() > creep.store.getCapacity():
-                            // `storage!` and `terminal!` used because TS required it.. It is obviously checked above.
-                            qty = storage ? (storage.store.energy ?? 0) - 500000 : undefined;
-                            result = creep.take(storage!, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined);
-                            break;
-                    }
-                } else if (creep.store.energy > 0) {
-                    switch (true) {
-                        // Link: Transfer energy from storage to fill link to half
-                        case link && storage && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2) && storage.store.energy > 10000:
-                            result = creep.give(link, RESOURCE_ENERGY);
-                            break;
-                        // Spawn: Transfer energy from storage to fill spawn
-                        case spawn && spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0:
-                            result = creep.give(spawn, RESOURCE_ENERGY);
-                            break;
-                        // Power Spawn: Transfer energy from storage to fill power spawn
-                        case powerSpawn && powerSpawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0:
-                            // `powerSpawn!` used because TS required it.. It is obviously checked above.
-                            result = creep.give(powerSpawn!, RESOURCE_ENERGY);
-                            break;
-                        // Terminal: Transfer energy from storage to fill terminal
-                        case terminal && terminal.store.energy < 20000:
-                            // `terminal!` used because TS required it.. It is obviously checked above.
-                            result = creep.give(terminal!, RESOURCE_ENERGY);
-                            break;
-                        // Factory: Transfer energy from storage to fill factory when storage is high on energy
-                        case factory && storage && factory.store.energy < 20000 && storage.store.energy > 249599:
-                            // `factory!` used because TS required it.. It is obviously checked above.
-                            result = creep.give(factory!, RESOURCE_ENERGY);
-                            break;
-                        // Nuker: Transfer energy from storage to fill nuker when storage is high on energy
-                        case nuker && storage && nuker.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && storage.store.energy > 249599:
-                            // `nuker!` used because TS required it.. It is obviously checked above.
-                            result = creep.give(nuker!, RESOURCE_ENERGY);
-                            break;
-                        // Terminal:
-                        case terminal && storage && storage.store.energy > 249599 && terminal.store.energy < 150000:
-                            // `storage!` and `terminal!` used because TS required it.. It is obviously checked above.
-                            result = creep.give(terminal!, RESOURCE_ENERGY);
-                            break;
-                        default:
-                            result = storage ? creep.give(storage, RESOURCE_ENERGY) : undefined;
-                            break;
-                    }
-                }
-
-                let target: AnyStoreStructure
-                let resource: ResourceConstant
+                let target: AnyStoreStructure | undefined
+                let resource: ResourceConstant | undefined
 
                 // Grab target if in existence
                 if (creep.cache.storeId) {
@@ -181,11 +81,112 @@ export class Anchor extends CreepRole {
                 }
 
                 if (creep.store.getUsedCapacity() > 0) {
+                    // Define target or resource if missing
+                    if (!target || !resource && storage) {
+                        target = storage
+                        resource = Object.keys(creep.store)[0] as ResourceConstant
+                    }
 
-                    result = creep.give(link, RESOURCE_ENERGY);
+                    // Fail out if target or resource are missing, then give resource to target.
+                    if (!target || !resource) return FAILED
+                    result = creep.give(target, resource)
+
+                    // Clear cached values
+                    delete creep.cache.storeId
+                    delete creep.cache.resource
                 } else {
+                    // Targeting
+                    const link = creep.pos.findInRange(creep.room.links, 1)[0] ?? undefined
+                    const spawn = creep.pos.findInRange(creep.room.spawns, 1)[0] ?? undefined
+                    const powerSpawn = creep.room.powerSpawn
+                    const terminal = creep.room.terminal
+                    const factory = creep.room.factory
+                    const nuker = creep.room.nuker
 
-                    result = creep.take(link, RESOURCE_ENERGY, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined)
+                    // Determine supply, target, resource, and quantity
+                    let supply: AnyStoreStructure | undefined
+                    let qty: number | undefined
+                    switch (true) {
+                        // Link: Remove excess energy from link
+                        case link && link.store.energy > (link.store.getCapacity(RESOURCE_ENERGY) / 2):
+                            resource = RESOURCE_ENERGY
+                            supply = link
+                            qty = link.store.energy - (link.store.getCapacity(RESOURCE_ENERGY) / 2)
+                            break;
+                        // Link: Take energy from storage to fill link to half
+                        case link && storage && link.store.energy < (link.store.getCapacity(RESOURCE_ENERGY) / 2) && storage.store.energy > 10401:
+                            resource = RESOURCE_ENERGY
+                            supply = storage
+                            target = link
+                            qty = (link.store.getCapacity(RESOURCE_ENERGY) / 2) - link.store.energy
+                            break;
+                        // Spawn: Take energy from storage to fill spawn
+                        case spawn && storage && spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && storage.store.energy > 0:
+                            resource = RESOURCE_ENERGY
+                            supply = storage
+                            target = spawn
+                            qty = spawn.store.getFreeCapacity(RESOURCE_ENERGY)
+                            break;
+                        // Power Spawn: Take energy from storage to fill power spawn
+                        case powerSpawn && storage && powerSpawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && storage.store.energy > 0:
+                            resource = RESOURCE_ENERGY
+                            supply = storage
+                            target = powerSpawn
+                            qty = powerSpawn ? powerSpawn.store.getFreeCapacity(RESOURCE_ENERGY) : undefined;
+                            break;
+                        // Terminal: Take energy from storage to fill terminal
+                        case terminal && storage && terminal.store.energy < 20000 && terminal.store.getFreeCapacity() > creep.store.getCapacity() && storage.store.energy > 0:
+                            resource = RESOURCE_ENERGY
+                            supply = storage
+                            target = terminal
+                            qty = terminal ? 20000 - (terminal.store.energy ?? 0) : undefined;
+                            break;
+                        // Factory: Take energy from storage to fill factory when storage is high on energy
+                        case factory && storage && factory.store.energy < 20000 && storage.store.energy > 250000:
+                            resource = RESOURCE_ENERGY
+                            supply = storage
+                            target = factory
+                            qty = factory ? 20000 - (factory.store.energy ?? 0) : undefined;
+                            break;
+                        // Nuker: Take energy from storage to fill nuker when storage is high on energy
+                        case nuker && storage && nuker.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && storage.store.energy > 250000:
+                            resource = RESOURCE_ENERGY
+                            supply = storage
+                            target = nuker
+                            qty = nuker ? nuker.store.getFreeCapacity(RESOURCE_ENERGY) : undefined;
+                            break;
+                        // Nuker: Take ghodium from storage to fill nuker
+                        case nuker && storage && nuker.store.getFreeCapacity(RESOURCE_GHODIUM) > 0 && storage.store.G > 0:
+                            resource = RESOURCE_GHODIUM
+                            supply = storage
+                            target = nuker
+                            qty = nuker ? nuker.store.getFreeCapacity(RESOURCE_GHODIUM) : undefined;
+                            break;
+                        // PowerSpawn: Take ghodium from storage to fill nuker
+                        case powerSpawn && storage && powerSpawn.store.getFreeCapacity(RESOURCE_POWER) > 50 && storage.store.power > 0:
+                            resource = RESOURCE_POWER
+                            supply = storage
+                            target = powerSpawn
+                            qty = powerSpawn ? powerSpawn.store.getFreeCapacity(RESOURCE_POWER) : undefined;
+                            break;
+                        // Terminal: Take energy from storage to fill terminal when storage is high on energy
+                        case terminal
+                          && storage
+                          && storage.store.energy > 250000
+                          && terminal.store.energy < 150000
+                          && terminal.store.getFreeCapacity() > creep.store.getCapacity():
+                            resource = RESOURCE_ENERGY
+                            supply = storage
+                            target = terminal
+                            break;
+                    }
+
+                    // Nothing to take from? Nothing to deliver to, move on with the code already!
+                    if (!supply) return RUNNING
+
+                    // Fail out if target or resource are missing, then take resource from target.
+                    if (!target || !resource) return FAILED
+                    result = creep.take(supply, resource, qty && qty > 0 && qty <= creep.store.getFreeCapacity(RESOURCE_ENERGY) ? qty : undefined)
                 }
 
                 Utils.Logger.log(`${creep.name}: ${result}`, INFO)
