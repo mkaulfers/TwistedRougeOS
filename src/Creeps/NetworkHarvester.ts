@@ -200,6 +200,7 @@ export class NetworkHarvester extends CreepRole {
                         let remoteSites = Memory.rooms[homeRoom].remoteSites;
                         if (!remoteSites) return FATAL;
                         for (const remoteRoomName in remoteSites) {
+                            if (!remoteSites[remoteRoomName] || !remoteSites[remoteRoomName].assignedHarvIds) continue
                             let index = remoteSites[remoteRoomName].assignedHarvIds.indexOf(creepId);
                             if (index >= 0) remoteSites[remoteRoomName].assignedHarvIds.splice(index, 1);
                         }
@@ -208,7 +209,7 @@ export class NetworkHarvester extends CreepRole {
                         let homeRoomMemory = Memory.rooms[creepMemory.homeRoom]
                         if (creepMemory.remoteTarget[0].roomName && homeRoomMemory.remoteSites) {
                             let remoteDetail = homeRoomMemory.remoteSites[creepMemory.remoteTarget[0].roomName];
-                            if (!remoteDetail) return FATAL;
+                            if (!remoteDetail || !remoteDetail.assignedHarvIds) return FATAL;
                             let index = remoteDetail.assignedHarvIds.indexOf(creepId);
                             if (index >= 0) remoteDetail.assignedHarvIds.splice(index, 1);
                         }
