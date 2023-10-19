@@ -51,45 +51,46 @@ export default class SpawnManagerNew {
         nRESERVER: (room: Room) => { return this.getIdealnReserverCount(room) },
     }
 
-    // The ideal count for harvesters is either the number of sources in the room
-    // Or the number of bodyPartConstant [WORK] such that there are 5 WORK parts per source
-    // We should calculate the feasibility of spawning a harvester that can support 5 work parts.
-    // Early game, we are limited to 300 energy in one spawn, and with each extension we gain an additional
-    // 50 energy. So we can calculate the number of extensions we need to support a harvester with 5 work parts.
-    // If we are unable to support a single harvester with 5 work parts, we should spawn as many harvesters as we can
-    // with as many work parts as we can, until we reach 10 per source, provided that source has enough space for those harvesters.
+    /**
+     * Calculate the ideal number of harvesters for a given room.
+     *
+     * The ideal harvester count is determined based on:
+     * 1. The desired work parts count, calculated as 5 times the number of sources in the room.
+     * 2. The number of available positions around each source in the room.
+     * 3. The number of WORK parts in the harvester's body configuration.
+     *
+     * The function returns the minimum of:
+     * a) The number of harvesters needed to fulfill the desired work parts count.
+     * b) The number of harvesters that can be placed around sources based on available positions.
+     *
+     * @param {Room} room - The room for which to calculate the ideal harvester count.
+     * @returns {number} The ideal number of harvesters for the room.
+     */
     private getIdealHarvesterCount(room: Room): number {
         const idealWorkParts = room.sources.length * 5;
-        const potentialSpawnEnergy = room.energyCapacityAvailable
-
-        // Can fulfil ideal work parts on one harvester per spawn
-        if (potentialSpawnEnergy >= this.getBodyCost(this.idealCreepBody[HARVESTER])) {
-            return room.sources.length
-        }
-
-        // Cannot fulfil ideal work parts on one harvester per spawn
-        // We can only spawn minimum body parts, aka 1 work part per harvester
-        // Return the number of valid positions in the room
-        // If there are more than 10 * sourceCount, return 10 * sourceCount
-        // Otherwise return the number of valid positions in the room
-        if (potentialSpawnEnergy <= 300) {
-            const sourcePositionsAvailable = room.sources
-                .map(source => source.validPositions.length)
-                .reduce((total, count) => total + count, 0)
-
-            return Math.min(sourcePositionsAvailable, room.sources.length * 10)
-        }
-
-        // Can fulfil some of the work parts requirements
-        const sourcePositionsAvailable = room.sources
-            .map(source => source.validPositions.length)
-            .reduce((total, count) => total + count, 0)
-
-        return 0
+        const sourcePositionsAvailable = room.sources.reduce((total, source) => total + source.validPositions.length, 0);
+        const workPartsCount = this.countBodyPart(WORK, this.getCreepBodyFor(HARVESTER, room));
+        return Math.min(Math.ceil(idealWorkParts / workPartsCount), sourcePositionsAvailable);
     }
 
+    /**
+     * Calculate the ideal number of truckers for a given room.
+     *
+     * The ideal trucker count is based on:
+     * 1. The total energy harvested in the room, calculated using the ideal harvester count and the number of WORK parts in the harvester's body configuration.
+     * 2. The capacity of a single trucker, derived from the number of CARRY parts in the trucker's body configuration.
+     * 3. A worst-case scenario where a trucker would need to transport energy over a distance of 50 tiles.
+     *
+     * The function returns the number of truckers needed to transport the harvested energy, considering the larger of the actual trucker capacity and the worst-case scenario.
+     *
+     * @param {Room} room - The room for which to calculate the ideal trucker count.
+     * @returns {number} The ideal number of truckers for the room.
+     */
     private getIdealTruckerCount(room: Room): number {
-        return 0
+        const totalEnergyHarvested = this.getIdealHarvesterCount(room) * this.countBodyPart(WORK, this.getCreepBodyFor(HARVESTER, room)) * 2;
+        const truckerCarryCapacity = this.countBodyPart(CARRY, this.getCreepBodyFor(TRUCKER, room)) * 50;
+        const worstCaseEnergyTransport = 500;
+        return Math.ceil(totalEnergyHarvested / Math.max(truckerCarryCapacity, worstCaseEnergyTransport));
     }
 
     private getIdealScientistCount(room: Room): number {
@@ -101,15 +102,15 @@ export default class SpawnManagerNew {
     }
 
     private getIdealAnchorCount(room: Room): number {
-        return 0
+        return room.isAnchorFunctional ? 1 : 0
     }
 
     private getIdealFillerCount(room: Room): number {
-        return 0
+        return room.areFastFillerExtensionsBuilt ? 4 : 0
     }
 
     private getIdealAgentCount(room: Room): number {
-        return 0
+        return 1
     }
 
     private getIdealnHarvesterCount(room: Room): number {
@@ -157,8 +158,8 @@ export default class SpawnManagerNew {
     }
 
     minimumCreepBody: { [role: string]: BodyPartConstant[] } = {
-        HARVESTER: [WORK, CARRY, CARRY, MOVE, MOVE],
-        TRUCKER: [CARRY, MOVE],
+        HARVESTER: [WORK, CARRY, CARRY, MOVE, MOVE], // Cost: 300
+        TRUCKER: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE], // Cost: 300
         SCIENTIST: [WORK, CARRY, MOVE],
         AGENT: [MOVE],
         ENGINEER: [WORK, CARRY, MOVE],
