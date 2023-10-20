@@ -23,46 +23,40 @@ export class Miner extends CreepRole {
         }
     }
 
+    /* If there is  */
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
         Utils.Logger.log("quantityWanted -> miner.quantityWanted()", TRACE)
         if (min && min == true) return 0
 
-        // If no mineral to mine, return 0
         let mineral = room.mineral
-        if (!mineral || mineral.mineralAmount == 0) return 0
 
+        // If no mineral or supporting structures, return 0
+        if (!mineral || mineral.isReady) return 0
+
+        // No harvesters or truckers? Definitely no miners
         let minerCount = rolesNeeded.filter(x => x == MINER).length
         if (rolesNeeded.filter(x => x == HARVESTER).length < room.sources.length) return 0
         if (rolesNeeded.filter(x => x == TRUCKER).length < room.sources.length) return 0
 
-        // Determine max needed harvesters based on harvest efficiency and valid spaces around source
-        let body = this.getBody(room);
-        let shouldBe = Math.ceil((minerCount * 5) / (body.filter(p => p == WORK).length));
-        let maxPositions = 0;
-        room.sources.forEach(s => maxPositions += s.pos.validPositions?.length ?? 0);
-
-        if (shouldBe > maxPositions) shouldBe = maxPositions;
-        return minerCount < shouldBe ? shouldBe - minerCount : 0;
+        // Determine valid positions around mineral
+        let validPositions = mineral.pos.validPositions.length
+        return minerCount < validPositions ? validPositions - minerCount : 0;
     }
 
     preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number {
         if (!room || !spawn) return 0;
+        // Mineral Guard
+        let mineral = room.mineral
+        if (!mineral) return 0;
+
         // return exact IFF possible, else average
         let preSpawnOffset = 0;
         if (creep && creep.memory.assignedPos) {
             let path = generatePath(spawn.pos, [{ pos: Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name), range: 1}], MOVE_OPTS_CIVILIAN)
             if (path) preSpawnOffset = path.length * (creep.body.length - 2);
         } else {
-            let x = 0;
-            let y = 0;
-            for (const source of room.sources) {
-                x += source.pos.x;
-                y += source.pos.y;
-            }
-            x = Math.floor(x / room.sources.length);
-            y = Math.floor(y / room.sources.length);
             let modifier = creep ? creep.workParts : 1;
-            preSpawnOffset = room.findPath(spawn.pos, new RoomPosition(x >= 0 && x <= 49 ? x : 25, y >= 0 && y <= 49 ? y : 25, room.name)).length * modifier;
+            preSpawnOffset = room.findPath(spawn.pos, mineral.pos, MOVE_OPTS_CIVILIAN).length * modifier;
         }
         return preSpawnOffset;
     }
@@ -152,39 +146,26 @@ export class Miner extends CreepRole {
         }
     }
 
-    private static isMineralReady(room: Room) {
-
-    }
-
     private static genAssignedPos(creep: Creep): Mineral | undefined {
-        let sources = creep.room.sources
-        let targetSource: Source | undefined;
+        let mineral = creep.room.mineral
+
+        // Mineral Guard
+        if (!mineral) return
 
         // Prespawn targeting
-        let matchingCreep = creep.room.stationedCreeps.harvester.find((c) => c.name !== creep.name && (c.name.substring(0,6) ?? '1') == (creep.name.substring(0,6) ?? '0'))
-        if (matchingCreep && matchingCreep.memory.assignedPos && _.all(sources, (s) => s.fullyHarvesting)) {
+        let matchingCreep = creep.room.stationedCreeps.miner.find((c) => c.name !== creep.name && (c.name.substring(0,6) ?? '1') == (creep.name.substring(0,6) ?? '0'))
+        if (matchingCreep && matchingCreep.memory.assignedPos) {
             creep.memory.assignedPos = matchingCreep.memory.assignedPos;
-            targetSource = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_SOURCES, 1)[0]
         }
 
 
         if (!creep.memory.assignedPos) {
-            for (let source of sources) {
-                // Non-maxed targeting
-                if (!source.fullyHarvesting) {
-                    targetSource = source;
-                    let assignablePos = source.assignablePosition();
-                    creep.memory.assignedPos = assignablePos ? Utils.Utility.packPosition(assignablePos) : undefined;
-                }
-
                 // Backup targeting
                 if (!creep.memory.assignedPos) {
-                    targetSource = source;
                     let assignablePos = source.assignablePosition();
                     creep.memory.assignedPos = assignablePos ? Utils.Utility.packPosition(assignablePos) : undefined;
                 }
-            }
         }
-        return targetSource;
+        return mineral;
     }
 }
