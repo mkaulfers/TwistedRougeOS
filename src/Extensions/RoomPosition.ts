@@ -9,6 +9,8 @@ declare global {
         nearEdge: boolean;
         /** Determines if there are multiple adjacent positions open to the room position. */
         multipleAdjacentOpen: boolean;
+        /** Returns non-terrain-blocked positions around a position */
+        validPositions: RoomPosition[]
     }
 }
 
@@ -64,5 +66,35 @@ export default class RoomPosition_Extended extends RoomPosition {
             else this._multipleAdjacentOpen = false;
         }
         return this._multipleAdjacentOpen;
+    }
+
+    private _validPositions: RoomPosition[] | undefined
+    get validPositions(): RoomPosition[] {
+        Utils.Logger.log("Source -> validPositions", TRACE);
+        if (!this._validPositions) {
+            let validPositions: RoomPosition[] = []
+            let nonValidatedPositions: { x: number, y: number }[] = []
+
+                nonValidatedPositions.push(
+                    { x: this.x - 1, y: this.y - 1 },
+                    { x: this.x, y: this.y - 1 },
+                    { x: this.x + 1, y: this.y - 1 },
+                    { x: this.x - 1, y: this.y },
+                    { x: this.x + 1, y: this.y },
+                    { x: this.x - 1, y: this.y + 1 },
+                    { x: this.x, y: this.y + 1 },
+                    { x: this.x + 1, y: this.y + 1 }
+                )
+
+            let roomTerrain = Game.map.getRoomTerrain(this.roomName)
+
+            for (let position of nonValidatedPositions) {
+                if (roomTerrain.get(position.x, position.y) != TERRAIN_MASK_WALL) {
+                    validPositions.push(new RoomPosition(position.x, position.y, this.roomName))
+                }
+            }
+            this._validPositions = validPositions;
+        }
+        return this._validPositions;
     }
 }

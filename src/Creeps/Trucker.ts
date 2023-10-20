@@ -1,8 +1,8 @@
-import { TRACE, INFO, ERROR } from "Constants/LogConstants"
+import { TRACE, INFO, ERROR, DEBUG } from "Constants/LogConstants"
 import { LOW } from "Constants/ProcessPriorityConstants"
 import { FATAL, RUNNING, INCOMPLETE } from "Constants/ProcessStateConstants"
 import { Role, HARVESTER, TRUCKER } from "Constants/RoleConstants"
-import { TRUCKER_SCIENTIST, TRUCKER_STORAGE, Task } from "Constants/TaskConstants"
+import { TRUCKER_NONENERGY, TRUCKER_SCIENTIST, TRUCKER_STORAGE, Task } from "Constants/TaskConstants"
 import CreepRole from "Models/CreepRole"
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
@@ -24,24 +24,35 @@ export class Trucker extends CreepRole {
             let truckers = room.localCreeps.trucker
             Utils.Logger.log(`dispatchStorageTruckers`, TRACE)
             for (let trucker of truckers) {
-                if (!trucker.memory.task || trucker.memory.task == TRUCKER_SCIENTIST) {
+                if (!trucker.memory.task || trucker.memory.task !== TRUCKER_STORAGE) {
                     Utils.Logger.log(`dispatchStorageTruckers`, TRACE)
                     global.scheduler.swapProcess(trucker, TRUCKER_STORAGE)
                 }
             }
         } else {
+            // Determine if nonEnergy needs moved
+            let nonEnergy = [...room.containers, ...room.find(FIND_DROPPED_RESOURCES), ...room.localCreeps.trucker]
+            nonEnergy = nonEnergy.filter((t) => {
+                if ('store' in t) return (t.store.getUsedCapacity() > t.store.getUsedCapacity(RESOURCE_ENERGY))
+                if ('resource' in t) return (t.resource !== RESOURCE_ENERGY)
+                return false
+            })
+
+            let task: Task = TRUCKER_SCIENTIST
+            if (nonEnergy.length > 0 && room.storage) task = TRUCKER_NONENERGY
+
             let truckers = room.localCreeps.trucker
             if (!(truckers.length > 0)) return;
-            Utils.Logger.log(`dispatchScientistTruckers`, TRACE)
+            Utils.Logger.log(`dispatchScientistorNonEnergyTruckers`, TRACE)
 
             for (let trucker of truckers) {
                 if (!trucker.memory.task || trucker.memory.task == TRUCKER_STORAGE) {
-                    Utils.Logger.log(`dispatchScientistTruckers`, TRACE)
-                    global.scheduler.swapProcess(trucker, TRUCKER_SCIENTIST)
+                    Utils.Logger.log(`dispatchScientistorNonEnergyTruckers`, TRACE)
+                    global.scheduler.swapProcess(trucker, task)
                 }
             }
 
-            if (truckers.filter(trucker => trucker.memory.task == TRUCKER_SCIENTIST).length < 1) {
+            if (truckers.filter(trucker => trucker.memory.task == task).length < 1) {
                 truckers[0].memory.task = undefined
             }
         }
@@ -60,6 +71,8 @@ export class Trucker extends CreepRole {
         let shouldBe = Math.ceil((room.sources.length * 10 * room.averageDistanceFromSourcesToStructures * this.carryModifier) / (carryCount * 50));
         if (room.storage && room.storage.store.energy > 500000 && shouldBe < 3) shouldBe = 3;
         if (shouldBe < 2) shouldBe = 2;
+        let mineral = room.mineral
+        if (mineral && mineral.isReady) shouldBe = shouldBe + 2
         return truckerCount < shouldBe ? shouldBe - truckerCount : 0;
     }
 
@@ -88,8 +101,13 @@ export class Trucker extends CreepRole {
                 }
                 const working = creep.memory.working;
 
-                if (working) {
+                // Catch being switched from nonenergy
+                if (creep.store.getUsedCapacity() > creep.store.energy && creep.room.storage) {
+                    creep.give(creep.room.storage, Object.keys(creep.store)[0] as ResourceConstant)
+                    return RUNNING
+                }
 
+                if (working) {
                     // Gets new target when one is missing.
                     if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
                         Trucker.storageTruckerWorkingTargeting(creep);
@@ -149,6 +167,98 @@ export class Trucker extends CreepRole {
             let newProcess = new Process(creep.name, LOW, truckerHarvesterTask)
             global.scheduler.addProcess(newProcess)
         },
+        trucker_nonenergy: function(creep: Creep) {
+            let creepId = creep.id;
+
+            const truckerNonEnergyTask = () => {
+                Utils.Logger.log("CreepTask -> truckerNonEnergyTask()", TRACE);
+                let creep = Game.getObjectById(creepId);
+                if (!creep) return FATAL;
+                if (creep.spawning) return RUNNING;
+
+                // Switches working value if full or empty
+                if (creep.memory.working == undefined) creep.memory.working = false;
+                if ((creep.store.getUsedCapacity() == 0 && creep.memory.working == true) ||
+                    (creep.store.getFreeCapacity() == 0 && creep.memory.working == false)) {
+                    creep.memory.working = !creep.memory.working;
+                    delete creep.memory.target;
+                }
+                const working = creep.memory.working;
+
+                if (working) {
+                    // Determines new target
+                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                        // Targets
+                        switch (true) {
+                            case creep.room.storage !== undefined && creep.room.storage.store.getFreeCapacity() > creep.store.getUsedCapacity():
+                                creep.memory.target = creep.room.storage!.id
+                                break
+                            case creep.room.terminal !== undefined && creep.room.terminal.store.getFreeCapacity() > creep.store.getUsedCapacity():
+                                creep.memory.target = creep.room.terminal!.id
+                                break
+                        }
+                    }
+                    let target = creep.memory.target ? Game.getObjectById(creep.memory.target) : undefined
+
+                    // Posterior check to change targets if the target can no longer take the creeps energy
+                    if (!target ||
+                        'store' in target && target.store.getFreeCapacity() < 15) {
+                        delete creep.memory.target;
+                        return RUNNING;
+                    }
+
+                    // Runs give and returns running or incomplete based on result
+                    let resources: ResourceConstant[] | undefined = creep.store ? Object.keys(creep.store) as ResourceConstant[] : undefined
+                    if (!resources || resources.length == 0) {
+                        Utils.Logger.log(`${creep.name} failed to have a resource constant in store while transferring.`, DEBUG)
+                        return INCOMPLETE
+                    }
+                    Utils.Logger.log(`${creep.name} resources: ${JSON.stringify(creep.store)}`, DEBUG)
+                    var result = creep.give(target, resources[0])
+                    if (result === OK) {
+                        return RUNNING
+                    }
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while transferring.`, ERROR)
+                    return INCOMPLETE
+                } else {
+                    // Determines new target
+                    if (!creep.memory.target || (creep.memory.target && !Game.getObjectById(creep.memory.target))) {
+                        let check = Trucker.needNonEnergyTargeting(creep);
+                        if (check == ERR_INVALID_TARGET) {
+                            creep.memory.working = !creep.memory.working
+                            return RUNNING
+                        }
+                    }
+                    let target = creep.memory.target ? Game.getObjectById(creep.memory.target) : undefined
+
+                    // Posterior check to change targets if the target is of very low energy value
+                    if (!target ||
+                        'store' in target && (target.store.getUsedCapacity() - (target.store.energy ?? 0)) < 25 ||
+                        'amount' in target && target.amount < 25) {
+                        delete creep.memory.target;
+                        RUNNING;
+                    }
+
+                    // Runs take and returns running or incomplete based on the result.
+                    let resources: ResourceConstant[] | undefined = 'store' in target ? Object.keys(target.store) as ResourceConstant[] : target.resourceType
+                    if (!resources || resources.length == 0) {
+                        Utils.Logger.log(`${target.id} failed to have a resource constant in store while withdrawing / picking up.`, DEBUG)
+                        return INCOMPLETE
+                    }
+                    Utils.Logger.log(`${target.id} resources: ${JSON.stringify(creep.store)}`, DEBUG)
+                    result = creep.take(target, resources[0]);
+                    if (result === OK) {
+                        return RUNNING
+                    }
+                    Utils.Logger.log(`${creep.name} generated error code ${result} while withdrawing / picking up.`, ERROR)
+                    return INCOMPLETE
+                }
+            }
+
+            creep.memory.task = TRUCKER_NONENERGY
+            let newProcess = new Process(creep.name, LOW, truckerNonEnergyTask)
+            global.scheduler.addProcess(newProcess)
+        },
         trucker_scientist: function(creep: Creep) {
             let creepId = creep.id;
 
@@ -166,6 +276,12 @@ export class Trucker extends CreepRole {
                     delete creep.memory.target;
                 }
                 const working = creep.memory.working;
+
+                // Catch being switched from nonenergy
+                if (creep.store.getUsedCapacity() > creep.store.energy && creep.room.storage) {
+                    creep.give(creep.room.storage, Object.keys(creep.store)[0] as ResourceConstant)
+                    return RUNNING
+                }
 
                 if (working) {
                     // Determines new target
@@ -281,6 +397,7 @@ export class Trucker extends CreepRole {
         }
     }
 
+    /** Sets creep's target for energy collection. */
     static needEnergyTargeting(creep: Creep) {
         let potentialTargets: (AnyStoreStructure | Resource | Tombstone | Ruin)[] = [];
         // Finds structures, tombstones, and dropped resources
@@ -323,5 +440,47 @@ export class Trucker extends CreepRole {
         } else if (creep.room.terminal && creep.room.terminal.store.energy > 0) {
             creep.memory.target = creep.room.terminal.id;
         }
+    }
+
+    /** Sets creep's target for non-energy collection. */
+    static needNonEnergyTargeting(creep: Creep) {
+        // Find potential sources of non-energy
+        let potentialTargets: (AnyStoreStructure | Resource | Tombstone | Ruin)[] = Array.prototype.concat(
+            creep.room.find(FIND_DROPPED_RESOURCES),
+            creep.room.find(FIND_TOMBSTONES),
+            creep.room.find(FIND_STRUCTURES, {filter: { structureType: STRUCTURE_CONTAINER }}),
+            creep.room.find(FIND_RUINS));
+
+        potentialTargets = potentialTargets.filter((t) => {
+            if ('store' in t) return ((t.store.getUsedCapacity() ?? 0) > (t.store.getUsedCapacity(RESOURCE_ENERGY) ?? 0))
+            return t.resourceType !== RESOURCE_ENERGY
+        })
+
+        let targets = _
+            .chain(potentialTargets)
+            .filter((t) => {
+                if ('store' in t) {
+                    return t.store.getUsedCapacity()! > t.store.energy
+                }
+                return t.resourceType !== RESOURCE_ENERGY
+            })
+            .sortByOrder((t) => {
+                if ("store" in t) return t.store.getUsedCapacity();
+                if ("amount" in t) return t.amount;
+                return 0;
+            }, 'desc')
+            .value()
+
+        if (targets.length == 0) return ERR_INVALID_TARGET
+
+        // Targets the biggest target if it will fill the creep, or the closest target if no targets will completely fill the creep
+        if (('store' in targets[0] && (targets[0].store.getUsedCapacity() ?? 0) > creep.store.getFreeCapacity())
+            || ('amount' in targets[0] && (targets[0].amount > creep.store.getFreeCapacity()))) {
+            creep.memory.target = targets[0].id
+        } else {
+            let closest = creep.pos.findClosestByRange(targets)
+            if (closest) creep.memory.target = closest.id
+        }
+        return OK
     }
 }

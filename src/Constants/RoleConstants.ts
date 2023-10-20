@@ -5,6 +5,7 @@ export const FILLER = "filler"
 export const HARVESTER = "harvester"
 export const SCIENTIST = "scientist"
 export const TRUCKER = "trucker"
+export const MINER = "miner"
 export const nENGINEER = "nEngineer"
 export const nHARVESTER = "nHarvester"
 export const nTRUCKER = "nTrucker"
@@ -18,6 +19,7 @@ export type Role =
     typeof HARVESTER |
     typeof SCIENTIST |
     typeof TRUCKER |
+    typeof MINER |
     typeof nENGINEER |
     typeof nHARVESTER |
     typeof nTRUCKER |
@@ -31,6 +33,7 @@ export const Roles: Role[] = [
     FILLER,
     ENGINEER,
     SCIENTIST,
+    MINER,
     nHARVESTER,
     nTRUCKER,
     nENGINEER,
