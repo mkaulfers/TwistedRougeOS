@@ -72,7 +72,7 @@ export class Trucker extends CreepRole {
         if (room.storage && room.storage.store.energy > 500000 && shouldBe < 3) shouldBe = 3;
         if (shouldBe < 2) shouldBe = 2;
         let mineral = room.mineral
-        if (mineral && mineral.isReady) shouldBe++
+        if (mineral && mineral.isReady) shouldBe = shouldBe + 2
         return truckerCount < shouldBe ? shouldBe - truckerCount : 0;
     }
 

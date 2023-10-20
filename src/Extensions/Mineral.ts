@@ -19,7 +19,7 @@ export default class Mineral_Extended extends Mineral {
                 // Extractor exists
                 case this.pos.findInRange(FIND_MY_STRUCTURES, 0, {filter: {structureType: STRUCTURE_EXTRACTOR}}).length == 0:
                 // Container exists
-                case this.pos.findInRange(FIND_MY_STRUCTURES, 1, {filter: {structureType: STRUCTURE_CONTAINER}}).length == 0:
+                case this.pos.findInRange(FIND_STRUCTURES, 1, {filter: {structureType: STRUCTURE_CONTAINER}}).length == 0:
                 // There is some amount to mine.
                 case this.mineralAmount == 0:
                     this._isReady = false

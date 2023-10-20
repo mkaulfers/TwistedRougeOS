@@ -128,7 +128,7 @@ export default class Utility {
                 })
                 .sortByOrder(function(t: (Creep | AnyStructure | Resource | Tombstone | ConstructionSite | Ruin)) {
                     if ("store" in t) return t.store[purpose];
-                    if ("amount" in t) return t.amount;
+                    if ("amount" in t && t.resourceType == purpose) return t.amount;
                     return 0;
                 }, opts.order)
                 .value()
