@@ -1,7 +1,7 @@
 import { TRACE } from "Constants/LogConstants"
 import { MOVE_OPTS_CIVILIAN } from "Constants/MoveOptsConstants"
 import { LOW } from "Constants/ProcessPriorityConstants"
-import { FATAL, RUNNING, FAILED } from "Constants/ProcessStateConstants"
+import { FATAL, RUNNING, FAILED, INCOMPLETE } from "Constants/ProcessStateConstants"
 import { Role, MINER, HARVESTER, TRUCKER } from "Constants/RoleConstants"
 import { MINER_WORKING, Task } from "Constants/TaskConstants"
 import CreepRole from "Models/CreepRole"
@@ -66,74 +66,40 @@ export class Miner extends CreepRole {
             let creepId = creep.id
 
             const minerWorkingTask = () => {
+                Utils.Logger.log("CreepTask -> minerWorkingTask()", TRACE)
                 let creep = Game.getObjectById(creepId)
                 if (!creep) return FATAL;
                 if (creep.spawning) return RUNNING;
-                let room = Game.rooms[creep.memory.homeRoom]
 
+                // Handle Targeting
+                let mineral: Mineral | undefined = undefined
                 if (!creep.memory.assignedPos) {
-                    // Prespawn targeting
-                    let matchingCreep = creep.room.stationedCreeps.filler.find((c) => c.name !== creep!.name && (c.name.substring(0,6) ?? '1') == (creep!.name.substring(0,6) ?? '0'))
-                    let assignablePosition = Miner.getFillerPosition(room)
-
-                    if (matchingCreep && matchingCreep.memory.assignedPos && !assignablePosition) {
-                        creep.memory.assignedPos = matchingCreep.memory.assignedPos;
-                    } else {
-                        if (assignablePosition) {
-                            creep.memory.assignedPos = Utils.Utility.packPosition(assignablePosition)
-                        } else {
-                            return FAILED
-                        }
-                    }
-                }
-                let assignedPos = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, room.name)
-
-                if (creep.pos.getRangeTo(assignedPos) > 0) {
-                    creep.travel({pos: assignedPos, range: 0})
+                    mineral = Miner.genAssignedPos(creep);
                 } else {
+                    mineral = Utils.Utility.unpackPostionToRoom(creep.memory.assignedPos, creep.memory.homeRoom).findInRange(FIND_MINERALS, 1)[0]
+                }
+                if (!mineral) return INCOMPLETE
 
-                    // Handle working flip
-                    // Switches working value if full or empty
-                    if (creep.memory.working == undefined) creep.memory.working = false;
-                    if ((creep.store.getUsedCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == true) ||
-                        (creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 && creep.memory.working == false)) {
-                        creep.memory.working = !creep.memory.working;
-                    }
-                    const working = creep.memory.working;
+                if (Game.time % 6 == 0) creep.mine(mineral)
 
-                    // Handle targeting
-                    let nearbyStructures = Miner.nearbyFillThese(creep)
-
-                    // Handle container and link identification
-                    if ((!creep.cache.dump && !creep.cache.supply) || Game.time % 500 === 0) {
-                        let nearby = creep.pos.findInRange(FIND_STRUCTURES, 1);
-                        nearby.forEach(function(s) {
-                            if (creep && s.structureType === STRUCTURE_CONTAINER) creep.cache.dump = s.id;
-                            if (creep && s.structureType === STRUCTURE_LINK) creep.cache.supply = s.id;
-                        });
-                    }
-
-                    let container = creep.cache.dump ? Game.getObjectById(creep.cache.dump) : undefined;
-                    let link = creep.cache.supply ? Game.getObjectById(creep.cache.supply) : undefined;
-
-                    if (!working) {
-                        if (container && link && container.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && link.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
-                            creep.take(link, RESOURCE_ENERGY);
-                        } else {
-                            let tombstone = creep.pos.findInRange(FIND_TOMBSTONES, 0)[0] ?? undefined;
-                            let resource = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 0, { filter: { type: RESOURCE_ENERGY } })[0] ?? undefined;
-                            if (tombstone && tombstone.store.getUsedCapacity(RESOURCE_ENERGY) > 0) creep.take(tombstone, RESOURCE_ENERGY);
-                            else if (resource && resource.amount > 0) creep.take(resource, RESOURCE_ENERGY);
-                            else if (link && link.store.energy > 0) creep.take(link, RESOURCE_ENERGY);
-                            else if (container && container.store.energy > 0) creep.take(container, RESOURCE_ENERGY);
+                // Handle Dumping
+                if (creep.store.getUsedCapacity() > (creep.store.getCapacity() * 0.8)) {
+                    // Set Dump target if missing
+                    if (!creep.cache.dump) {
+                        let dumps = mineral.pos.findInRange(FIND_STRUCTURES, 2);
+                        let container = dumps.filter(function (d) { return Utils.Typeguards.isStructureContainer(d) && d.store.getFreeCapacity() > 0 })[0] as StructureContainer | undefined;
+                        if (container) {
+                            creep.cache.dump = container.id;
                         }
-                    } else {
-                        if (nearbyStructures.length > 0) {
-                            nearbyStructures[0] ? creep.give(nearbyStructures[0], RESOURCE_ENERGY) : undefined;
-                        } else if (container && link && link.store.getUsedCapacity(RESOURCE_ENERGY) > 0 && container.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                            creep.give(container, RESOURCE_ENERGY);
-                        } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                            creep.memory.working = !creep.memory.working;
+                    }
+
+                    // Dump
+                    if (creep.cache.dump) {
+                        let dump = Game.getObjectById(creep.cache.dump);
+                        if (dump && (dump.store.getFreeCapacity() ?? 0) > 0 && creep.ticksToLive && creep.pos.getRangeTo(dump) > 0) {
+                            creep.give(dump, mineral.mineralType);
+                        } else {
+                            delete creep.cache.dump
                         }
                     }
                 }
@@ -162,7 +128,7 @@ export class Miner extends CreepRole {
         if (!creep.memory.assignedPos) {
                 // Backup targeting
                 if (!creep.memory.assignedPos) {
-                    let assignablePos = source.assignablePosition();
+                    let assignablePos = mineral.assignablePosition();
                     creep.memory.assignedPos = assignablePos ? Utils.Utility.packPosition(assignablePos) : undefined;
                 }
         }

@@ -24,7 +24,7 @@ export class Trucker extends CreepRole {
             let truckers = room.localCreeps.trucker
             Utils.Logger.log(`dispatchStorageTruckers`, TRACE)
             for (let trucker of truckers) {
-                if (!trucker.memory.task || trucker.memory.task == TRUCKER_SCIENTIST) {
+                if (!trucker.memory.task || trucker.memory.task !== TRUCKER_STORAGE) {
                     Utils.Logger.log(`dispatchStorageTruckers`, TRACE)
                     global.scheduler.swapProcess(trucker, TRUCKER_STORAGE)
                 }
@@ -71,6 +71,8 @@ export class Trucker extends CreepRole {
         let shouldBe = Math.ceil((room.sources.length * 10 * room.averageDistanceFromSourcesToStructures * this.carryModifier) / (carryCount * 50));
         if (room.storage && room.storage.store.energy > 500000 && shouldBe < 3) shouldBe = 3;
         if (shouldBe < 2) shouldBe = 2;
+        let mineral = room.mineral
+        if (mineral && mineral.isReady) shouldBe++
         return truckerCount < shouldBe ? shouldBe - truckerCount : 0;
     }
 

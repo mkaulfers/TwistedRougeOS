@@ -120,7 +120,7 @@ export class Agent extends CreepRole {
         let sourceDetail: { [id: Id<Source>]: SourceDetail } = {}
 
         for (let source of sources) {
-            let count = source.validPositions.length
+            let count = source.pos.validPositions.length
             sourceDetail[source.id] = new SourceDetail(Utils.Utility.packPosition(source.pos), count)
         }
 

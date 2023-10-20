@@ -5,6 +5,8 @@ declare global {
     interface Mineral {
         /** Boolean confirming if support structure is in place to support active mining. */
         isReady: boolean
+
+        assignablePosition(): RoomPosition | undefined
     }
 }
 
@@ -28,6 +30,16 @@ export default class Mineral_Extended extends Mineral {
             }
         }
         return this._isReady;
+    }
+
+    assignablePosition(): RoomPosition | undefined {
+        Utils.Logger.log("Mineral -> assignablePosition()", TRACE);
+        if (!this.room) return undefined
+        let validPositions = this.pos.validPositions
+        let assignedPositions = this.room.localCreeps.miner.map(x => x.memory.assignedPos)
+        let unassignedPositions = validPositions.filter(x => !assignedPositions.includes(Utils.Utility.packPosition(x)))
+        // Logger.log(`Source ${this.id} has ${unassignedPositions.length} unassigned positions.`, DEBUG)
+        return unassignedPositions[0]
     }
 }
 
