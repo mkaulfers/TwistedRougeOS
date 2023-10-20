@@ -1,4 +1,4 @@
-import { TRACE, INFO, ERROR } from "Constants/LogConstants"
+import { TRACE, INFO, ERROR, DEBUG } from "Constants/LogConstants"
 import { LOW } from "Constants/ProcessPriorityConstants"
 import { FATAL, RUNNING, INCOMPLETE } from "Constants/ProcessStateConstants"
 import { Role, HARVESTER, TRUCKER } from "Constants/RoleConstants"
@@ -178,8 +178,8 @@ export class Trucker extends CreepRole {
 
                 // Switches working value if full or empty
                 if (creep.memory.working == undefined) creep.memory.working = false;
-                if ((creep.store.getUsedCapacity() === 0 && creep.memory.working == true) ||
-                    (creep.store.getFreeCapacity() === 0 && creep.memory.working == false)) {
+                if ((creep.store.getUsedCapacity() == 0 && creep.memory.working == true) ||
+                    (creep.store.getFreeCapacity() == 0 && creep.memory.working == false)) {
                     creep.memory.working = !creep.memory.working;
                     delete creep.memory.target;
                 }
@@ -208,7 +208,13 @@ export class Trucker extends CreepRole {
                     }
 
                     // Runs give and returns running or incomplete based on result
-                    var result = creep.give(target, Object.keys(creep.store)[0] as ResourceConstant);
+                    let resources: ResourceConstant[] | undefined = creep.store ? Object.keys(creep.store) as ResourceConstant[] : undefined
+                    if (!resources || resources.length == 0) {
+                        Utils.Logger.log(`${creep.name} failed to have a resource constant in store while transferring.`, DEBUG)
+                        return INCOMPLETE
+                    }
+                    Utils.Logger.log(`${creep.name} resources: ${JSON.stringify(creep.store)}`, DEBUG)
+                    var result = creep.give(target, resources[0])
                     if (result === OK) {
                         return RUNNING
                     }
@@ -234,7 +240,13 @@ export class Trucker extends CreepRole {
                     }
 
                     // Runs take and returns running or incomplete based on the result.
-                    result = creep.take(target, Object.keys(target.store)[0] as ResourceConstant);
+                    let resources: ResourceConstant[] | undefined = 'store' in target ? Object.keys(target.store) as ResourceConstant[] : target.resourceType
+                    if (!resources || resources.length == 0) {
+                        Utils.Logger.log(`${target.id} failed to have a resource constant in store while withdrawing / picking up.`, DEBUG)
+                        return INCOMPLETE
+                    }
+                    Utils.Logger.log(`${target.id} resources: ${JSON.stringify(creep.store)}`, DEBUG)
+                    result = creep.take(target, resources[0]);
                     if (result === OK) {
                         return RUNNING
                     }
@@ -436,18 +448,20 @@ export class Trucker extends CreepRole {
         let potentialTargets: (AnyStoreStructure | Resource | Tombstone | Ruin)[] = Array.prototype.concat(
             creep.room.find(FIND_DROPPED_RESOURCES),
             creep.room.find(FIND_TOMBSTONES),
-            creep.room.find(FIND_MY_STRUCTURES, {filter: { structureType: STRUCTURE_CONTAINER }}),
+            creep.room.find(FIND_STRUCTURES, {filter: { structureType: STRUCTURE_CONTAINER }}),
             creep.room.find(FIND_RUINS));
 
         potentialTargets = potentialTargets.filter((t) => {
-            if ('store' in t) return ((t.store.getUsedCapacity() ?? 0) > (t.store.energy ?? 0))
+            if ('store' in t) return ((t.store.getUsedCapacity() ?? 0) > (t.store.getUsedCapacity(RESOURCE_ENERGY) ?? 0))
             return t.resourceType !== RESOURCE_ENERGY
         })
 
         let targets = _
             .chain(potentialTargets)
             .filter((t) => {
-                if ('store' in t) return ((t.store.getUsedCapacity() ?? 0) > (t.store.energy ?? 0))
+                if ('store' in t) {
+                    return t.store.getUsedCapacity()! > t.store.energy
+                }
                 return t.resourceType !== RESOURCE_ENERGY
             })
             .sortByOrder((t) => {

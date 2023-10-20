@@ -25,22 +25,23 @@ export class Miner extends CreepRole {
 
     /* If there is  */
     quantityWanted(room: Room, rolesNeeded: Role[], min?: boolean): number {
-        Utils.Logger.log("quantityWanted -> miner.quantityWanted()", TRACE)
-        if (min && min == true) return 0
+        return 0
+        // Utils.Logger.log("quantityWanted -> miner.quantityWanted()", TRACE)
+        // if (min && min == true) return 0
 
-        let mineral = room.mineral
+        // let mineral = room.mineral
 
-        // If no mineral or supporting structures, return 0
-        if (!mineral || mineral.isReady) return 0
+        // // If no mineral or supporting structures, return 0
+        // if (!mineral || mineral.isReady) return 0
 
-        // No harvesters or truckers? Definitely no miners
-        let minerCount = rolesNeeded.filter(x => x == MINER).length
-        if (rolesNeeded.filter(x => x == HARVESTER).length < room.sources.length) return 0
-        if (rolesNeeded.filter(x => x == TRUCKER).length < room.sources.length) return 0
+        // // No harvesters or truckers? Definitely no miners
+        // let minerCount = rolesNeeded.filter(x => x == MINER).length
+        // if (rolesNeeded.filter(x => x == HARVESTER).length < room.sources.length) return 0
+        // if (rolesNeeded.filter(x => x == TRUCKER).length < room.sources.length) return 0
 
-        // Determine valid positions around mineral
-        let validPositions = mineral.pos.validPositions.length
-        return minerCount < validPositions ? validPositions - minerCount : 0;
+        // // Determine valid positions around mineral
+        // let validPositions = mineral.pos.validPositions.length
+        // return minerCount < validPositions ? validPositions - minerCount : 0;
     }
 
     preSpawnBy(room: Room, spawn: StructureSpawn, creep?: Creep): number {
