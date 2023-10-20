@@ -25,3 +25,16 @@ interface RemoteDetails {
     assignedEngIds: Id<Creep>[],
 }
 
+/** The form an inventory transfer request for the anchor should take.
+ * @param supplyId the ID of the supply
+ * @param targetId The ID of the destination structure. Must be a store structure.
+ * @param resource The resource constant of the resource being moved.
+ * @param qty The quantity to move.
+ * */
+interface AnchorRequest {
+    supplyId?: Id<AnyStoreStructure>
+    targetId: Id<AnyStoreStructure>
+    resource: ResourceConstant
+    qty?: number
+}
+

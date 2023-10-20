@@ -1,5 +1,5 @@
 import { TRACE } from "Constants/LogConstants";
-import { LOW } from "Constants/ProcessPriorityConstants";
+import { MEDIUM } from "Constants/ProcessPriorityConstants";
 import { FATAL, RUNNING } from "Constants/ProcessStateConstants";
 import { Process } from "Models/Process"
 import { Utils } from "utils/Index"
@@ -32,13 +32,34 @@ export default class ThreatManager {
 
             switch (true) {
                 case (playerAttackers.length == 0 && invaderAttackers.length == 0):
-
+                    // Open Ramparts
+                    if (!room.cache.isOpen) {
+                        room.cache.isOpen = true
+                        for (let rampart of room.ramparts) {
+                            rampart.setPublic(room.cache.isOpen)
+                        }
+                    }
                     if (Game.time % 50 == 0) this.towerHeal(room);
                     break;
                 case (playerAttackers.length == 0 && invaderAttackers.length > 0):
+                    // Close Ramparts
+                    if (room.cache.isOpen) {
+                        room.cache.isOpen = false
+                        for (let rampart of room.ramparts) {
+                            rampart.setPublic(room.cache.isOpen)
+                        }
+                    }
+
                     this.towerAttack(invaderAttackers[0]);
                     break;
                 case (playerAttackers.length > 0 && invaderAttackers.length == 0): case (playerAttackers.length > 0 && invaderAttackers.length > 0):
+                    // Close Ramparts
+                    if (room.cache.isOpen) {
+                        room.cache.isOpen = false
+                        for (let rampart of room.ramparts) {
+                            rampart.setPublic(room.cache.isOpen)
+                        }
+                    }
 
                     // Handle Targeting
                     if (room.cache.towerTarget && Game.getObjectById(room.cache.towerTarget) == null) delete room.cache.towerTarget;
@@ -74,7 +95,7 @@ export default class ThreatManager {
             return RUNNING;
         }
 
-        let newProcess = new Process(roomProcessId, LOW, monitorTask)
+        let newProcess = new Process(roomProcessId, MEDIUM, monitorTask)
         global.scheduler.addProcess(newProcess)
     }
 
