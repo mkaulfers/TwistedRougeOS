@@ -87,6 +87,9 @@ declare global {
         rclEight?: number
 
         remoteSites?: { [roomName: string]: RemoteDetails }
+
+        // Temp CPU tracking
+        spawnManagerCpuPerTick?: number[]
     }
 
     interface Memory {
