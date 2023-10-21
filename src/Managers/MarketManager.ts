@@ -11,9 +11,18 @@ export default class MarketManager {
             const room = Game.rooms[roomName];
             if (!room || !room.my) return FATAL;
 
+            // Pull terminal and storage
             const terminal = room.terminal;
             const storage = room.storage;
             if (!terminal || !storage) return RUNNING;
+
+            // Terminal Inventory Management
+            if (Game.time % 250 === 0 && terminal.store.getFreeCapacity() < 100000) {
+
+            }
+
+            // Market Request Handling
+
 
             if (storage.store.getUsedCapacity(RESOURCE_ENERGY) > 500000 && terminal.store.getUsedCapacity(RESOURCE_ENERGY) > 50000) {
                 terminal.sell(RESOURCE_ENERGY, { quantity: terminal.store.energy - 20000 });

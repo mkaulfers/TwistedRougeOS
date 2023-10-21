@@ -38,3 +38,12 @@ interface AnchorRequest {
     qty?: number
 }
 
+/** The form a market request should take.
+ * @param action asdf
+ * @param
+*/
+interface MarketRequest {
+    action: "buy" | "sell"
+    resource: ResourceConstant
+    quantity: number
+}
