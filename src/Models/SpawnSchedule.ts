@@ -16,7 +16,7 @@ export default class SpawnSchedule {
     /** Number between 0.0 and 1.0 that limits the total amount of schedule used. Example: 0.8. 80% of the schedule's ticks are free to be used for spawning.*/
     limiter: number
     /** The actual schedule. Contains all SpawnOrders required, with all information required but the final name.*/
-    schedule: SpawnOrder[]
+    schedule: SpawnOrder_Old[]
     /** Used by the Spawn Manager to know when to rebuild the whole schedule. */
     needsScheduled: boolean;
     /** A record of the currently attempted-to-schedule roles. */
@@ -24,7 +24,7 @@ export default class SpawnSchedule {
     /** A record of the last used spawn energy limit. */
     activeELimit: number | undefined;
 
-    constructor(roomName: string, spawnName: string, opts?: {tick: number, pausedTicks: number, schedule: SpawnOrder[], freeSpaces: [number, number][], usedSpace: number}) {
+    constructor(roomName: string, spawnName: string, opts?: {tick: number, pausedTicks: number, schedule: SpawnOrder_Old[], freeSpaces: [number, number][], usedSpace: number}) {
         this.roomName = roomName;
         this.spawnName = spawnName;
         this.limiter = 1.0
@@ -44,7 +44,7 @@ export default class SpawnSchedule {
      * @param opts.force To ignore the schedule's built in percentage limiter. Will only allow to 100% usage.
      * @returns SpawnOrders it couldn't add to the schedule or undefined if successful.
      */
-    add(spawnOrders: SpawnOrder[], opts?: {preSpawnOnly?: boolean, pack?: boolean, force?: boolean, shrinkBody?: boolean}): SpawnOrder[] | undefined {
+    add(spawnOrders: SpawnOrder_Old[], opts?: {preSpawnOnly?: boolean, pack?: boolean, force?: boolean, shrinkBody?: boolean}): SpawnOrder_Old[] | undefined {
 
         // Create external spawnOrder array to edit and return without screwing up the for loop
         let externalSpawnOrders = [...spawnOrders];
@@ -173,7 +173,7 @@ export default class SpawnSchedule {
      * Removes SpawnOrders from the schedule.
      * @param spawnOrders All SpawnOrders you wish to remove.
      */
-    remove(spawnOrders: SpawnOrder[]): void {
+    remove(spawnOrders: SpawnOrder_Old[]): void {
         for (const spawnOrder of spawnOrders) {
             // Remove from schedule
             let removeIndex = this.schedule.findIndex(o => spawnOrder.id === o.id);
@@ -223,7 +223,7 @@ export default class SpawnSchedule {
      */
     shift(): void {
 
-        let externalSchedule: SpawnOrder[] | undefined = [];
+        let externalSchedule: SpawnOrder_Old[] | undefined = [];
         let rolesNeeded = this.rolesNeeded;
         let activeELimit = this.activeELimit;
 

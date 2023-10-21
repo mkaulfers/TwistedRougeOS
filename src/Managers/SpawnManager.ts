@@ -43,7 +43,7 @@ export default class SpawnManager {
                     spawnSchedule.schedule.length > 0 ? Utils.Logger.log(`SpawnManager schedule ${spawnSchedule.spawnName} nextOrder: ${nextOrder ? nextOrder.id : spawnSchedule.schedule[0].id} in ${nextOrder && nextOrder.scheduleTick ? nextOrder.scheduleTick - spawnSchedule.tick : spawnSchedule.schedule[0].scheduleTick ? 1500 + spawnSchedule.schedule[0].scheduleTick - spawnSchedule.tick : undefined} ticks.`, INFO) : undefined;
                 }
 
-                let spawnOrder: SpawnOrder | undefined = spawnSchedule.schedule.find(o => o.scheduleTick == spawnSchedule.tick);
+                let spawnOrder: SpawnOrder_Old | undefined = spawnSchedule.schedule.find(o => o.scheduleTick == spawnSchedule.tick);
 
                 // Identify Emergencies
                 let emergency = false;
@@ -110,7 +110,7 @@ export default class SpawnManager {
             // History Check: Respawn prematurely dead creeps if room.
             if (Game.time % 25 === 0) {
                 // Find missing creep's spawn order
-                let missingSpawnOrder: SpawnOrder | undefined;
+                let missingSpawnOrder: SpawnOrder_Old | undefined;
                 let missingFoundIn: SpawnSchedule | undefined;
                 for (const spawnSchedule of spawnSchedules) {
                     if (missingSpawnOrder) break;
@@ -160,11 +160,11 @@ export default class SpawnManager {
      * @param room The room to consider.
      * @param minimum Limits SpawnOrder generation to just ones considered required for room functionality.
      */
-    private static genSpawnOrders(room: Room, rolesWanted: Role[]): SpawnOrder[] {
+    private static genSpawnOrders(room: Room, rolesWanted: Role[]): SpawnOrder_Old[] {
         Utils.Logger.log(`SpawnManager -> genSpawnOrders(${room.name})`, TRACE)
 
         // Build each SpawnOrder
-        let spawnOrders: SpawnOrder[] = [];
+        let spawnOrders: SpawnOrder_Old[] = [];
         for (const role of rolesWanted) {
             let roleName = Utils.Utility.truncateString(role);
             let roleCount = spawnOrders.filter(o => o.id.includes(roleName)).length;
@@ -177,7 +177,7 @@ export default class SpawnManager {
                 continue;
             }
             // TODO: Reconsider if SpawnOrder should really have creep memory stored within
-            let spawnOrder: SpawnOrder = {
+            let spawnOrder: SpawnOrder_Old = {
                 id: roleName + (roleCount.toString().length < 2 ? `0` + roleCount.toString() : roleCount.toString()),
                 body: body,
                 spawnTime: body.length * 3,
@@ -261,7 +261,7 @@ export default class SpawnManager {
             let rolesNeeded = genRolesNeededReturn.value;
 
             // Convert rolesNeeded to spawn orders, trim previously handled rolesNeeded.
-            let spawnOrders: SpawnOrder[] | undefined = this.genSpawnOrders(room, rolesNeeded);
+            let spawnOrders: SpawnOrder_Old[] | undefined = this.genSpawnOrders(room, rolesNeeded);
             if (spawnSchedules[0].rolesNeeded) spawnOrders.splice(0, spawnSchedules[0].rolesNeeded.length);
             // Set current rolesNeeded to schedules.
             for (const schedule of spawnSchedules) schedule.rolesNeeded = [...rolesNeeded];
@@ -274,7 +274,7 @@ export default class SpawnManager {
     }
 
     /** Adds SpawnOrders to schedule. Assumes spawnSchedules !== undefined. */
-    private static addToSchedules(room: Room, spawnOrders: SpawnOrder[] | undefined): SpawnOrder[] | undefined {
+    private static addToSchedules(room: Room, spawnOrders: SpawnOrder_Old[] | undefined): SpawnOrder_Old[] | undefined {
         let spawnSchedules = room.cache.spawnSchedules;
         if (!spawnSchedules) return;
         // Exact Prespawn only additions
@@ -354,7 +354,7 @@ export default class SpawnManager {
     }
 
     /** Handles Spawning and Tick Incrementation */
-    private static runSchedule(spawnSchedule: SpawnSchedule, spawnOrder: SpawnOrder | undefined): SpawnSchedule {
+    private static runSchedule(spawnSchedule: SpawnSchedule, spawnOrder: SpawnOrder_Old | undefined): SpawnSchedule {
         // Handle Spawning
         if (spawnOrder) {
             let name = spawnOrder.id + "_" + Utils.Utility.truncateString(Game.time.toString(), 4, false);

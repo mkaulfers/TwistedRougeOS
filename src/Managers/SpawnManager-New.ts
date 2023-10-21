@@ -1,18 +1,91 @@
 
+import { HIGH } from "Constants/ProcessPriorityConstants";
+import { RUNNING } from "Constants/ProcessStateConstants";
 import { AGENT, ANCHOR, ENGINEER, FILLER, HARVESTER, Role, SCIENTIST, TRUCKER, nENGINEER, nHARVESTER, nRESERVER, nTRUCKER } from "Constants/RoleConstants"
+import { Process } from "Models/Process";
+import SpawnOrder from "Models/SpawnOrder";
+import SpawnQueue from "Models/SpawnQueue";
 import Utility from "utils/Utilities"
 
-class SpawnRule {
-    constructor(
-        public rule: { [role in Role]?: number }
-    ) { }
+type SpawnRuleDependencies = {
+    [role: string]: number;
+}
 
-    getRequirement(role: Role): number {
-        return this.rule[role] || 0
+class SpawnRule {
+    dependencies: SpawnRuleDependencies;
+
+    constructor(deps: SpawnRuleDependencies) {
+        this.dependencies = deps;
     }
 }
 
+const creepConfig: {
+    [role: string]: {
+        baseBody: BodyPartConstant[],
+        bodySegment: BodyPartConstant[],
+        partLimits: { [rule: string]: number },
+        spawnRule: SpawnRule
+    }
+} = {
+    HARVESTER: {
+        baseBody: [CARRY, MOVE, WORK, WORK],
+        bodySegment: [WORK],
+        partLimits: { maxWork: 5, maxCarry: 1 },
+        spawnRule: new SpawnRule({})
+    },
+    TRUCKER: {
+        baseBody: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
+        bodySegment: [MOVE, CARRY, CARRY],
+        partLimits: { maxCarry: 25, maxMove: 25 },
+        spawnRule: new SpawnRule({ HARVESTER: 1 })
+    },
+    SCIENTIST: {
+        baseBody: [CARRY, MOVE, WORK, WORK],
+        bodySegment: [CARRY, WORK, WORK],
+        partLimits: {},
+        spawnRule: new SpawnRule({ HARVESTER: 1, TRUCKER: 1 })
+    },
+    AGENT: {
+        baseBody: [MOVE],
+        bodySegment: [],
+        partLimits: { maxMove: 1 },
+        spawnRule: new SpawnRule({ HARVESTER: 1, TRUCKER: 1 })
+    },
+    ENGINEER: {
+        baseBody: [CARRY, CARRY, MOVE, MOVE, WORK],
+        bodySegment: [CARRY, WORK, MOVE, MOVE],
+        partLimits: {},
+        spawnRule: new SpawnRule({ HARVESTER: 1, TRUCKER: 1, AGENT: 1, SCIENTIST: 1, ENGINEER: 1 })
+    },
+    ANCHOR: {
+        baseBody: [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE],
+        bodySegment: [CARRY],
+        partLimits: {},
+        spawnRule: new SpawnRule({ HARVESTER: 1, TRUCKER: 1, AGENT: 1, FILLER: 1, ENGINEER: 1, SCIENTIST: 1 })
+    },
+    FILLER: {
+        baseBody: [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE],
+        bodySegment: [CARRY],
+        partLimits: {},
+        spawnRule: new SpawnRule({ HARVESTER: 1, TRUCKER: 1, AGENT: 1, ENGINEER: 1, SCIENTIST: 1 })
+    },
+    nHARVESTER: {
+        baseBody: [CARRY, MOVE, WORK],
+        bodySegment: [CARRY, MOVE, WORK],
+        partLimits: {},
+        spawnRule: new SpawnRule({})
+    },
+    nTRUCKER: {
+        baseBody: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
+        bodySegment: [MOVE, CARRY],
+        partLimits: {},
+        spawnRule: new SpawnRule({})
+    }
+};
+
 export default class SpawnManagerNew {
+    spawnQueue: SpawnQueue
+
     // TODO: Add a backing field to prevent duplicate computations. (e.g., _idealRoleCount)
     idealRoleCount: { [role: string]: (room: Room) => number } = {
         HARVESTER: (room: Room): number => { return this.getIdealHarvesterCount(room) },
@@ -23,9 +96,7 @@ export default class SpawnManagerNew {
         FILLER: (room: Room) => { return this.getIdealFillerCount(room) },
         AGENT: (room: Room) => { return this.getIdealAgentCount(room) },
         nHARVESTER: (room: Room) => { return this.getIdealnHarvesterCount(room) },
-        nTRUCKER: (room: Room) => { return this.getIdealnTruckerCount(room) },
-        nENGINEER: (room: Room) => { return this.getIdealnEngineerCount(room) },
-        nRESERVER: (room: Room) => { return this.getIdealnReserverCount(room) },
+        nTRUCKER: (room: Room) => { return this.getIdealnTruckerCount(room) }
     }
 
     /**
@@ -129,6 +200,7 @@ export default class SpawnManagerNew {
         if (constructionSitesCount > 5) return 2
         return 1
     }
+
     /**
      * Determines the ideal number of Anchors for a given room.
      *
@@ -178,133 +250,6 @@ export default class SpawnManagerNew {
         return 0
     }
 
-    private getIdealnEngineerCount(room: Room): number {
-        return 0
-    }
-
-    private getIdealnReserverCount(room: Room): number {
-        return 0
-    }
-
-    minimumRoleCount: { [role: string]: number } = {
-        HARVESTER: 1,
-        TRUCKER: 1,
-        SCIENTIST: 1,
-        AGENT: 1,
-        ENGINEER: 1,
-        ANCHOR: 0,
-        FILLER: 0,
-        nHARVESTER: 0,
-        nTRUCKER: 0,
-        nENGINEER: 0,
-        nRESERVER: 0,
-    }
-
-    idealCreepBody: { [role: string]: BodyPartConstant[] } = {
-        HARVESTER: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-        TRUCKER: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-        SCIENTIST: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-        AGENT: [MOVE],
-        ENGINEER: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-        ANCHOR: [CLAIM, MOVE],
-        FILLER: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-        nHARVESTER: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-        nTRUCKER: [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-        nENGINEER: [WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
-        nRESERVER: [CLAIM, MOVE]
-    }
-
-    minimumCreepBody: { [role: string]: BodyPartConstant[] } = {
-        HARVESTER: [WORK, CARRY, CARRY, MOVE, MOVE], // Cost: 300
-        TRUCKER: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE], // Cost: 300
-        SCIENTIST: [WORK, CARRY, MOVE],
-        AGENT: [MOVE],
-        ENGINEER: [WORK, CARRY, MOVE],
-        ANCHOR: [CLAIM, MOVE],
-        FILLER: [CARRY, MOVE],
-        nHARVESTER: [WORK, CARRY, MOVE],
-        nTRUCKER: [CARRY, MOVE],
-        nENGINEER: [WORK, CARRY, MOVE],
-        nRESERVER: [CLAIM, MOVE]
-    }
-
-    creepBodyRules: { [role: string]: { [rule: string]: number } } = {
-        HARVESTER: { maxWork: 5, maxCarry: 1, maxMove: 6 },
-        TRUCKER: { maxCarry: 6, maxMove: 6 },
-        SCIENTIST: { maxWork: 5, maxCarry: 1, maxMove: 6 },
-        AGENT: { maxMove: 1 },
-        ENGINEER: { maxWork: 5, maxCarry: 1, maxMove: 6 },
-        ANCHOR: { maxClaim: 1, maxMove: 1 },
-        FILLER: { maxCarry: 6, maxMove: 6 },
-        nHARVESTER: { maxWork: 5, maxCarry: 1, maxMove: 6 },
-        nTRUCKER: { maxCarry: 6, maxMove: 6 },
-        nENGINEER: { maxWork: 5, maxCarry: 1, maxMove: 6 },
-        nRESERVER: { maxClaim: 1, maxMove: 1 }
-    }
-
-    creepSpawnRules: { [role: string]: SpawnRule } = {
-        HARVESTER: new SpawnRule({}),
-        TRUCKER: new SpawnRule({ [HARVESTER]: 1 }),
-        AGENT: new SpawnRule({ [HARVESTER]: 1, [TRUCKER]: 1 }),
-        ANCHOR: new SpawnRule({ [HARVESTER]: 1, [TRUCKER]: 1, [AGENT]: 1, [FILLER]: 1, [ENGINEER]: 1, [SCIENTIST]: 1 }),
-        FILLER: new SpawnRule({ [HARVESTER]: 1, [TRUCKER]: 1, [AGENT]: 1, [ENGINEER]: 1, [SCIENTIST]: 1 }),
-        ENGINEER: new SpawnRule({ [HARVESTER]: 1, [TRUCKER]: 1, [AGENT]: 1, [FILLER]: 1, [SCIENTIST]: 1 }),
-        SCIENTIST: new SpawnRule({ [HARVESTER]: 1, [TRUCKER]: 1 }),
-        nHARVESTER: new SpawnRule({}),
-        nTRUCKER: new SpawnRule({}),
-        nENGINEER: new SpawnRule({}),
-        nRESERVER: new SpawnRule({})
-    }
-
-    private getSpawnableRoles(room: Room): Role[] {
-        let localCreeps = room.localCreeps;
-        let stationedCreeps = room.stationedCreeps;
-
-        let roomHarvesters = localCreeps.harvester.length;
-        let roomTruckers = localCreeps.trucker.length;
-        let roomAgents = localCreeps.agent.length;
-        let roomEngineers = localCreeps.engineer.length;
-        let roomScientists = localCreeps.scientist.length;
-        let roomAnchors = localCreeps.anchor.length;
-        let roomFillers = localCreeps.filler.length;
-        let roomnHarvesters = stationedCreeps.nHarvester.length;
-        let roomnTruckers = stationedCreeps.nTrucker.length;
-        let roomnEngineers = stationedCreeps.nEngineer.length;
-        let roomnReservers = stationedCreeps.nReserver.length;
-
-        let spawnableRoles: Role[] = [];
-        spawnableRoles.push(HARVESTER);
-
-        if (roomHarvesters > 0) {
-            spawnableRoles.push(TRUCKER);
-            spawnableRoles.push(AGENT);
-            spawnableRoles.push(SCIENTIST);
-        }
-
-        if (roomHarvesters > 0 &&
-            roomTruckers > 0) {
-            spawnableRoles.push(ENGINEER);
-            spawnableRoles.push(FILLER);
-        }
-
-        if (roomHarvesters > 0 &&
-            roomTruckers > 0 &&
-            roomAgents > 0 &&
-            roomEngineers > 0 &&
-            roomScientists > 0 &&
-            roomFillers > 0) {
-            spawnableRoles.push(ANCHOR);
-        }
-
-        spawnableRoles.push(nHARVESTER);
-        spawnableRoles.push(nTRUCKER);
-        spawnableRoles.push(nENGINEER);
-        spawnableRoles.push(nRESERVER);
-
-        return spawnableRoles;
-    }
-
-
     /**
      * Determines the optimal body configuration for a creep based on its role and the energy available in the room.
      *
@@ -325,44 +270,83 @@ export default class SpawnManagerNew {
      *                                 for the given role based on the available energy in the room.
      */
     private getCreepBodyFor(role: Role, room: Room): BodyPartConstant[] {
-        const availableEnergy = room.energyAvailable
-        const idealBody = this.idealCreepBody[role]
-        const minBody = this.minimumCreepBody[role]
-        const rules = this.creepBodyRules[role]
-        const minBodyCost = Utility.bodyCost(minBody)
+        const energyCapacity = room.energyCapacityAvailable
+        const baseBody = creepConfig[role].baseBody
+        const bodySegment = creepConfig[role].bodySegment
+        const baseBodyCost = Utility.bodyCost(baseBody)
+        const segmentCost = Utility.bodyCost(bodySegment)
 
-        if (availableEnergy < minBodyCost) {
-            return []
+        if (energyCapacity < baseBodyCost + segmentCost) return baseBody
+
+        const maxSegments = Math.floor((energyCapacity - baseBodyCost) / segmentCost)
+
+        let currentBody = baseBody.slice()  // clone to avoid modifying the original
+
+        let allowedSegments = 0;
+
+        // Check how many segments can be added without violating the rules
+        for (let i = 0; i < maxSegments; i++) {
+            if (this.willExceedRules(role, currentBody, bodySegment)) break
+            if (currentBody.length + bodySegment.length >= 50) break
+            allowedSegments++
         }
 
-        if (availableEnergy === minBodyCost) {
-            return minBody
-        }
-
-        let currentBody: BodyPartConstant[] = [...minBody]
-        let currentCost = minBodyCost
-        let uniqueParts = [...new Set(idealBody)]
-
-        while (uniqueParts.length > 0 && currentCost < availableEnergy) {
-            uniqueParts = uniqueParts.filter(part => this.countBodyPart(part, currentBody) < rules[`max${part[0].toUpperCase() + part.slice(1).toLowerCase()}`])
-            const uniquePartCost = Utility.bodyCost(uniqueParts)
-
-            if (currentCost + uniquePartCost > availableEnergy) {
-                break
-            }
-
-            currentBody = [...currentBody, ...uniqueParts]
-            currentCost += uniquePartCost
+        // Add all allowed segments at once
+        for (let i = 0; i < allowedSegments; i++) {
+            currentBody = currentBody.concat(bodySegment)
         }
 
         return currentBody
+    }
+
+    private willExceedRules(role: Role, body: BodyPartConstant[], segment: BodyPartConstant[]): boolean {
+        const newBody = body.concat(segment)
+        const rules = creepConfig[role].partLimits
+        for (const [part, max] of Object.entries(rules)) {
+            const count = this.countBodyPart(part as BodyPartConstant, newBody)
+            if (count > max) return true
+        }
+        return false
     }
 
     private countBodyPart(part: BodyPartConstant, body: BodyPartConstant[]): number {
         return body.filter(p => p === part).length
     }
 
-    static runFor(room: Room) {
+    static scheduleSpawnManager(room: Room) {
+        const spawnManagerTask = () => {
+            if (!global.spawnManager[room.name]) {
+                global.spawnManager[room.name] = new SpawnManagerNew(room)
+            }
 
+            const manager = global.spawnManager[room.name]
+            const queue = manager.spawnQueue
+
+            if (queue.canTakeOrders) {
+                // Loop over roles and check their ideal count
+                // If the current count is less than the ideal count, add a spawn order
+                for (const [role, idealCount] of Object.entries(manager.idealRoleCount)) {
+                    const allCreeps = [...room.localCreeps.all, ...room.stationedCreeps.all]
+                    let currentCount = allCreeps.filter(creep => creep.memory.role === role).length
+
+                    if (currentCount < idealCount(room)) {
+                        let order = new SpawnOrder(
+                            manager.getCreepBodyFor(role as Role, room),
+                            role as Role
+                        )
+                        queue.queueOrder(order)
+                    }
+                }
+            }
+
+            return RUNNING;
+        }
+
+        let newProcess = new Process(`${room.name}_spawn_manager`, HIGH, spawnManagerTask)
+        global.scheduler.addProcess(newProcess)
+    }
+
+    private constructor(room: Room) {
+        this.spawnQueue = new SpawnQueue(room)
     }
 }

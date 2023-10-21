@@ -526,7 +526,7 @@ export default class Room_Extended extends Room {
         Managers.UtilityManager.schedulePixelSale()
         Managers.ThreatManager.scheduleThreatMonitor(this)
         Managers.CreepManager.scheduleCreepTask(this)
-        Managers.SpawnManager.scheduleSpawnMonitor(this)
+        Managers.SpawnManagerNew.scheduleSpawnManager(this)
         Managers.CreepManager.scheduleRoomTaskMonitor(this)
         Managers.LinkManager.schedule(this)
         Managers.ConstructionManager.scheduleConstructionMonitor(this)

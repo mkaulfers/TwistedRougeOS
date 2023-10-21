@@ -1,5 +1,5 @@
 
-interface SpawnOrder {
+interface SpawnOrder_Old {
     id: string, // role + count
     scheduleTick?: number,
     spawnTime: number,

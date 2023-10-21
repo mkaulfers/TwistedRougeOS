@@ -27,7 +27,7 @@ declare global {
 // DEV MODE LOGGING
 Utils.Logger.devLogLevel = DEBUG;
 
-export const loop = Utils.ErrorMapper.wrapLoop(() => {
+export const loop = () => {
   setupStats()
   clearConsole()
   setup()
@@ -35,7 +35,7 @@ export const loop = Utils.ErrorMapper.wrapLoop(() => {
   execute()
   end()
   loggingProcess()
-});
+};
 
 function setup() {
   memHack.modifyMemory()
