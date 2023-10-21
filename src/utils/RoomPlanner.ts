@@ -154,9 +154,34 @@ function setSourceSites(room: Room, blueprintAnchor: RoomPosition, plannedPositi
 function setMineralSite(room: Room, blueprintAnchor: RoomPosition, savedRoadPositions: PathStep[], unsavedRoadPositions: RoomPosition[]) {
     let mineral = room.mineral
     if (mineral) {
+        // Find mineralPath for secondary consideration
         let mineralPath: PathStep[] = blueprintAnchor.findPathTo(mineral, { ignoreCreeps: true, ignoreDestructibleStructures: true, swampCost: 2, costCallback: (roomName) => genPlannedRoadCM(Utility.genPathfindingCM(roomName), savedRoadPositions, unsavedRoadPositions) })
+        let pathStep = mineralPath[mineralPath.length - 2]
+        let pathPos = new RoomPosition(pathStep.x, pathStep.y, room.name)
 
-        let containerPos = mineralPath[mineralPath.length - 2]
+        // Find most accessible position out of valid positions
+        let potentials = mineral.pos.validPositions
+        let containerPos: RoomPosition | undefined
+
+        let highest = 0
+        for (let pos of potentials) {
+            let count = pos.findInRange(potentials, 1).length
+            switch (true) {
+                // Set default containerPos if none set yet
+                case !containerPos:
+                // If the new pos is reachable by more valid positions, replace containerPos
+                case count > highest:
+                // If new pos is reachable by the same number of valid positions, but is closer to the path, replace containerPos
+                case count === highest && pos.getRangeTo(pathPos) < containerPos!.getRangeTo(pathPos):
+                    highest = count
+                    containerPos = pos
+                    break
+            }
+        }
+
+        // Technically a duplicate guard...
+        if (!containerPos) return
+
         if (!room || !room.memory || !room.memory.blueprint) return;
         room.memory.blueprint.containers.push(Utils.Utility.packPosition(new RoomPosition(containerPos.x, containerPos.y, room.name)))
 

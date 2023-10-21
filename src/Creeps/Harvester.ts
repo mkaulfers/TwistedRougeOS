@@ -43,7 +43,7 @@ export class Harvester extends CreepRole {
         let body = this.getBody(room);
         let shouldBe = Math.ceil((sourceCount * 5) / (body.filter(p => p == WORK).length));
         let maxPositions = 0;
-        room.sources.forEach(s => maxPositions += s.validPositions?.length ?? 0);
+        room.sources.forEach(s => maxPositions += s.pos.validPositions?.length ?? 0);
 
         if (shouldBe > maxPositions) shouldBe = maxPositions;
         return harCount < shouldBe ? shouldBe - harCount : 0;

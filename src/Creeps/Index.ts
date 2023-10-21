@@ -8,6 +8,7 @@ import CreepRole from 'Models/CreepRole';
 import { NetworkHarvester } from './NetworkHarvester';
 import { Anchor } from './Anchor';
 import { NetworkTrucker } from './NetworkTrucker';
+import { Miner } from './Miner';
 import { Role } from 'Constants/RoleConstants';
 
 var CreepClasses: {[key in Role]?: CreepRole} = {
@@ -18,6 +19,7 @@ var CreepClasses: {[key in Role]?: CreepRole} = {
     engineer: new Engineer,
     scientist: new Scientist,
     agent: new Agent,
+    miner: new Miner,
     nHarvester: new NetworkHarvester,
     nTrucker: new NetworkTrucker,
 }

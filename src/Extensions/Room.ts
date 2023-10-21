@@ -266,6 +266,15 @@ export default class Room_Extended extends Room {
         return this._powerSpawn
     }
 
+    private _ramparts: StructureRampart[] | undefined
+    get ramparts() {
+        if (!this._ramparts) {
+            const ramparts = this.structures(STRUCTURE_RAMPART)
+            if (ramparts.every(Utils.Typeguards.isStructureRampart)) this._ramparts = ramparts
+        }
+        return this._ramparts ? this._ramparts : []
+    }
+
     private _roads: StructureRoad[] | undefined
     get roads() {
         if (!this._roads) {

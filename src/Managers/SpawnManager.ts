@@ -310,7 +310,7 @@ export default class SpawnManager {
     private static handleEmergency(spawnSchedule: SpawnSchedule, emergency: boolean): SpawnSchedule {
         let room = Game.rooms[spawnSchedule.roomName];
         if (emergency === true) {
-            Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, DEBUG);
+            Utils.Logger.log(`SpawnSchedule ${spawnSchedule.roomName}_${spawnSchedule.spawnName} is experiencing an emergency halt: ${spawnSchedule.pausedTicks}.`, INFO);
 
             // Handle Restarting
             if (spawnSchedule.pausedTicks > 25 && room.localCreeps.trucker.length == 0 && room.controller && room.controller.level > 2) {
