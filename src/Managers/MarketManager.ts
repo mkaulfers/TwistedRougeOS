@@ -11,22 +11,21 @@ export default class MarketManager {
             const room = Game.rooms[roomName];
             if (!room || !room.my) return FATAL;
 
-            // Pull terminal and storage
-            const terminal = room.terminal;
-            const storage = room.storage;
-            if (!terminal || !storage) return RUNNING;
-
-            // Terminal Inventory Management
-            if (Game.time % 250 === 0 && terminal.store.getFreeCapacity() < 100000) {
-
-            }
+            // Guard terminal and storage not existing
+            if (!room.terminal || !room.storage) return RUNNING;
 
             // Market Request Handling
-
-
-            if (storage.store.getUsedCapacity(RESOURCE_ENERGY) > 500000 && terminal.store.getUsedCapacity(RESOURCE_ENERGY) > 50000) {
-                terminal.sell(RESOURCE_ENERGY, { quantity: terminal.store.energy - 20000 });
+            if (Game.time % 25 === 0) {
+                this.standardRequests(room)
+                this.processRequests(room)
             }
+
+            // Terminal Inventory Management
+            if (Game.time % 1500 === 0) {
+                this.manageTerminal(room)
+            }
+
+
 
             return RUNNING
         }
@@ -35,6 +34,44 @@ export default class MarketManager {
         global.scheduler.addProcess(newProcess)
     }
 
+    // Processes all market requests, tracking which are active, removing ones fulfilled, guarding against imposssible requests, etc.
+    private static processRequests(room: Room) {
+        // Retrieve terminal, requests
+        let terminal = room.terminal
+        let requests = room.cache.marketRequests ? room.cache.marketRequests : []
+
+
+    }
+
+    // Manages terminal inventory given static energy guards and dynamic inventory based on requests.
+    private static manageTerminal(room: Room) {
+        // Retrieve terminal, requests
+        let terminal = room.terminal
+        let requests = room.cache.marketRequests ? room.cache.marketRequests : []
+
+    }
+
+    private static standardRequests(room: Room) {
+        // Retrieve terminal, requests
+        let terminal = room.terminal
+        let requests = room.cache.marketRequests ? room.cache.marketRequests : []
+
+        // Emergency Energy Requisition
+
+
+    }
+
+    // interface MarketRequest {
+    //     action: "buy" | "sell"
+    //     resource: ResourceConstant
+    //     quantity: number
+    //     active?: boolean
+    // }
+
+    static addRequest(room: Room, action: 'buy' | 'sell', resource: ResourceConstant, quantity: number) {
+        // Feasibility check
+
+    }
 }
 
 

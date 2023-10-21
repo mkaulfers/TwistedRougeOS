@@ -39,11 +39,20 @@ interface AnchorRequest {
 }
 
 /** The form a market request should take.
- * @param action asdf
- * @param
+ * @param action "buy" or "sell". Are we buying or selling?
+ * @param resource The resource constant of the resource being purchased / sold.
+ * @param quantity The quantity to purchase / sold.
+ * @param active Optional boolean defining if the terminal should have space for the request or not. Used by the Market Manager. Do not set when making a request.
 */
 interface MarketRequest {
     action: "buy" | "sell"
     resource: ResourceConstant
     quantity: number
+    active?: boolean
+}
+
+/** The object Terminal.fetchPrice() returns. */
+interface MarketPrice {
+    price: number,
+    std: number
 }
