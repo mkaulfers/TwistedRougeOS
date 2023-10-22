@@ -1,7 +1,7 @@
 import { TargetManager } from 'Managers/TargetManager';
 import Kernel from './Kernel';
 import Scheduler from './Scheduler';
-import SpawnManagerNew from 'Managers/SpawnManager-New';
+import SpawnManager from 'Managers/SpawnManager';
 import RoleCountCache from 'Models/RoleCountCache';
 
 declare global {
@@ -11,7 +11,7 @@ declare global {
             kernel: Kernel,
             recentlyAttacked: boolean,
             scheduler: Scheduler,
-            spawnManager: {[roomName: string]: SpawnManagerNew},
+            spawnManager: {[roomName: string]: SpawnManager},
             roleCountCache: RoleCountCache,
             targetManagerFor: {[roomName: string]: TargetManager}
         }
