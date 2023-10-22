@@ -94,8 +94,6 @@ function displaySimpleStats(): string {
 }
 
 function loggingProcess() {
-  console.log(`Game Tick: ${Game.time}, or Ticks til next 1500: ${1500 - (Game.time % 1500)}`);
-
   if (Utils.Logger.devLogLevel == DEBUG ||
       Utils.Logger.devLogLevel == ALL ||
       Utils.Logger.devLogLevel == INFO) {

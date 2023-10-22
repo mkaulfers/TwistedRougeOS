@@ -2,14 +2,14 @@ import { Role } from "Constants/RoleConstants"
 import SpawnOrder from "./SpawnOrder"
 
 export default class SpawnQueue {
-    room: Room
-    spawns: StructureSpawn[]
+    roomId: string
     queuedOrders: SpawnOrder[]
     processingOrders: SpawnOrder[]
     failedOrders: SpawnOrder[]
 
     private get remainingEnergy(): number {
-        const energyCapacity = this.room.energyCapacityAvailable;
+        const room = Game.rooms[this.roomId]
+        const energyCapacity = room.energyCapacityAvailable;
         const allOrders = [...this.queuedOrders, ...this.processingOrders, ...this.failedOrders];
         const totalCost = allOrders.reduce((total, order) => total + order.cost, 0);
         return energyCapacity - totalCost;
@@ -62,10 +62,19 @@ export default class SpawnQueue {
     }
 
     processSpawnOrders() {
-        if (this.queuedOrders.length == 0 && this.processingOrders.length == 0) return
+        const room = Game.rooms[this.roomId]
+        console.log("Queue: ", this.queuedOrders.length, "Processing: ", this.processingOrders.length, "Failed: ", this.failedOrders.length)
 
-        const availableSpawns = this.room.spawns.filter(spawn => !spawn.spawning);
-        if (availableSpawns.length == 0) return
+        if (this.queuedOrders.length == 0 && this.processingOrders.length == 0) {
+            console.log(`No orders to process at game time:` + Game.time)
+            return
+        }
+
+        const availableSpawns = room.spawns.filter(spawn => !spawn.spawning);
+        if (availableSpawns.length == 0) {
+            console.log(`No available spawns at game time:` + Game.time)
+            return
+        }
 
         if (this.processingOrders.length > 0) {
             this.queuedOrders = [...this.processingOrders, ...this.failedOrders, ...this.queuedOrders];
@@ -79,17 +88,19 @@ export default class SpawnQueue {
             const order = this.queuedOrders[0];
             const result = spawn.spawnCreep(order.body, order.name, {
                 memory: {
-                    role: order.role,
+                    role: order.role.toLowerCase() as Role,
                     working: false,
                     target: undefined,
-                    homeRoom: this.room.name
+                    homeRoom: room.name
                 }
             });
 
             if (result == OK) {
                 this.dequeueOrder(order)
+                console.log(`SpawnQueue: Spawned ${order.name} with body cost of ${order.cost} at game time: ${Game.time}`)
             } else if (result == ERR_NOT_ENOUGH_ENERGY) {
                 this.startProcessing(order)
+                console.log(`SpawnQueue: Not enough energy to spawn ${order.name} with body cost of ${order.cost} at game time: ${Game.time}`)
             } else {
                 this.addFailed(order)
                 console.log(`SpawnQueue: Failed to spawn ${order.name} with error code: ${result}`)
@@ -97,9 +108,8 @@ export default class SpawnQueue {
         }
     }
 
-    constructor(room: Room) {
-        this.room = room
-        this.spawns = room.spawns
+    constructor(roomId: string) {
+        this.roomId = roomId
         this.queuedOrders = []
         this.processingOrders = []
         this.failedOrders = []

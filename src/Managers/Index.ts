@@ -17,7 +17,6 @@ export var Managers = {
     MarketManager: MarketManager,
     LinkManager: LinkManager,
     SpawnManagerNew: SpawnManagerNew,
-    // SpawnManager: SpawnManager,
     ThreatManager: ThreatManager,
     UtilityManager: UtilityManager,
     Visuals: Visuals,
