@@ -124,6 +124,8 @@ declare global {
         storageBuilt?: boolean;
         /** Used by anchor creeps to house active inventory transfer requests and by requesters to send their request to the anchor creep. */
         anchorRequests?: AnchorRequest[]
+        /** Used for housing market requests. Allows for other managers to make requests to the Market Manager */
+        marketRequests?: MarketRequest[]
         /** Represents if ramparts are open for allies or not */
         isOpen?: boolean
 

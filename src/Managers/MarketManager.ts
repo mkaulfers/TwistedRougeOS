@@ -11,18 +11,64 @@ export default class MarketManager {
             const room = Game.rooms[roomName];
             if (!room || !room.my) return FATAL;
 
-            const terminal = room.terminal;
-            const storage = room.storage;
-            if (!terminal || !storage) return RUNNING;
 
-            if (storage.store.getUsedCapacity(RESOURCE_ENERGY) > 500000 && terminal.store.getUsedCapacity(RESOURCE_ENERGY) > 50000) {
-                terminal.sell(RESOURCE_ENERGY, { quantity: terminal.store.energy - 20000 });
+            // Retrieve terminal, requests
+            let terminal = room.terminal
+            let storage = room.storage
+            let requests = room.cache.marketRequests ? room.cache.marketRequests : []
+            if (!terminal || !storage) return
+
+            // Market Request Handling
+            if (Game.time % 25 === 0) {
+                this.standardRequests(room, terminal, requests)
+                this.processRequests(room, terminal, requests)
             }
+
+            // Terminal Inventory Management
+            if (Game.time % 1500 === 0) {
+                this.manageTerminal(room, terminal, requests)
+            }
+
+
 
             return RUNNING
         }
 
         let newProcess = new Process(processName, INDIFFERENT, task)
         global.scheduler.addProcess(newProcess)
+    }
+
+    // Processes all market requests, tracking which are active, removing ones fulfilled, guarding against imposssible requests, etc.
+    private static processRequests(room: Room, terminal: StructureTerminal, requests: MarketRequest[]) {
+
+
+
+    }
+
+    // Manages terminal inventory given static energy guards and dynamic inventory based on requests.
+    private static manageTerminal(room: Room, terminal: StructureTerminal, requests: MarketRequest[]) {
+
+    }
+
+    private static standardRequests(room: Room, terminal: StructureTerminal, requests: MarketRequest[]) {
+
+        // Emergency Energy Requisition
+
+
+    }
+
+    // interface MarketRequest {
+    //     action: "buy" | "sell"
+    //     resource: ResourceConstant
+    //     quantity: number
+    //     active?: boolean
+    // }
+
+    static addRequest(room: Room, terminal: StructureTerminal, requests: MarketRequest[], request: MarketRequest): ScreepsReturnCode {
+
+        // Feasibility check: Can we buy or sell this
+        let marketPrice = terminal.fetchPrice
+
+        return OK
     }
 }

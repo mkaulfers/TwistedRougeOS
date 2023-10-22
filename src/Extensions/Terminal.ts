@@ -21,6 +21,13 @@ declare global {
          *
          */
         buy(type: ResourceConstant, opts?: { quantity?: number, stddev?: number, range?: number, eMin?: number}): ScreepsReturnCode
+        /** Used to fetch the price of a resource. Averages over the days considered.
+         * @param resource The resource constant you wish to know the price of
+         * @param daysAgo Optional of starting day to pull data from. Defaults to today.
+         * @param dayRange Optional of how many days to consider. Defaults to three.
+         */
+        fetchPrice(resource: ResourceConstant, daysAgo?: number, dayRange?: number): MarketPrice
+
     }
 }
 
@@ -124,4 +131,26 @@ export default class Terminal_Extended extends StructureTerminal {
         return OK;
     }
 
+    fetchPrice(resource: ResourceConstant, daysAgo?: number, dayRange?: number): MarketPrice {
+        const history = Game.market.getHistory(resource);
+        if (!daysAgo || daysAgo > 14 || daysAgo < 0) daysAgo = 14
+        if (!dayRange || dayRange > 14 || dayRange < 1) dayRange = 3
+
+        // Extract values for averaging
+        let average = 0
+        let std = 0
+        for (let i = dayRange; i > 0; i--) {
+            average += history[daysAgo - i + 1].avgPrice
+            std += history[daysAgo - i + 1].stddevPrice
+        }
+
+        // Average
+        average = average / dayRange
+        std = std / dayRange
+
+        return {
+            price: average,
+            std: std
+        }
+    }
 }
