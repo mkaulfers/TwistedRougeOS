@@ -25,16 +25,4 @@ export default class MarketManager {
         let newProcess = new Process(processName, INDIFFERENT, task)
         global.scheduler.addProcess(newProcess)
     }
-
 }
-
-
-
-
-
-
-
-
-
-
-

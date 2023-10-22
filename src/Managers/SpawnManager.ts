@@ -11,9 +11,6 @@ export default class SpawnManager {
         const roomId = room.name
 
         const spawnMonitorTask = () => {
-            // Temp CPU tracking
-            let start = Game.cpu.getUsed()
-
             // TODO: Modify to allow for spawn-limiting due to security issues.
 
             let room = Game.rooms[roomId]
@@ -150,11 +147,6 @@ export default class SpawnManager {
             }
 
             room.cache.spawnSchedules = spawnSchedules;
-
-            // Temp CPU tracking
-            let end = Game.cpu.getUsed()
-            if (!room.memory.spawnManagerCpuPerTick) room.memory.spawnManagerCpuPerTick = []
-            room.memory.spawnManagerCpuPerTick.push(end - start)
             return RUNNING;
         }
 
