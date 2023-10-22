@@ -65,16 +65,10 @@ export default class SpawnQueue {
         const room = Game.rooms[this.roomId]
         console.log("Queue: ", this.queuedOrders.length, "Processing: ", this.processingOrders.length, "Failed: ", this.failedOrders.length)
 
-        if (this.queuedOrders.length == 0 && this.processingOrders.length == 0) {
-            console.log(`No orders to process at game time:` + Game.time)
-            return
-        }
+        if (this.queuedOrders.length == 0 && this.processingOrders.length == 0) return
 
         const availableSpawns = room.spawns.filter(spawn => !spawn.spawning);
-        if (availableSpawns.length == 0) {
-            console.log(`No available spawns at game time:` + Game.time)
-            return
-        }
+        if (availableSpawns.length == 0) return
 
         if (this.processingOrders.length > 0) {
             this.queuedOrders = [...this.processingOrders, ...this.failedOrders, ...this.queuedOrders];
@@ -97,13 +91,10 @@ export default class SpawnQueue {
 
             if (result == OK) {
                 this.dequeueOrder(order)
-                console.log(`SpawnQueue: Spawned ${order.name} with body cost of ${order.cost} at game time: ${Game.time}`)
             } else if (result == ERR_NOT_ENOUGH_ENERGY) {
                 this.startProcessing(order)
-                console.log(`SpawnQueue: Not enough energy to spawn ${order.name} with body cost of ${order.cost} at game time: ${Game.time}`)
             } else {
                 this.addFailed(order)
-                console.log(`SpawnQueue: Failed to spawn ${order.name} with error code: ${result}`)
             }
         }
     }

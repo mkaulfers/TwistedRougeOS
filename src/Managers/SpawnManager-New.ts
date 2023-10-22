@@ -16,55 +16,55 @@ const creepConfig: {
         spawnRule: SpawnRule
     }
 } = {
-    HARVESTER: {
+    harvester: {
         baseBody: [CARRY, MOVE, WORK, WORK],
         bodySegment: [WORK],
         partLimits: { maxWork: 5, maxCarry: 1 },
         spawnRule: new SpawnRule({})
     },
-    TRUCKER: {
+    trucker: {
         baseBody: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
         bodySegment: [MOVE, CARRY, CARRY],
         partLimits: { maxCarry: 25, maxMove: 25 },
         spawnRule: new SpawnRule({ HARVESTER: 1 })
     },
-    SCIENTIST: {
+    scientist: {
         baseBody: [CARRY, MOVE, WORK, WORK],
         bodySegment: [CARRY, WORK, WORK],
         partLimits: {},
         spawnRule: new SpawnRule({ HARVESTER: 1, TRUCKER: 1 })
     },
-    AGENT: {
+    agent: {
         baseBody: [MOVE],
         bodySegment: [],
         partLimits: { maxMove: 1 },
         spawnRule: new SpawnRule({ HARVESTER: 1, TRUCKER: 1 })
     },
-    ENGINEER: {
+    engineer: {
         baseBody: [CARRY, CARRY, MOVE, MOVE, WORK],
         bodySegment: [CARRY, WORK, MOVE, MOVE],
         partLimits: {},
         spawnRule: new SpawnRule({ HARVESTER: 1, TRUCKER: 1, AGENT: 1, SCIENTIST: 1, ENGINEER: 1 })
     },
-    ANCHOR: {
+    anchor: {
         baseBody: [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE],
         bodySegment: [CARRY],
         partLimits: {},
         spawnRule: new SpawnRule({ HARVESTER: 1, TRUCKER: 1, AGENT: 1, FILLER: 1, ENGINEER: 1, SCIENTIST: 1 })
     },
-    FILLER: {
+    filler: {
         baseBody: [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE],
         bodySegment: [CARRY],
         partLimits: {},
         spawnRule: new SpawnRule({ HARVESTER: 1, TRUCKER: 1, AGENT: 1, ENGINEER: 1, SCIENTIST: 1 })
     },
-    nHARVESTER: {
+    nHarvester: {
         baseBody: [CARRY, MOVE, WORK],
         bodySegment: [CARRY, MOVE, WORK],
         partLimits: {},
         spawnRule: new SpawnRule({})
     },
-    nTRUCKER: {
+    nTrucker: {
         baseBody: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE],
         bodySegment: [MOVE, CARRY],
         partLimits: {},
@@ -76,19 +76,19 @@ export default class SpawnManagerNew {
     spawnQueue: SpawnQueue
 
     private idealRoleCount: { [role: string]: (room: Room) => number } = {
-        HARVESTER: (room: Room): number => { return this.getIdealHarvesterCount(room) },
-        TRUCKER: (room: Room): number => { return this.getIdealTruckerCount(room) },
-        SCIENTIST: (room: Room) => { return this.getIdealScientistCount(room) },
-        ENGINEER: (room: Room) => { return this.getIdealEngineerCount(room) },
-        ANCHOR: (room: Room) => { return this.getIdealAnchorCount(room) },
-        FILLER: (room: Room) => { return this.getIdealFillerCount(room) },
-        AGENT: (room: Room) => { return this.getIdealAgentCount(room) },
-        nHARVESTER: (room: Room) => { return this.getIdealnHarvesterCount(room) },
-        nTRUCKER: (room: Room) => { return this.getIdealnTruckerCount(room) }
+        harvester: (room: Room): number => { return this.getIdealHarvesterCount(room) },
+        trucker: (room: Room): number => { return this.getIdealTruckerCount(room) },
+        scientist: (room: Room) => { return this.getIdealScientistCount(room) },
+        engineer: (room: Room) => { return this.getIdealEngineerCount(room) },
+        anchor: (room: Room) => { return this.getIdealAnchorCount(room) },
+        filler: (room: Room) => { return this.getIdealFillerCount(room) },
+        agent: (room: Room) => { return this.getIdealAgentCount(room) },
+        nHarvester: (room: Room) => { return this.getIdealnHarvesterCount(room) },
+        nTrucker: (room: Room) => { return this.getIdealnTruckerCount(room) }
     }
 
     private getIdealRoleCountFor(room: Room, role: Role): number {
-        const CACHE_EXPIRY_TICKS = 50;  // Refresh the cache every 50 ticks (adjust as needed)
+        const CACHE_EXPIRY_TICKS = 50;  // Refresh the cache every 50 ticks (adjust as needed);
 
         if (!global.roleCountCache) {
             global.roleCountCache = {};
@@ -96,13 +96,11 @@ export default class SpawnManagerNew {
 
         const cache = global.roleCountCache[room.name];
         if (cache && (Game.time - cache.timestamp < CACHE_EXPIRY_TICKS)) {
-            console.log(`Using cached role counts for room ${room.name}`);
             return cache.roleCounts[role];
         }
 
         const newRoleCounts: { [role: string]: number } = {};
         for (const roleKey in this.idealRoleCount) {
-            console.log('Computing role count for ' + roleKey)
             newRoleCounts[roleKey] = this.idealRoleCount[roleKey](room);
         }
 
@@ -181,8 +179,8 @@ export default class SpawnManagerNew {
 
     private getCreepBodyFor(role: Role, room: Room): BodyPartConstant[] {
         const energyCapacity = room.energyCapacityAvailable
-        const baseBody = creepConfig[role.toUpperCase()].baseBody
-        const bodySegment = creepConfig[role.toUpperCase()].bodySegment
+        const baseBody = creepConfig[role].baseBody
+        const bodySegment = creepConfig[role].bodySegment
         const baseBodyCost = Utility.bodyCost(baseBody)
         const segmentCost = Utility.bodyCost(bodySegment)
 
@@ -235,19 +233,14 @@ export default class SpawnManagerNew {
 
             const manager = global.spawnManager[room.name]
             const queue = manager.spawnQueue
+            const timeToNextCreepDeath = room.nextCreepToDie?.ticksToLive ?? 0
 
-            console.log("Queue Can Take Orders: " + queue.canTakeOrders)
-            if (queue.canTakeOrders) {
+            if (queue.canTakeOrders && timeToNextCreepDeath < 150 || room.stationedCreeps.all.length === 0) {
                 for (const role of Roles) {
 
                     const allCreeps = [...room.stationedCreeps.all];
-                    console.log("Role: " + role);
-
                     const idealCountForRole = manager.getIdealRoleCountFor(room, role as Role);
-                    console.log("Ideal Count: " + idealCountForRole);
-
-                    let currentCount = allCreeps.filter(creep => creep.memory.role === role.toLowerCase()).length;
-                    console.log("Current Count: " + currentCount);
+                    let currentCount = allCreeps.filter(creep => creep.memory.role === role).length;
 
                     if (currentCount < idealCountForRole) {
                         let order = new SpawnOrder(
