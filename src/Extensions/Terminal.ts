@@ -49,8 +49,9 @@ export default class Terminal_Extended extends StructureTerminal {
         if (this.store.energy < options.eMin) return ERR_NOT_ENOUGH_ENERGY;
 
         // Fetch price range
-        const history = Game.market.getHistory(type);
-        let minPrice = history[0]?.avgPrice - (history[0]?.stddevPrice * options.stddev)
+        const priceData = this.fetchPrice(type)
+        if (priceData.price === 0) return ERR_NOT_FOUND
+        let minPrice = priceData.price - (priceData.std * options.stddev)
         // TODO: Modify to be per resource
         if (minPrice == undefined) minPrice = 1;
 
@@ -99,8 +100,9 @@ export default class Terminal_Extended extends StructureTerminal {
         if (this.store.energy < options.eMin) return ERR_NOT_ENOUGH_ENERGY;
 
         // Fetch price range
-        const history = Game.market.getHistory(type);
-        let maxPrice = history[0]?.avgPrice + (history[0]?.stddevPrice * options.stddev)
+        const priceData = this.fetchPrice(type)
+        if (priceData.price === 0) return ERR_NOT_FOUND
+        let maxPrice = priceData.price + (priceData.std * options.stddev)
         // TODO: Modify to be per resource
         if (maxPrice == undefined) maxPrice = 10000;
 
@@ -130,26 +132,34 @@ export default class Terminal_Extended extends StructureTerminal {
         return OK;
     }
 
+    private _fetchPrice: {[Property in ResourceConstant]?: MarketPrice} | undefined;
     fetchPrice(resource: ResourceConstant, daysAgo?: number, dayRange?: number): MarketPrice {
-        const history = Game.market.getHistory(resource);
-        if (!daysAgo || daysAgo > 14 || daysAgo < 0) daysAgo = 14
-        if (!dayRange || dayRange > 14 || dayRange < 1) dayRange = 3
+        if (!this._fetchPrice) this._fetchPrice = {}
+        if (!this._fetchPrice[resource]) {
+            const history = Game.market.getHistory(resource);
+            if (!daysAgo || daysAgo > 14 || daysAgo < 0) daysAgo = 14
+            if (!dayRange || dayRange > 14 || dayRange < 1) dayRange = 3
 
-        // Extract values for averaging
-        let average = 0
-        let std = 0
-        for (let i = dayRange; i > 0; i--) {
-            average += history[daysAgo - i + 1].avgPrice
-            std += history[daysAgo - i + 1].stddevPrice
+            // Extract values for averaging
+            let average = 0
+            let std = 0
+            for (let i = dayRange; i > 0; i--) {
+                average += history[daysAgo - i + 1].avgPrice
+                std += history[daysAgo - i + 1].stddevPrice
+            }
+
+            // Average
+            average = average / dayRange
+            std = std / dayRange
+
+            this._fetchPrice[resource] = {
+                price: average,
+                std: std
+            }
         }
 
-        // Average
-        average = average / dayRange
-        std = std / dayRange
+        if (!this._fetchPrice[resource]) return { price: 0, std: 0 }
 
-        return {
-            price: average,
-            std: std
-        }
+        return this._fetchPrice[resource]!
     }
 }
