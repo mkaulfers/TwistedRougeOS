@@ -21,12 +21,14 @@ export default class MarketManager {
 
             if (Game.time % 25 === 0) {
                 // Market Request Handling
-                marketRequests = this.standardRequests(room, marketRequests, terminal, storage)
                 marketRequests = this.processRequests(room, marketRequests, terminal)
 
                 // Terminal Inventory Management
                 marketRequests = this.manageTerminal(room, marketRequests, terminal, storage)
+            }
 
+            if (Game.time % 500 === 0) {
+                marketRequests = this.standardRequests(room, marketRequests, terminal, storage)
             }
 
             return RUNNING
@@ -42,8 +44,13 @@ export default class MarketManager {
         // Excess energy selling
         if (storage.store.energy > 250000 && terminal.store.energy > 100000) {
             // Is one already created?
-                marketRequests.isPresent({resource: RESOURCE_ENERGY, action: 'sell'})
+            if (!marketRequests.isPresent({resource: RESOURCE_ENERGY, action: 'sell'})) {
+                marketRequests.add({
+                    action:
+                })
             }
+
+        }
 
         // Emergency Energy Requisition
 
