@@ -57,18 +57,5 @@ export default class MarketManager {
 
     }
 
-    // interface MarketRequest {
-    //     action: "buy" | "sell"
-    //     resource: ResourceConstant
-    //     quantity: number
-    //     active?: boolean
-    // }
 
-    static addRequest(room: Room, terminal: StructureTerminal, requests: MarketRequest[], request: MarketRequest): ScreepsReturnCode {
-
-        // Feasibility check: Can we buy or sell this
-        let marketPrice = terminal.fetchPrice
-
-        return OK
-    }
 }

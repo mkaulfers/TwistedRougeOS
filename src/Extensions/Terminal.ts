@@ -27,7 +27,6 @@ declare global {
          * @param dayRange Optional of how many days to consider. Defaults to three.
          */
         fetchPrice(resource: ResourceConstant, daysAgo?: number, dayRange?: number): MarketPrice
-
     }
 }
 
