@@ -19,13 +19,16 @@ export default class MarketRequests {
 
     /** Add request to the request list. */
     add(request: MarketRequest): ScreepsReturnCode {
+        // Pull Supporting
+        let room = Game.rooms[this.roomName]
+        if (!room) return ERR_NOT_OWNER
+        let terminal = room.terminal
+        if (!terminal) return ERR_NOT_FOUND
         // Feasibility check: Can we buy or sell this?
-        if (!this.viableRequest(request)) return ERR_NOT_ENOUGH_RESOURCES
 
+
+        this.requests.push(request)
         return OK
     }
 
-    private viableRequest(request: MarketRequest): boolean {
-        return true
-    }
 }
