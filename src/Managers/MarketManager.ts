@@ -3,6 +3,7 @@ import { FATAL, RUNNING } from "Constants/ProcessStateConstants";
 import { Process } from "../Models/Process"
 import { Utils } from "utils/Index";
 import MarketRequests from "Models/MarketRequests";
+import { DEBUG } from "Constants/LogConstants";
 export default class MarketManager {
     static schedule(room: Room) {
         const roomName  = room.name;
@@ -48,18 +49,42 @@ export default class MarketManager {
                 marketRequests.add({
                     action: 'sell',
                     resource: RESOURCE_ENERGY,
-                    quantity: terminal.store.energy - 20000
+                    quantity: terminal.store.energy - 20000 > 50000 ? 50000 : terminal.store.energy - 20000
                 })
             }
         }
 
         // Emergency Energy Requisition
-        if (storage.store.energy < 50000 && terminal.store.energy > 20000) {
-            if (!marketRequests.isPresent({resource: RESOURCE_ENERGY, action: 'sell'})) {
+        if (storage.store.energy < 50000 && terminal.store.energy >= 20000 && terminal.store.energy < 70000 - storage.store.energy) {
+            if (!marketRequests.isPresent({resource: RESOURCE_ENERGY, action: 'buy'})) {
                 marketRequests.add({
                     action: 'buy',
                     resource: RESOURCE_ENERGY,
                     quantity: 50000
+                })
+            }
+        }
+
+        // Temporary non energy selling. Remove once labs are made to work.
+        for (let resource in storage.store) {
+            if (!Utils.Typeguards.isResourceConstant(resource)) continue
+            if (resource === RESOURCE_ENERGY) continue
+
+            if (storage.store[resource] > 0 && !marketRequests.isPresent({resource: resource, action: 'sell'})) {
+                let result = marketRequests.add({
+                    action: 'sell',
+                    resource: resource,
+                    quantity: storage.store[resource] > 50000 ? 50000 : storage.store[resource],
+                    active: true
+                })
+
+                if (result !== OK) continue
+                if (!room.cache.anchorRequests) room.cache.anchorRequests = []
+                room.cache.anchorRequests.push({
+                    supplyId: storage.id,
+                    targetId: terminal.id,
+                    resource: resource,
+                    qty: storage.store[resource] > 50000 ? 50000 : storage.store[resource]
                 })
             }
         }
@@ -130,7 +155,8 @@ export default class MarketManager {
         let qty = terminal.store[request.resource]
 
         switch (true) {
-            case request.action === 'buy' && qty === request.quantity:
+            case request.resource === RESOURCE_ENERGY && request.action === 'buy' && qty - 20000 >= request.quantity:
+            case request.action === 'buy' && qty >= request.quantity:
             case request.action === 'sell' && qty === 0:
                 return true
         }
