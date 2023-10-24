@@ -162,7 +162,7 @@ export class Anchor extends CreepRole {
                             supply = storage
                             break;
                         // Terminal: Take energy from storage to fill terminal when energy stores exist at a decent level
-                        case terminal && storage && terminal.store.energy < 20000 && terminal.store.getFreeCapacity() > creep.store.getCapacity() && storage.store.energy > 100000:
+                        case terminal && storage && terminal.store.energy < 20000 && terminal.store.getFreeCapacity() > creep.store.getCapacity() && storage.store.energy > 0:
                             anchorRequest = {
                                 supplyId: storage!.id,
                                 targetId: terminal!.id,
