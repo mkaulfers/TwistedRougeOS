@@ -78,7 +78,7 @@ export default class Terminal_Extended extends StructureTerminal {
 
         // Sell the resource
         Utils.Logger.log(`Sell ${type} bestOrder: ${bestOrder.id}, ${bestOrder.price}, ${bestOrder.amount}, dist: ${bestOrder.roomName ? Game.map.getRoomLinearDistance(this.room.name, bestOrder.roomName, true) : undefined}.`, DEBUG)
-        if (Memory.autoMarket === true) return Game.market.deal(bestOrder.id, Math.min(bestOrder.amount, options.quantity), this.room.name);
+        if (Memory.autoMarket === true) return Game.market.deal(bestOrder.id, Math.min(bestOrder.amount, options.quantity, this.store[type]), this.room.name);
         return OK;
     }
 
