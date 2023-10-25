@@ -231,7 +231,7 @@ export class Anchor extends CreepRole {
                         if (anchorRequest && !anchorRequest.targetId || !anchorRequest.resource) return FAILED
 
                         // Record anchorRequest for next tick
-                        if (anchorRequests.indexOf(anchorRequest) !== 0) anchorRequests.unshift(anchorRequest)
+                        if (!anchorRequests.includes(anchorRequest)) anchorRequests.unshift(anchorRequest)
 
                         // Determine useability of qty and take from supply
                         let qty: number | undefined
