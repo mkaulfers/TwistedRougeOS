@@ -11,7 +11,6 @@ export default class SpawnManager {
         const roomId = room.name
 
         const spawnMonitorTask = () => {
-
             // TODO: Modify to allow for spawn-limiting due to security issues.
 
             let room = Game.rooms[roomId]
